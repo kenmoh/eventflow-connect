@@ -15,7 +15,7 @@ export type Room = {
   hotelId: ID;
   type: string;
   description: string;
-  price: number; // per night
+  price: number;
   capacity: number;
   image: string;
 };
@@ -32,7 +32,6 @@ export type Hall = {
 export type Pkg = {
   id: ID;
   name: string;
-  emoji: string;
   description: string;
   items: string[];
   pricePerPerson: number;
@@ -46,10 +45,14 @@ export type RentalItem = {
   category: RentalCategory;
   pricePerDay: number;
   ownership: 'internal' | 'vendor';
-  depositPct: number; // 100 internal, 60-70 vendor
+  depositPct: number;
   image: string;
   description: string;
   available: boolean;
+  // Inventory (only meaningful for internal)
+  stockTotal: number;
+  stockAvailable: number;
+  location: string;
 };
 
 export type CartLine = {
@@ -77,5 +80,58 @@ export type Booking = {
 export type Branding = {
   brandName: string;
   tagline: string;
-  primaryAccent: string; // hsl values for --accent
+  primaryAccent: string;
+};
+
+export type AdminTab =
+  | 'branding' | 'content' | 'hotels' | 'rooms' | 'halls'
+  | 'packages' | 'rentals' | 'inventory' | 'bookings' | 'employees';
+
+export type Role = {
+  id: ID;
+  name: string;
+  tabs: AdminTab[];
+};
+
+export type Employee = {
+  id: ID;
+  name: string;
+  email: string;
+  password: string; // demo only
+  roleId: ID;
+};
+
+export type InventoryMovement = {
+  id: ID;
+  itemId: ID;
+  type: 'out' | 'in' | 'damaged' | 'restock';
+  qty: number;
+  note: string;
+  reference?: string;
+  at: string;
+};
+
+export type SiteContent = {
+  hero: {
+    eyebrow: string;
+    title1: string;
+    title2: string;
+    title3: string;
+    description: string;
+    primaryCta: string;
+    secondaryCta: string;
+  };
+  stats: { value: string; label: string }[];
+  ticker: string[];
+  reservations: { eyebrow: string; title: string };
+  packagesSection: { eyebrow: string; title: string; copy: string };
+  rentalsSection: { eyebrow: string; title: string };
+  howItWorks: { title: string; eyebrow: string; steps: { title: string; copy: string }[] };
+  footer: {
+    blurb: string;
+    contactEmail: string;
+    contactPhone: string;
+    contactCity: string;
+    rightsLine: string;
+  };
 };
