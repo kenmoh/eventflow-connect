@@ -132,8 +132,7 @@ export default function HotelDetail() {
                   {packages.map(p => (
                     <button key={p.id} onClick={() => setSelectedPkg(p.id === selectedPkg ? '' : p.id)}
                       className={`text-left p-5 border ${selectedPkg === p.id ? 'border-gold bg-secondary' : 'border-border hover:bg-secondary/50'}`}>
-                      <div className="text-2xl">{p.emoji}</div>
-                      <div className="font-display text-xl mt-2">{p.name}</div>
+                      <div className="font-display text-xl">{p.name}</div>
                       <p className="text-xs text-muted-foreground mt-1">{p.description}</p>
                       <div className="mt-3 font-display text-lg">{fmt(p.pricePerPerson)} <span className="text-xs text-muted-foreground font-sans">/pp</span></div>
                     </button>

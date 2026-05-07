@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import heroRentals from '@/assets/hero-rentals.jpg';
 
 const CATS: RentalCategory[] = ['Sound', 'Lighting', 'Seating', 'Tents', 'Decor'];
-const blank = (): RentalItem => ({ id: crypto.randomUUID(), name: '', category: 'Sound', pricePerDay: 100, ownership: 'internal', depositPct: 100, image: heroRentals, description: '', available: true });
+const blank = (): RentalItem => ({ id: crypto.randomUUID(), name: '', category: 'Sound', pricePerDay: 50000, ownership: 'internal', depositPct: 100, image: heroRentals, description: '', available: true, stockTotal: 1, stockAvailable: 1, location: '' });
 
 export default function AdminRentals() {
   const { store, set } = useStore();
