@@ -1,17 +1,24 @@
 import SiteLayout from '@/components/SiteLayout';
-import { useStore, makeReference, fmt } from '@/lib/store';
+import { useStoreBase, makeReference, fmt } from '@/lib/store';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { reservationSchema } from '@/lib/validation';
+import { useConfirm } from '@/components/ConfirmProvider';
 
 export default function HotelDetail() {
   const { id } = useParams();
-  const { store, addBooking } = useStore();
+  const hotels = useStoreBase(s => s.hotels);
+  const allRooms = useStoreBase(s => s.rooms);
+  const allHalls = useStoreBase(s => s.halls);
+  const packages = useStoreBase(s => s.packages);
+  const addBooking = useStoreBase(s => s.addBooking);
   const nav = useNavigate();
-  const hotel = store.hotels.find(h => h.id === id);
-  const rooms = store.rooms.filter(r => r.hotelId === id);
-  const halls = store.halls.filter(h => h.hotelId === id);
-  const packages = store.packages;
+  const { alert: alertDialog } = useConfirm();
+
+  const hotel = hotels.find(h => h.id === id);
+  const rooms = allRooms.filter(r => r.hotelId === id);
+  const halls = allHalls.filter(h => h.hotelId === id);
 
   const [tab, setTab] = useState<'rooms' | 'halls'>('rooms');
   const [selectedRoom, setSelectedRoom] = useState<string>(rooms[0]?.id || '');
@@ -22,6 +29,8 @@ export default function HotelDetail() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [paying, setPaying] = useState(false);
 
   if (!hotel) {
     return (
@@ -42,22 +51,40 @@ export default function HotelDetail() {
     : ((hall?.pricePerHour || 0) * 4) + (pkg ? pkg.pricePerPerson * people : 0);
   const deposit = Math.round(subtotal * 0.5);
 
-  const submit = () => {
-    if (!name || !email || !date) { toast.error('Please complete your details.'); return; }
+  const submit = async () => {
+    const res = reservationSchema.safeParse({ name, email, phone, date, people });
+    if (!res.success) {
+      const map: Record<string, string> = {};
+      res.error.issues.forEach(i => { map[i.path.join('.')] = i.message; });
+      setErrors(map);
+      return;
+    }
+    setErrors({});
+    setPaying(true);
+    await new Promise(r => setTimeout(r, 1200));
+    setPaying(false);
+
     const ref = makeReference();
     addBooking({
       reference: ref,
       createdAt: new Date().toISOString(),
       type: 'reservation',
       customer: { name, email, phone },
-      details: { hotel: hotel.name, room: room?.type, hall: hall?.name, pkg: pkg?.name, people, date },
-      total: subtotal,
-      amountPaid: deposit,
-      balanceDue: subtotal - deposit,
-      paymentStatus: 'deposit',
-      fulfillment: 'pending',
+      details: {
+        hotel: hotel.name,
+        ...(tab === 'rooms' ? { room: room?.type } : { hall: hall?.name, package: pkg?.name, people }),
+        date,
+      },
+      total: subtotal, amountPaid: deposit, balanceDue: subtotal - deposit,
+      paymentStatus: 'deposit', fulfillment: 'pending',
     });
-    toast.success('Booking confirmed.');
+
+    await alertDialog({
+      title: 'Reservation confirmed',
+      description: `Reference ${ref}. Deposit of ${fmt(deposit)} captured via Paystack (test mode).`,
+      confirmText: 'View booking',
+    });
+    toast.success('Reservation confirmed.');
     nav(`/track?ref=${ref}`);
   };
 
@@ -65,8 +92,8 @@ export default function HotelDetail() {
     <SiteLayout>
       <section className="pt-28">
         <div className="relative h-[70vh] bg-ink">
-          <img src={hotel.image} alt={hotel.name} className="w-full h-full object-cover opacity-70" width={1920} height={1080}/>
-          <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/30 to-transparent" />
+          <img src={hotel.image} alt={hotel.name} className="w-full h-full object-cover opacity-60" width={1920} height={1080}/>
+          <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/40 to-transparent" />
           <div className="absolute bottom-0 inset-x-0 mx-auto max-w-[1400px] px-6 lg:px-10 pb-12 text-bone">
             <div className="text-[10px] uppercase tracking-[0.4em] text-gold">{hotel.location}</div>
             <h1 className="font-display text-6xl md:text-8xl mt-3">{hotel.name}</h1>
@@ -80,7 +107,7 @@ export default function HotelDetail() {
           <div className="flex gap-px bg-border w-fit mb-8">
             {(['rooms', 'halls'] as const).map(t => (
               <button key={t} onClick={() => setTab(t)}
-                className={`px-6 py-3 text-xs uppercase tracking-[0.25em] ${tab === t ? 'bg-ink text-bone' : 'bg-background hover:bg-secondary'}`}>
+                className={`px-6 py-3 text-xs uppercase tracking-[0.25em] ${tab === t ? 'bg-gold text-ink' : 'bg-card hover:bg-secondary'}`}>
                 {t}
               </button>
             ))}
@@ -103,6 +130,7 @@ export default function HotelDetail() {
                   </div>
                 </button>
               ))}
+              {rooms.length === 0 && <p className="text-muted-foreground">No rooms listed yet.</p>}
             </div>
           )}
 
@@ -123,6 +151,7 @@ export default function HotelDetail() {
                     </div>
                   </button>
                 ))}
+                {halls.length === 0 && <p className="text-muted-foreground">No halls listed yet.</p>}
               </div>
 
               <div className="mt-12">
@@ -143,25 +172,20 @@ export default function HotelDetail() {
           )}
         </div>
 
-        {/* Booking panel */}
         <aside className="lg:col-span-5">
-          <div className="lg:sticky lg:top-28 border border-border bg-background p-8">
+          <div className="lg:sticky lg:top-28 border border-border bg-card p-8">
             <div className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground mb-3">Reserve</div>
             <h3 className="font-display text-3xl mb-6">Three minutes, no account.</h3>
 
             <div className="grid grid-cols-2 gap-3 mb-3">
-              <Field label="Date">
-                <input type="date" value={date} onChange={e => setDate(e.target.value)} className="field" />
-              </Field>
+              <Field label="Date" error={errors.date}><input type="date" value={date} onChange={e => setDate(e.target.value)} className="field" /></Field>
               {tab === 'halls' && (
-                <Field label="People">
-                  <input type="number" min={1} value={people} onChange={e => setPeople(+e.target.value || 1)} className="field" />
-                </Field>
+                <Field label="People" error={errors.people}><input type="number" min={1} value={people} onChange={e => setPeople(+e.target.value || 1)} className="field" /></Field>
               )}
             </div>
-            <Field label="Full name"><input value={name} onChange={e => setName(e.target.value)} className="field" /></Field>
-            <Field label="Email"><input type="email" value={email} onChange={e => setEmail(e.target.value)} className="field" /></Field>
-            <Field label="Phone"><input value={phone} onChange={e => setPhone(e.target.value)} className="field" /></Field>
+            <Field label="Full name" error={errors.name}><input value={name} onChange={e => setName(e.target.value)} className="field" /></Field>
+            <Field label="Email" error={errors.email}><input type="email" value={email} onChange={e => setEmail(e.target.value)} className="field" /></Field>
+            <Field label="Phone" error={errors.phone}><input value={phone} onChange={e => setPhone(e.target.value)} className="field" /></Field>
 
             <div className="mt-6 space-y-2 text-sm">
               <Row k="Subtotal" v={fmt(subtotal)} />
@@ -169,8 +193,9 @@ export default function HotelDetail() {
               <Row k="Balance on arrival" v={fmt(subtotal - deposit)} muted />
             </div>
 
-            <button onClick={submit} className="mt-6 w-full bg-ink text-bone py-4 text-xs uppercase tracking-[0.3em] hover:bg-ink/90 transition">
-              Confirm — pay deposit
+            <button onClick={submit} disabled={paying}
+              className="mt-6 w-full bg-gold text-ink py-4 text-xs uppercase tracking-[0.3em] hover:bg-gold/90 transition disabled:opacity-60">
+              {paying ? 'Connecting to Paystack…' : `Pay ${fmt(deposit)} deposit with Paystack`}
             </button>
             <p className="mt-3 text-[10px] uppercase tracking-[0.25em] text-muted-foreground text-center">
               Tracked by email · No sign-up
@@ -178,17 +203,16 @@ export default function HotelDetail() {
           </div>
         </aside>
       </section>
-
-      <style>{`.field { width: 100%; background: transparent; border: 1px solid hsl(var(--border)); padding: 0.7rem 0.8rem; outline: none; font: inherit; color: inherit; } .field:focus { border-color: hsl(var(--gold)); }`}</style>
     </SiteLayout>
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
   return (
     <label className="block mb-3">
       <span className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground block mb-1">{label}</span>
       {children}
+      {error && <span className="text-destructive text-xs mt-1 block">{error}</span>}
     </label>
   );
 }
