@@ -3,7 +3,8 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { StoreProvider } from "@/lib/store";
+import { BrandingEffects } from "@/lib/store";
+import { ConfirmProvider } from "@/components/ConfirmProvider";
 import Index from "./pages/Index";
 import Hotels from "./pages/Hotels";
 import HotelDetail from "./pages/HotelDetail";
@@ -18,8 +19,9 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <StoreProvider>
+    <ConfirmProvider>
       <TooltipProvider>
+        <BrandingEffects />
         <Toaster />
         <Sonner />
         <BrowserRouter>
@@ -36,7 +38,7 @@ const App = () => (
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
-    </StoreProvider>
+    </ConfirmProvider>
   </QueryClientProvider>
 );
 
