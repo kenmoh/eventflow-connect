@@ -1,4 +1,4 @@
-import { useStoreBase, fmt } from '@/lib/store';
+import { useStoreBase, fmt, useCurrentEmployee } from '@/lib/store';
 import { AdminPage, Field, inputCls, PrimaryBtn, GhostBtn } from './_shared';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -10,13 +10,14 @@ export default function AdminInventory() {
   const movements = useStoreBase(s => s.movements);
   const set = useStoreBase(s => s.set);
   const addMovement = useStoreBase(s => s.addMovement);
+  const me = useCurrentEmployee();
   const { confirm } = useConfirm();
 
   const internal = rentals.filter(r => r.ownership === 'internal');
   const lowStock = internal.filter(r => r.stockAvailable === 0 || r.stockAvailable <= r.stockTotal * 0.2);
 
   const [edit, setEdit] = useState<{ id: string; total: number; available: number; location: string } | null>(null);
-  const [mov, setMov] = useState<{ itemId: string; type: InventoryMovement['type']; qty: number; note: string } | null>(null);
+  const [mov, setMov] = useState<{ itemId: string; type: InventoryMovement['type']; qty: number; note: string; location: string; handledBy: string } | null>(null);
 
   const saveStock = () => {
     if (!edit) return;
@@ -37,7 +38,10 @@ export default function AdminInventory() {
       if (!ok) return;
     }
     set('rentals', rentals.map(x => x.id === r.id ? { ...x, stockAvailable: newAvail, stockTotal: mov.type === 'damaged' ? Math.max(0, x.stockTotal - mov.qty) : x.stockTotal } : x));
-    addMovement({ id: crypto.randomUUID(), itemId: r.id, type: mov.type, qty: mov.qty, note: mov.note, at: new Date().toISOString() });
+    addMovement({
+      id: crypto.randomUUID(), itemId: r.id, type: mov.type, qty: mov.qty, note: mov.note,
+      location: mov.location, handledBy: mov.handledBy, at: new Date().toISOString(),
+    });
     setMov(null);
     toast.success('Movement logged.');
   };
@@ -70,7 +74,7 @@ export default function AdminInventory() {
                   <div className="h-full bg-gold" style={{ width: `${pct}%` }} />
                 </div>
               </div>
-              <GhostBtn onClick={() => setMov({ itemId: r.id, type: 'out', qty: 1, note: '' })}>Move</GhostBtn>
+              <GhostBtn onClick={() => setMov({ itemId: r.id, type: 'out', qty: 1, note: '', location: '', handledBy: me?.name || '' })}>Move</GhostBtn>
               <GhostBtn onClick={() => setEdit({ id: r.id, total: r.stockTotal, available: r.stockAvailable, location: r.location })}>Edit</GhostBtn>
             </div>
           );
@@ -83,11 +87,16 @@ export default function AdminInventory() {
         {movements.slice(0, 30).map(m => {
           const r = rentals.find(x => x.id === m.itemId);
           return (
-            <div key={m.id} className="grid grid-cols-[120px_1fr_auto_auto] gap-4 p-4 items-center text-sm">
+            <div key={m.id} className="grid grid-cols-[140px_1fr_auto_auto] gap-4 p-4 items-center text-sm">
               <span className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">{new Date(m.at).toLocaleString()}</span>
               <div>
                 <div className="font-medium">{r?.name ?? m.itemId}</div>
-                <div className="text-xs text-muted-foreground">{m.note} {m.reference && `· ${m.reference}`}</div>
+                <div className="text-xs text-muted-foreground">
+                  {m.note}
+                  {m.location && ` · ${m.type === 'in' ? 'from' : 'to'} ${m.location}`}
+                  {m.handledBy && ` · by ${m.handledBy}`}
+                  {m.reference && ` · ${m.reference}`}
+                </div>
               </div>
               <span className={`text-[10px] uppercase tracking-[0.3em] px-2 py-1 ${m.type === 'out' || m.type === 'damaged' ? 'bg-destructive/20 text-destructive' : 'bg-gold/20 text-gold'}`}>{m.type}</span>
               <span className="font-display">{m.type === 'out' || m.type === 'damaged' ? '−' : '+'}{m.qty}</span>
@@ -122,6 +131,12 @@ export default function AdminInventory() {
               </select>
             </Field>
             <Field label="Quantity"><input type="number" min={1} className={inputCls} value={mov.qty} onChange={e => setMov({ ...mov, qty: +e.target.value })}/></Field>
+            <Field label={mov.type === 'in' ? 'Returned from' : 'Going to'}>
+              <input className={inputCls} value={mov.location} onChange={e => setMov({ ...mov, location: e.target.value })} placeholder="Venue / address"/>
+            </Field>
+            <Field label="Handled by">
+              <input className={inputCls} value={mov.handledBy} onChange={e => setMov({ ...mov, handledBy: e.target.value })} placeholder="Employee name"/>
+            </Field>
             <div className="md:col-span-2"><Field label="Note"><input className={inputCls} value={mov.note} onChange={e => setMov({ ...mov, note: e.target.value })} placeholder="Reason / event"/></Field></div>
           </div>
           <div className="mt-6 flex gap-2 justify-end">

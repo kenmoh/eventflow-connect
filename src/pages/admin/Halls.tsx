@@ -6,14 +6,21 @@ import type { Hall } from '@/lib/types';
 import { toast } from 'sonner';
 import heroBallroom from '@/assets/hero-ballroom.jpg';
 import { useConfirm } from '@/components/ConfirmProvider';
+import { X } from 'lucide-react';
 
-const blank = (hotelId: string): Hall => ({ id: crypto.randomUUID(), hotelId, name: '', capacity: 50, pricePerHour: 80000, image: heroBallroom });
+const SUGGESTED = ['PA System', 'Mints', 'Notepad', 'Pen', 'Flip Chart', 'Projector', 'Wireless Mics', 'Stage', 'Whiteboard', 'Coffee station'];
+
+const blank = (hotelId: string): Hall => ({
+  id: crypto.randomUUID(), hotelId, name: '', capacity: 50, pricePerHour: 80000,
+  image: heroBallroom, amenities: [],
+});
 
 export default function AdminHalls() {
   const halls = useStoreBase(s => s.halls);
   const hotels = useStoreBase(s => s.hotels);
   const set = useStoreBase(s => s.set);
   const [editing, setEditing] = useState<Hall | null>(null);
+  const [amenityInput, setAmenityInput] = useState('');
   const { confirm } = useConfirm();
 
   const save = () => {
@@ -24,6 +31,18 @@ export default function AdminHalls() {
   };
   const remove = async (id: string) => {
     if (await confirm({ title: 'Delete hall?', destructive: true, confirmText: 'Delete' })) set('halls', halls.filter(h => h.id !== id));
+  };
+
+  const addAmenity = (val: string) => {
+    if (!editing || !val.trim()) return;
+    const a = val.trim();
+    if (editing.amenities.includes(a)) return;
+    setEditing({ ...editing, amenities: [...editing.amenities, a] });
+    setAmenityInput('');
+  };
+  const removeAmenity = (a: string) => {
+    if (!editing) return;
+    setEditing({ ...editing, amenities: editing.amenities.filter(x => x !== a) });
   };
 
   return (
@@ -37,6 +56,11 @@ export default function AdminHalls() {
               <div>
                 <div className="font-display text-xl">{h.name}</div>
                 <div className="text-xs text-muted-foreground">{hotel?.name} · capacity {h.capacity}</div>
+                {h.amenities.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {h.amenities.map(a => <span key={a} className="chip">{a}</span>)}
+                  </div>
+                )}
               </div>
               <div className="font-display">{fmt(h.pricePerHour)}/hr</div>
               <div className="flex gap-2">
@@ -59,6 +83,31 @@ export default function AdminHalls() {
             <Field label="Name"><input className={inputCls} value={editing.name} onChange={e => setEditing({ ...editing, name: e.target.value })}/></Field>
             <Field label="Capacity"><input type="number" className={inputCls} value={editing.capacity} onChange={e => setEditing({ ...editing, capacity: +e.target.value })}/></Field>
             <Field label="Price / hour (NGN)"><input type="number" className={inputCls} value={editing.pricePerHour} onChange={e => setEditing({ ...editing, pricePerHour: +e.target.value })}/></Field>
+            <div className="md:col-span-2">
+              <Field label="Amenities">
+                <div className="flex gap-2">
+                  <input className={inputCls} value={amenityInput}
+                    onChange={e => setAmenityInput(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addAmenity(amenityInput); } }}
+                    placeholder="Type an amenity and press Enter…"/>
+                  <GhostBtn type="button" onClick={() => addAmenity(amenityInput)}>Add</GhostBtn>
+                </div>
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {SUGGESTED.filter(s => !editing.amenities.includes(s)).map(s => (
+                    <button key={s} type="button" onClick={() => addAmenity(s)} className="chip hover:bg-secondary">+ {s}</button>
+                  ))}
+                </div>
+                <div className="mt-3 flex flex-wrap gap-1">
+                  {editing.amenities.map(a => (
+                    <span key={a} className="chip-gold chip inline-flex items-center gap-1">
+                      {a}
+                      <button type="button" onClick={() => removeAmenity(a)}><X className="w-3 h-3"/></button>
+                    </span>
+                  ))}
+                  {editing.amenities.length === 0 && <span className="text-xs text-muted-foreground">None added.</span>}
+                </div>
+              </Field>
+            </div>
             <div className="md:col-span-2"><ImagePicker value={editing.image} onChange={v => setEditing({ ...editing, image: v })}/></div>
           </div>
           <div className="mt-6 flex gap-2 justify-end">
