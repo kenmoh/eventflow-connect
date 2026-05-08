@@ -94,6 +94,15 @@ export default function HotelDetail() {
     );
   }
 
+  const removeLine = (l: BookingLine) => {
+    if (l.kind === 'room') setRoomId('');
+    else if (l.kind === 'hall') setHallId('');
+    else if (l.kind === 'package') {
+      const p = packages.find(x => x.name === l.name);
+      if (p) setPicks(prev => prev.filter(x => x.id !== p.id));
+    }
+  };
+
   const togglePick = (pkgId: string) => {
     setPicks(p => p.some(x => x.id === pkgId)
       ? p.filter(x => x.id !== pkgId)
