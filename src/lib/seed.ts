@@ -1,6 +1,7 @@
 import type {
   Hotel, Room, Hall, Pkg, RentalItem, Branding,
   Role, Employee, SiteContent, Booking, InventoryMovement,
+  SeatArrangement, FAQ,
 } from './types';
 import heroBallroom from '@/assets/hero-ballroom.jpg';
 import heroRentals from '@/assets/hero-rentals.jpg';
@@ -11,6 +12,10 @@ export const seedBranding: Branding = {
   primaryAccent: '38 60% 56%',
 };
 
+const legal = (title: string, body: string): SiteContent['about'] => ({
+  title, updatedAt: new Date().toISOString(), body,
+});
+
 export const seedContent: SiteContent = {
   hero: {
     eyebrow: 'A consultancy · Reservations & rentals',
@@ -18,7 +23,7 @@ export const seedContent: SiteContent = {
     title2: 'Rent what you need.',
     title3: 'Pay no mind to the rest.',
     description:
-      "All Brothers Consult is the quiet middleman between you, Nigeria's most considered hotels, and a roster of trusted event vendors. No accounts. No friction. A booking in three minutes.",
+      "All Brothers Consult is the quiet middleman between you, Nigeria's most considered hotels, and a roster of trusted event partners. No accounts. No friction. A booking in three minutes.",
     primaryCta: 'Browse hotels',
     secondaryCta: 'Rent equipment',
   },
@@ -32,8 +37,8 @@ export const seedContent: SiteContent = {
   reservations: { eyebrow: '01 — Reservations', title: 'Hotels, halls and quiet boardrooms.' },
   packagesSection: {
     eyebrow: '02 — Packages',
-    title: 'Three meeting moods. No menus.',
-    copy: 'We replaced long F&B menus with three considered packages, priced per person. Choose, confirm, done.',
+    title: 'Coffee breaks and full menus.',
+    copy: 'From quick coffee to plated buffets, every package is curated and priced per person.',
   },
   rentalsSection: { eyebrow: '03 — Rentals', title: 'Sound, lighting, seating — ready to roll.' },
   howItWorks: {
@@ -52,6 +57,14 @@ export const seedContent: SiteContent = {
     contactCity: 'Lagos · Abuja · Port Harcourt',
     rightsLine: 'No accounts. Just bookings.',
   },
+  about: legal('About All Brothers Consult',
+    'All Brothers Consult is a hospitality consultancy that connects clients to a curated roster of hotels and event partners across Nigeria.\n\nWe were founded on a simple idea — booking a great venue or a good sound system should not require ten phone calls. We do the legwork, you get the room.'),
+  privacy: legal('Privacy Policy',
+    'We collect only the information needed to fulfil your booking: name, email, phone, event details, and payment metadata returned by Paystack. We never sell your data.\n\nYou can request deletion of your records at any time by emailing hello@allbrothersconsult.ng.'),
+  terms: legal('Terms of Service',
+    'By placing a booking you agree to the rates and policies displayed at checkout. Deposits are non-refundable beyond 14 days from the event date. Partner-fulfilled items are subject to the partner’s own terms, communicated before confirmation.'),
+  refund: legal('Refund Policy',
+    'Cancellations made more than 14 days before the event date are eligible for a full refund of the deposit, less payment processor fees.\n\nCancellations within 14 days are non-refundable, but the deposit can be transferred to a future booking within 6 months.'),
 };
 
 export const seedHotels: Hotel[] = [
@@ -67,35 +80,67 @@ export const seedRooms: Room[] = [
   { id: 'r4', hotelId: 'h3', type: 'Indigo Garden Room', description: 'Opens onto a private courtyard.', price: 140000, capacity: 2, image: heroBallroom },
 ];
 
+const stdAmenities = ['PA System', 'Mints', 'Notepad', 'Pen', 'Flip Chart', 'Projector'];
+
 export const seedHalls: Hall[] = [
-  { id: 'hl1', hotelId: 'h1', name: 'The Conservatory', capacity: 180, pricePerHour: 120000, image: heroBallroom },
-  { id: 'hl2', hotelId: 'h1', name: 'Boardroom No. 4', capacity: 14, pricePerHour: 55000, image: heroBallroom },
-  { id: 'hl3', hotelId: 'h2', name: 'Salon Doré', capacity: 60, pricePerHour: 80000, image: heroBallroom },
+  { id: 'hl1', hotelId: 'h1', name: 'The Conservatory', capacity: 180, pricePerHour: 120000, image: heroBallroom, amenities: [...stdAmenities, 'Stage', 'Wireless Mics'] },
+  { id: 'hl2', hotelId: 'h1', name: 'Boardroom No. 4', capacity: 14, pricePerHour: 55000, image: heroBallroom, amenities: ['Notepad', 'Pen', 'Flip Chart', 'Projector', 'Mints'] },
+  { id: 'hl3', hotelId: 'h2', name: 'Salon Doré', capacity: 60, pricePerHour: 80000, image: heroBallroom, amenities: ['PA System', 'Projector', 'Notepad', 'Pen'] },
 ];
 
+const ts = (label: string, time: string) => ({ id: crypto.randomUUID(), label, time });
+
 export const seedPackages: Pkg[] = [
-  { id: 'p1', name: 'Morning Star', description: 'A quiet coffee break to begin the day.',
-    items: ['Single-origin coffee', 'Loose-leaf teas', 'Fresh pastries', 'Seasonal fruit'], pricePerPerson: 12000 },
-  { id: 'p2', name: 'Executive Boost', description: 'Coffee, savouries and a sharper afternoon.',
-    items: ['Espresso bar', 'Charcuterie & cheese', 'Mini sandwiches', 'Sparkling water'], pricePerPerson: 22000 },
-  { id: 'p3', name: 'Premium Boardroom', description: 'A full-day boardroom experience.',
-    items: ['All-day coffee', 'Plated lunch', 'Petit fours', 'Still & sparkling'], pricePerPerson: 48000 },
+  { id: 'p1', hotelId: 'h1', kind: 'coffee', name: 'Morning Star', description: 'A quiet coffee break to begin the day.',
+    items: ['Single-origin coffee', 'Loose-leaf teas', 'Fresh pastries', 'Seasonal fruit'], pricePerPerson: 12000,
+    timeSlots: [ts('Morning', '10:00'), ts('Late morning', '11:30')] },
+  { id: 'p2', hotelId: 'h1', kind: 'coffee', name: 'Executive Boost', description: 'Coffee, savouries and a sharper afternoon.',
+    items: ['Espresso bar', 'Charcuterie & cheese', 'Mini sandwiches', 'Sparkling water'], pricePerPerson: 22000,
+    timeSlots: [ts('Midday', '12:00'), ts('Afternoon', '15:00')] },
+  { id: 'p3', hotelId: 'h1', kind: 'food', name: 'Buffet Elysium', description: 'Plated and buffet lunch, served to your room.',
+    items: ['Three mains', 'Two sides', 'Dessert table', 'Soft drinks'], pricePerPerson: 38000,
+    timeSlots: [ts('Lunch', '13:00'), ts('Dinner', '19:00')] },
+  { id: 'p4', hotelId: 'h2', kind: 'food', name: 'Kings À la Carte', description: 'Chef-led, course-by-course dining.',
+    items: ['Amuse-bouche', 'Three courses', 'Wine pairing', 'Coffee service'], pricePerPerson: 65000,
+    timeSlots: [ts('Lunch', '13:00'), ts('Dinner', '19:30')] },
+  { id: 'p5', hotelId: 'h2', kind: 'coffee', name: 'Solène Sunrise', description: 'Pastries and pour-over to start.',
+    items: ['Pour-over coffee', 'Fresh juices', 'Viennoiserie'], pricePerPerson: 14000,
+    timeSlots: [ts('Morning', '08:00')] },
+  { id: 'p6', hotelId: 'h3', kind: 'food', name: 'Indigo Garden Lunch', description: 'Light, garden-side three-course lunch.',
+    items: ['Salad bar', 'Two mains', 'Dessert', 'Iced tea'], pricePerPerson: 32000,
+    timeSlots: [ts('Lunch', '12:30')] },
 ];
 
 export const seedRentals: RentalItem[] = [
   { id: 'rt1', name: 'Line Array Sound System', category: 'Sound', pricePerDay: 280000, ownership: 'internal', depositPct: 100, image: heroRentals, description: 'Studio-grade sound for up to 600 guests.', available: true, stockTotal: 4, stockAvailable: 3, location: 'Warehouse A · Bay 1' },
   { id: 'rt2', name: 'Wireless Microphone Set', category: 'Sound', pricePerDay: 55000, ownership: 'internal', depositPct: 100, image: heroRentals, description: 'Four channels of crystal-clear vocal.', available: true, stockTotal: 12, stockAvailable: 9, location: 'Warehouse A · Shelf 3' },
-  { id: 'rt3', name: 'Chiavari Chair (Gold)', category: 'Seating', pricePerDay: 3500, ownership: 'vendor', depositPct: 70, image: heroRentals, description: 'Classic gold ballroom chair.', available: true, stockTotal: 0, stockAvailable: 0, location: 'Vendor: Royal Seats Ltd' },
-  { id: 'rt4', name: 'Architectural Uplighting', category: 'Lighting', pricePerDay: 130000, ownership: 'vendor', depositPct: 60, image: heroRentals, description: 'Wash any room in your brand colour.', available: true, stockTotal: 0, stockAvailable: 0, location: 'Vendor: LumenWorks' },
-  { id: 'rt5', name: 'Stretch Tent (Large)', category: 'Tents', pricePerDay: 480000, ownership: 'vendor', depositPct: 65, image: heroRentals, description: 'Sculptural shelter for 200 guests.', available: true, stockTotal: 0, stockAvailable: 0, location: 'Vendor: Atlas Tents' },
-  { id: 'rt6', name: 'Floral Centerpiece', category: 'Decor', pricePerDay: 28000, ownership: 'vendor', depositPct: 70, image: heroRentals, description: 'Seasonal arrangement, table-ready.', available: true, stockTotal: 0, stockAvailable: 0, location: 'Vendor: Botanique' },
+  { id: 'rt3', name: 'Chiavari Chair (Gold)', category: 'Seating', pricePerDay: 3500, ownership: 'vendor', depositPct: 70, image: heroRentals, description: 'Classic gold ballroom chair.', available: true, stockTotal: 0, stockAvailable: 0, location: 'Partner: Royal Seats Ltd' },
+  { id: 'rt4', name: 'Architectural Uplighting', category: 'Lighting', pricePerDay: 130000, ownership: 'vendor', depositPct: 60, image: heroRentals, description: 'Wash any room in your brand colour.', available: true, stockTotal: 0, stockAvailable: 0, location: 'Partner: LumenWorks' },
+  { id: 'rt5', name: 'Stretch Tent (Large)', category: 'Tents', pricePerDay: 480000, ownership: 'vendor', depositPct: 65, image: heroRentals, description: 'Sculptural shelter for 200 guests.', available: true, stockTotal: 0, stockAvailable: 0, location: 'Partner: Atlas Tents' },
+  { id: 'rt6', name: 'Floral Centerpiece', category: 'Decor', pricePerDay: 28000, ownership: 'vendor', depositPct: 70, image: heroRentals, description: 'Seasonal arrangement, table-ready.', available: true, stockTotal: 0, stockAvailable: 0, location: 'Partner: Botanique' },
   { id: 'rt7', name: 'Round Banquet Table', category: 'Seating', pricePerDay: 7500, ownership: 'internal', depositPct: 100, image: heroRentals, description: 'Seats 10. Linen-ready.', available: true, stockTotal: 30, stockAvailable: 22, location: 'Warehouse B · Rack 2' },
 ];
 
+export const seedSeatArrangements: SeatArrangement[] = [
+  { id: 'sa1', name: 'Theatre', description: 'Chairs in rows facing the stage. Best for large audiences.', image: heroBallroom },
+  { id: 'sa2', name: 'Classroom', description: 'Rows of tables and chairs facing front. Ideal for note-taking.', image: heroBallroom },
+  { id: 'sa3', name: 'U-Shape', description: 'Tables arranged in a U with chairs on the outside.', image: heroBallroom },
+  { id: 'sa4', name: 'Banquet', description: 'Round tables of 8–10 for meals and galas.', image: heroBallroom },
+  { id: 'sa5', name: 'Boardroom', description: 'Single rectangular table. Up to 20.', image: heroBallroom },
+  { id: 'sa6', name: 'Cabaret', description: 'Round tables with chairs facing the front. Half-banquet.', image: heroBallroom },
+];
+
+export const seedFAQs: FAQ[] = [
+  { id: 'f1', question: 'Do I need an account to book?', answer: 'No — we identify your booking by your email and a reference code we email you.', order: 1, published: true },
+  { id: 'f2', question: 'How are deposits and balances handled?', answer: 'Items we own are paid 100% upfront. Partner items take a 60–70% deposit, balance on confirmation.', order: 2, published: true },
+  { id: 'f3', question: 'Can I cancel?', answer: 'Yes. See our refund policy for the timeline.', order: 3, published: true },
+  { id: 'f4', question: 'Which cities do you cover?', answer: 'Lagos, Abuja and Port Harcourt today, with more being added.', order: 4, published: true },
+];
+
 export const seedRoles: Role[] = [
-  { id: 'role-admin', name: 'Owner', tabs: ['branding','content','hotels','rooms','halls','packages','rentals','inventory','bookings','employees'] },
-  { id: 'role-ops', name: 'Operations', tabs: ['bookings','inventory','rentals'] },
-  { id: 'role-cms', name: 'Content Editor', tabs: ['content','hotels','rooms','halls','packages'] },
+  { id: 'role-admin', name: 'Owner', tabs: ['branding','content','hotels','rooms','halls','packages','arrangements','rentals','inventory','bookings','revenue','faqs','legal','employees'] },
+  { id: 'role-ops', name: 'Operations', tabs: ['bookings','inventory','rentals','revenue'] },
+  { id: 'role-cms', name: 'Content Editor', tabs: ['content','hotels','rooms','halls','packages','arrangements','faqs','legal'] },
 ];
 
 export const seedEmployees: Employee[] = [
@@ -103,9 +148,9 @@ export const seedEmployees: Employee[] = [
 ];
 
 export const seedMovements: InventoryMovement[] = [
-  { id: 'm1', itemId: 'rt1', type: 'out', qty: 1, note: 'Sent to wedding event', reference: 'ABC-DEMO-0001', at: new Date(Date.now() - 86400000 * 2).toISOString() },
-  { id: 'm2', itemId: 'rt2', type: 'out', qty: 3, note: 'Conference deployment', reference: 'ABC-DEMO-0002', at: new Date(Date.now() - 86400000).toISOString() },
-  { id: 'm3', itemId: 'rt7', type: 'restock', qty: 5, note: 'Returned from event, cleaned', at: new Date(Date.now() - 86400000 * 3).toISOString() },
+  { id: 'm1', itemId: 'rt1', type: 'out', qty: 1, note: 'Sent to wedding event', reference: 'ABC-DEMO-0001', handledBy: 'Owner', location: 'Eko Hotel', at: new Date(Date.now() - 86400000 * 2).toISOString() },
+  { id: 'm2', itemId: 'rt2', type: 'out', qty: 3, note: 'Conference deployment', reference: 'ABC-DEMO-0002', handledBy: 'Owner', location: 'Transcorp Hilton', at: new Date(Date.now() - 86400000).toISOString() },
+  { id: 'm3', itemId: 'rt7', type: 'in', qty: 5, note: 'Returned, cleaned', handledBy: 'Owner', location: 'Eko Hotel', at: new Date(Date.now() - 86400000 * 3).toISOString() },
 ];
 
 export const seedBookings: Booking[] = [
@@ -114,15 +159,24 @@ export const seedBookings: Booking[] = [
     createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
     type: 'reservation',
     customer: { name: 'Adaeze Okoro', email: 'adaeze@example.com', phone: '+234 803 111 2222' },
-    details: { hotel: 'The Marigold', hall: 'The Conservatory', package: 'Premium Boardroom', people: 80, date: '2026-06-12' },
-    total: 4320000, amountPaid: 2160000, balanceDue: 2160000, paymentStatus: 'deposit', fulfillment: 'confirmed',
+    details: { hotel: 'The Marigold', date: '2026-06-12' },
+    lines: [
+      { kind: 'hall', name: 'The Conservatory', days: 1, pricePerDay: 960000, timeSlot: 'Morning · 10:00', seatArrangement: 'Theatre', subtotal: 960000 },
+      { kind: 'package', name: 'Buffet Elysium', persons: 80, pricePerPerson: 38000, timeSlot: 'Lunch · 13:00', subtotal: 3040000 },
+      { kind: 'package', name: 'Morning Star', persons: 80, pricePerPerson: 12000, timeSlot: 'Morning · 10:00', subtotal: 960000 },
+    ],
+    total: 4960000, amountPaid: 2480000, balanceDue: 2480000, paymentStatus: 'deposit', fulfillment: 'confirmed',
   },
   {
     reference: 'ABC-DEMO-0002',
     createdAt: new Date(Date.now() - 86400000).toISOString(),
     type: 'rental',
     customer: { name: 'Tunde Bello', email: 'tunde@example.com', phone: '+234 802 333 4444' },
-    details: { items: [{ name: 'Wireless Microphone Set', qty: 3, days: 2 }, { name: 'Architectural Uplighting', qty: 4, days: 2 }], date: '2026-05-30', address: 'Eko Hotel, Victoria Island' },
+    details: { date: '2026-05-30', address: 'Eko Hotel, Victoria Island' },
+    lines: [
+      { kind: 'rental', name: 'Wireless Microphone Set', quantity: 3, days: 2, pricePerDay: 55000, ownership: 'internal', subtotal: 330000 },
+      { kind: 'rental', name: 'Architectural Uplighting', quantity: 4, days: 2, pricePerDay: 130000, ownership: 'vendor', subtotal: 1040000 },
+    ],
     total: 1370000, amountPaid: 891000, balanceDue: 479000, paymentStatus: 'deposit', fulfillment: 'processing',
   },
   {
@@ -130,7 +184,10 @@ export const seedBookings: Booking[] = [
     createdAt: new Date(Date.now() - 86400000 * 7).toISOString(),
     type: 'reservation',
     customer: { name: 'Adaeze Okoro', email: 'adaeze@example.com', phone: '+234 803 111 2222' },
-    details: { hotel: 'Hotel Solène', room: 'Solène Deluxe', date: '2026-04-02', nights: 2 },
+    details: { hotel: 'Hotel Solène', date: '2026-04-02' },
+    lines: [
+      { kind: 'room', name: 'Solène Deluxe', nights: 2, pricePerNight: 165000, subtotal: 330000 },
+    ],
     total: 330000, amountPaid: 330000, balanceDue: 0, paymentStatus: 'paid', fulfillment: 'completed',
   },
 ];
