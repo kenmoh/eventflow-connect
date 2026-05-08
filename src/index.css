@@ -2,9 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-/* All Brothers Consult — Editorial Noir, dark-only. All HSL. */
+/* All Brothers Consult — Editorial. Dark + light, semantic tokens, all HSL. */
 @layer base {
-  :root {
+  :root,
+  [data-theme="dark"] {
     --background: 222 47% 5%;
     --foreground: 36 30% 94%;
 
@@ -29,7 +30,9 @@
     --gold: 38 60% 56%;
     --gold-foreground: 222 47% 7%;
     --ink: 222 47% 5%;
+    --ink-foreground: 36 30% 94%;
     --bone: 36 30% 94%;
+    --bone-foreground: 222 47% 7%;
 
     --destructive: 0 70% 52%;
     --destructive-foreground: 36 30% 96%;
@@ -40,11 +43,6 @@
 
     --radius: 0.25rem;
 
-    --gradient-noir: linear-gradient(135deg, hsl(222 47% 4%) 0%, hsl(222 50% 11%) 100%);
-    --gradient-gold: linear-gradient(135deg, hsl(38 60% 56%) 0%, hsl(34 70% 64%) 100%);
-    --shadow-soft: 0 30px 60px -30px hsl(0 0% 0% / 0.6);
-    --shadow-lift: 0 20px 50px -20px hsl(0 0% 0% / 0.8);
-
     --sidebar-background: 222 47% 4%;
     --sidebar-foreground: 36 30% 92%;
     --sidebar-primary: 38 60% 56%;
@@ -54,11 +52,57 @@
     --sidebar-border: 222 30% 14%;
     --sidebar-ring: 38 60% 56%;
   }
+
+  [data-theme="light"] {
+    --background: 36 30% 97%;
+    --foreground: 222 47% 9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 9%;
+
+    --primary: 38 60% 46%;
+    --primary-foreground: 36 30% 97%;
+
+    --secondary: 36 25% 92%;
+    --secondary-foreground: 222 47% 9%;
+
+    --muted: 36 20% 90%;
+    --muted-foreground: 222 12% 38%;
+
+    --accent: 38 60% 46%;
+    --accent-foreground: 36 30% 97%;
+
+    --gold: 38 70% 42%;
+    --gold-foreground: 36 30% 97%;
+    --ink: 222 47% 9%;
+    --ink-foreground: 36 30% 97%;
+    --bone: 36 30% 97%;
+    --bone-foreground: 222 47% 9%;
+
+    --destructive: 0 72% 45%;
+    --destructive-foreground: 36 30% 97%;
+
+    --border: 36 15% 84%;
+    --input: 36 15% 84%;
+    --ring: 38 70% 42%;
+
+    --sidebar-background: 36 30% 96%;
+    --sidebar-foreground: 222 47% 9%;
+    --sidebar-primary: 38 70% 42%;
+    --sidebar-primary-foreground: 36 30% 97%;
+    --sidebar-accent: 36 20% 90%;
+    --sidebar-accent-foreground: 222 47% 9%;
+    --sidebar-border: 36 15% 84%;
+    --sidebar-ring: 38 70% 42%;
+  }
 }
 
 @layer base {
   * { @apply border-border; }
-  html { font-family: 'Inter', system-ui, sans-serif; color-scheme: dark; }
+  html { font-family: 'Inter', system-ui, sans-serif; }
   body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "ss01", "cv11";
@@ -68,15 +112,10 @@
     font-feature-settings: "ss01";
     letter-spacing: -0.02em;
   }
-  input, textarea, select {
-    color-scheme: dark;
-  }
 }
 
 @layer utilities {
-  .grain {
-    position: relative;
-  }
+  .grain { position: relative; }
   .grain::after {
     content: "";
     position: absolute; inset: 0; pointer-events: none;
@@ -98,7 +137,7 @@
   }
   .field {
     width: 100%;
-    background: hsl(var(--secondary) / 0.4);
+    background: hsl(var(--secondary) / 0.5);
     border: 1px solid hsl(var(--border));
     padding: .7rem .8rem;
     outline: none;
@@ -106,4 +145,16 @@
     color: hsl(var(--foreground));
   }
   .field:focus { border-color: hsl(var(--gold)); }
+  .chip {
+    display: inline-flex; align-items: center;
+    border: 1px solid hsl(var(--border));
+    padding: 0.15rem 0.55rem;
+    font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+    background: hsl(var(--secondary) / 0.6);
+    color: hsl(var(--foreground));
+  }
+  .chip-gold {
+    background: hsl(var(--gold)); color: hsl(var(--gold-foreground));
+    border-color: hsl(var(--gold));
+  }
 }

@@ -4,20 +4,25 @@ import { useEffect } from 'react';
 import type {
   Hotel, Room, Hall, Pkg, RentalItem, Booking, CartLine, Branding,
   Employee, Role, InventoryMovement, SiteContent, AdminTab,
+  SeatArrangement, FAQ, Theme,
 } from './types';
 import {
   seedHotels, seedRooms, seedHalls, seedPackages, seedRentals,
   seedBranding, seedRoles, seedEmployees, seedMovements, seedContent, seedBookings,
+  seedSeatArrangements, seedFAQs,
 } from './seed';
 
 type State = {
+  theme: Theme;
   branding: Branding;
   content: SiteContent;
   hotels: Hotel[];
   rooms: Room[];
   halls: Hall[];
   packages: Pkg[];
+  arrangements: SeatArrangement[];
   rentals: RentalItem[];
+  faqs: FAQ[];
   bookings: Booking[];
   cart: CartLine[];
   employees: Employee[];
@@ -29,6 +34,7 @@ type State = {
 type Actions = {
   set: <K extends keyof State>(key: K, value: State[K]) => void;
   reset: () => void;
+  toggleTheme: () => void;
   addBooking: (b: Booking) => void;
   updateBooking: (ref: string, patch: Partial<Booking>) => void;
   addCart: (line: CartLine) => void;
@@ -41,13 +47,16 @@ type Actions = {
 };
 
 const defaultState: State = {
+  theme: 'dark',
   branding: seedBranding,
   content: seedContent,
   hotels: seedHotels,
   rooms: seedRooms,
   halls: seedHalls,
   packages: seedPackages,
+  arrangements: seedSeatArrangements,
   rentals: seedRentals,
+  faqs: seedFAQs,
   bookings: seedBookings,
   cart: [],
   employees: seedEmployees,
@@ -62,6 +71,7 @@ export const useStoreBase = create<State & Actions>()(
       ...defaultState,
       set: (k, v) => set({ [k]: v } as Pick<State, typeof k>),
       reset: () => set({ ...defaultState }),
+      toggleTheme: () => set(s => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
       addBooking: (b) => set(s => ({ bookings: [b, ...s.bookings] })),
       updateBooking: (ref, patch) => set(s => ({
         bookings: s.bookings.map(b => b.reference === ref ? { ...b, ...patch } : b),
@@ -87,11 +97,10 @@ export const useStoreBase = create<State & Actions>()(
       logout: () => set({ session: { employeeId: null } }),
       addMovement: (m) => set(s => ({ movements: [m, ...s.movements] })),
     }),
-    { name: 'abc-store-v2' },
+    { name: 'abc-store-v3' },
   ),
 );
 
-/** Backwards-compat hook so old code that did `const { store, ... } = useStore()` still works. */
 export function useStore() {
   const state = useStoreBase();
   return {
@@ -110,9 +119,14 @@ export function useStore() {
   };
 }
 
-/** Apply branding accent live + title. Mount once at app root. */
+/** Apply branding accent + theme + title. Mount once at app root. */
 export function BrandingEffects() {
   const branding = useStoreBase(s => s.branding);
+  const theme = useStoreBase(s => s.theme);
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    document.documentElement.style.colorScheme = theme;
+  }, [theme]);
   useEffect(() => {
     document.documentElement.style.setProperty('--accent', branding.primaryAccent);
     document.documentElement.style.setProperty('--gold', branding.primaryAccent);
@@ -148,7 +162,6 @@ export function useAllowedTabs(): AdminTab[] {
   return role?.tabs ?? [];
 }
 
-/** Provider compatibility shim — Zustand needs no provider, but App imports it. */
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }

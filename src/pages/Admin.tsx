@@ -12,21 +12,29 @@ import AdminHotels from './admin/Hotels';
 import AdminRooms from './admin/Rooms';
 import AdminHalls from './admin/Halls';
 import AdminPackages from './admin/Packages';
+import AdminArrangements from './admin/Arrangements';
 import AdminRentals from './admin/Rentals';
 import AdminInventory from './admin/Inventory';
 import AdminBookings from './admin/Bookings';
+import AdminRevenue from './admin/Revenue';
+import AdminFaqs from './admin/Faqs';
+import AdminLegal from './admin/Legal';
 import AdminEmployees from './admin/Employees';
 
 const NAV: [AdminTab, string][] = [
-  ['branding', 'Branding'],
-  ['content', 'Site content'],
+  ['revenue', 'Revenue'],
+  ['bookings', 'Bookings'],
+  ['inventory', 'Inventory'],
   ['hotels', 'Hotels'],
   ['rooms', 'Rooms'],
   ['halls', 'Halls'],
   ['packages', 'Packages'],
+  ['arrangements', 'Seat layouts'],
   ['rentals', 'Rentals'],
-  ['inventory', 'Inventory'],
-  ['bookings', 'Bookings'],
+  ['faqs', 'FAQs'],
+  ['legal', 'Legal & About'],
+  ['content', 'Site content'],
+  ['branding', 'Branding'],
   ['employees', 'Employees'],
 ];
 
@@ -57,7 +65,7 @@ function Login() {
           <input type="password" className="field" value={password} onChange={e => setPassword(e.target.value)} />
         </label>
         {err && <p className="text-destructive text-xs mt-2">{err}</p>}
-        <button className="mt-6 w-full bg-gold text-ink py-3 text-xs uppercase tracking-[0.3em] hover:bg-gold/90">Sign in</button>
+        <button className="mt-6 w-full bg-gold text-gold-foreground py-3 text-xs uppercase tracking-[0.3em] hover:opacity-90">Sign in</button>
         <p className="mt-6 text-[10px] uppercase tracking-[0.3em] text-muted-foreground text-center">
           Demo: owner@allbrothersconsult.ng / admin123
         </p>
@@ -83,8 +91,8 @@ function Shell() {
 
   return (
     <div className="min-h-screen flex bg-background">
-      <aside className="w-64 bg-ink text-bone flex flex-col border-r border-border">
-        <Link to="/" className="px-6 py-6 flex items-center gap-2 text-bone/80 hover:text-bone text-xs uppercase tracking-[0.3em] border-b border-bone/10">
+      <aside className="w-64 bg-ink text-ink-foreground flex flex-col border-r border-border">
+        <Link to="/" className="px-6 py-6 flex items-center gap-2 opacity-80 hover:opacity-100 text-xs uppercase tracking-[0.3em] border-b border-bone/10">
           <ArrowLeft className="w-4 h-4" /> Back to site
         </Link>
         <div className="px-6 py-6 border-b border-bone/10">
@@ -95,19 +103,19 @@ function Shell() {
           {NAV.filter(([t]) => allowed.includes(t)).map(([to, label]) => (
             <NavLink key={to} to={to}
               className={({ isActive }) =>
-                `block px-6 py-3 text-sm transition ${isActive ? 'bg-bone/5 text-gold border-l-2 border-gold' : 'text-bone/70 hover:text-bone hover:bg-bone/5 border-l-2 border-transparent'}`
+                `block px-6 py-3 text-sm transition ${isActive ? 'bg-bone/5 text-gold border-l-2 border-gold' : 'opacity-70 hover:opacity-100 hover:bg-bone/5 border-l-2 border-transparent'}`
               }>
               {label}
             </NavLink>
           ))}
         </nav>
         <div className="p-6 border-t border-bone/10 text-xs">
-          <div className="text-bone/80">{emp?.name}</div>
-          <div className="text-bone/50 text-[10px] uppercase tracking-[0.3em]">{role?.name}</div>
-          <button onClick={() => logout()} className="mt-4 inline-flex items-center gap-2 text-bone/60 hover:text-bone">
+          <div className="opacity-90">{emp?.name}</div>
+          <div className="opacity-50 text-[10px] uppercase tracking-[0.3em]">{role?.name}</div>
+          <button onClick={() => logout()} className="mt-4 inline-flex items-center gap-2 opacity-60 hover:opacity-100">
             <LogOut className="w-3 h-3" /> Sign out
           </button>
-          <button onClick={onReset} className="mt-3 block text-[10px] uppercase tracking-[0.3em] text-bone/40 hover:text-destructive">
+          <button onClick={onReset} className="mt-3 block text-[10px] uppercase tracking-[0.3em] opacity-40 hover:text-destructive">
             Reset to defaults
           </button>
         </div>
@@ -136,7 +144,6 @@ export default function Admin() {
   const emp = useCurrentEmployee();
   const loc = useLocation();
   if (!emp) return <Login />;
-  // re-render guard handled by location key:
   void loc;
   return (
     <Routes>
@@ -148,9 +155,13 @@ export default function Admin() {
         <Route path="rooms" element={<Guarded tab="rooms"><AdminRooms /></Guarded>} />
         <Route path="halls" element={<Guarded tab="halls"><AdminHalls /></Guarded>} />
         <Route path="packages" element={<Guarded tab="packages"><AdminPackages /></Guarded>} />
+        <Route path="arrangements" element={<Guarded tab="arrangements"><AdminArrangements /></Guarded>} />
         <Route path="rentals" element={<Guarded tab="rentals"><AdminRentals /></Guarded>} />
         <Route path="inventory" element={<Guarded tab="inventory"><AdminInventory /></Guarded>} />
         <Route path="bookings" element={<Guarded tab="bookings"><AdminBookings /></Guarded>} />
+        <Route path="revenue" element={<Guarded tab="revenue"><AdminRevenue /></Guarded>} />
+        <Route path="faqs" element={<Guarded tab="faqs"><AdminFaqs /></Guarded>} />
+        <Route path="legal" element={<Guarded tab="legal"><AdminLegal /></Guarded>} />
         <Route path="employees" element={<Guarded tab="employees"><AdminEmployees /></Guarded>} />
       </Route>
     </Routes>

@@ -9,10 +9,13 @@ import Index from "./pages/Index";
 import Hotels from "./pages/Hotels";
 import HotelDetail from "./pages/HotelDetail";
 import Rentals from "./pages/Rentals";
+import Packages from "./pages/Packages";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import Track from "./pages/Track";
 import Admin from "./pages/Admin";
+import StaticPage from "./pages/StaticPage";
+import Faqs from "./pages/Faqs";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,9 +33,15 @@ const App = () => (
             <Route path="/hotels" element={<Hotels />} />
             <Route path="/hotels/:id" element={<HotelDetail />} />
             <Route path="/rentals" element={<Rentals />} />
+            <Route path="/packages" element={<Packages />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/track" element={<Track />} />
+            <Route path="/about" element={<StaticPage which="about" />} />
+            <Route path="/privacy" element={<StaticPage which="privacy" />} />
+            <Route path="/terms" element={<StaticPage which="terms" />} />
+            <Route path="/refund" element={<StaticPage which="refund" />} />
+            <Route path="/faqs" element={<Faqs />} />
             <Route path="/admin/*" element={<Admin />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
