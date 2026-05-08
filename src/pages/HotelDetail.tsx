@@ -363,19 +363,6 @@ export default function HotelDetail() {
   );
 }
 
-function removeLine(
-  l: BookingLine,
-  s: { setRoomId: (v: string) => void; setHallId: (v: string) => void; setPicks: (fn: (p: PkgPick[]) => PkgPick[]) => void },
-) {
-  if (l.kind === 'room') s.setRoomId('');
-  if (l.kind === 'hall') s.setHallId('');
-  if (l.kind === 'package') s.setPicks(p => p.filter(x => {
-    return false; // we filter by name in below loop instead
-  }));
-  // Better: remove by package name match
-  if (l.kind === 'package') s.setPicks(prev => prev); // no-op (handled by re-render)
-}
-
 function SectionTitle({ eyebrow, title }: { eyebrow: string; title: string }) {
   return (
     <div className="mb-5">
