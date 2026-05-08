@@ -333,7 +333,7 @@ export default function HotelDetail() {
                     </div>
                     <div className="text-right">
                       <div className="font-display">{fmt(l.subtotal)}</div>
-                      <button onClick={() => removeLine(l, { setRoomId, setHallId, setPicks })}
+                      <button onClick={() => removeLine(l)}
                         className="text-muted-foreground hover:text-destructive text-[10px] uppercase tracking-[0.25em] inline-flex items-center gap-1">
                         <X className="w-3 h-3" /> Remove
                       </button>
