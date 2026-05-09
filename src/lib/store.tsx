@@ -1,19 +1,35 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import type {
   Hotel, Room, Hall, Pkg, RentalItem, Booking, CartLine, Branding,
   Employee, Role, InventoryMovement, SiteContent, AdminTab,
   SeatArrangement, FAQ, Theme,
 } from './types';
-import {
-  seedHotels, seedRooms, seedHalls, seedPackages, seedRentals,
-  seedBranding, seedRoles, seedEmployees, seedMovements, seedContent, seedBookings,
-  seedSeatArrangements, seedFAQs,
-} from './seed';
+import { loadCatalog, loadEmployees } from './db';
 
-type State = {
-  theme: Theme;
+const defaultBranding: Branding = {
+  brandName: 'All Brothers Consult',
+  tagline: 'A new way to convene.',
+  primaryAccent: '38 60% 56%',
+};
+
+const defaultContent: SiteContent = {
+  hero: { eyebrow: '', title1: '', title2: '', title3: '', description: '', primaryCta: 'Browse hotels', secondaryCta: 'Rent equipment' },
+  stats: [], ticker: [],
+  reservations: { eyebrow: '', title: '' },
+  packagesSection: { eyebrow: '', title: '', copy: '' },
+  rentalsSection: { eyebrow: '', title: '' },
+  howItWorks: { eyebrow: '', title: '', steps: [] },
+  footer: { blurb: '', contactEmail: '', contactPhone: '', contactCity: '', rightsLine: '' },
+  about: { title: 'About', updatedAt: '', body: '' },
+  privacy: { title: 'Privacy', updatedAt: '', body: '' },
+  terms: { title: 'Terms', updatedAt: '', body: '' },
+  refund: { title: 'Refund', updatedAt: '', body: '' },
+};
+
+type Loaded = {
   branding: Branding;
   content: SiteContent;
   hotels: Hotel[];
@@ -24,58 +40,55 @@ type State = {
   rentals: RentalItem[];
   faqs: FAQ[];
   bookings: Booking[];
-  cart: CartLine[];
-  employees: Employee[];
-  roles: Role[];
   movements: InventoryMovement[];
-  session: { employeeId: string | null };
+  roles: Role[];
+  employees: Employee[];
+};
+
+type Persisted = {
+  theme: Theme;
+  cart: CartLine[];
+};
+
+type Auth = {
+  userId: string | null;
+  profile: { id: string; name: string; email: string; roleId: string | null } | null;
+  loaded: boolean;
+};
+
+type State = Loaded & Persisted & {
+  session: Auth;
+  hydrated: boolean;
 };
 
 type Actions = {
-  set: <K extends keyof State>(key: K, value: State[K]) => void;
-  reset: () => void;
+  set: <K extends keyof Loaded>(key: K, value: Loaded[K]) => void;
   toggleTheme: () => void;
-  addBooking: (b: Booking) => void;
-  updateBooking: (ref: string, patch: Partial<Booking>) => void;
   addCart: (line: CartLine) => void;
   updateCart: (itemId: string, patch: Partial<CartLine>) => void;
   removeCart: (itemId: string) => void;
   clearCart: () => void;
-  login: (email: string, password: string) => boolean;
-  logout: () => void;
-  addMovement: (m: InventoryMovement) => void;
-};
-
-const defaultState: State = {
-  theme: 'dark',
-  branding: seedBranding,
-  content: seedContent,
-  hotels: seedHotels,
-  rooms: seedRooms,
-  halls: seedHalls,
-  packages: seedPackages,
-  arrangements: seedSeatArrangements,
-  rentals: seedRentals,
-  faqs: seedFAQs,
-  bookings: seedBookings,
-  cart: [],
-  employees: seedEmployees,
-  roles: seedRoles,
-  movements: seedMovements,
-  session: { employeeId: null },
+  hydrate: () => Promise<void>;
+  setBookings: (b: Booking[]) => void;
 };
 
 export const useStoreBase = create<State & Actions>()(
   persist(
     (set, get) => ({
-      ...defaultState,
-      set: (k, v) => set({ [k]: v } as Pick<State, typeof k>),
-      reset: () => set({ ...defaultState }),
+      // loaded (will be hydrated from DB)
+      branding: defaultBranding,
+      content: defaultContent,
+      hotels: [], rooms: [], halls: [], packages: [], arrangements: [],
+      rentals: [], faqs: [], bookings: [], movements: [], roles: [], employees: [],
+      // persisted
+      theme: 'dark',
+      cart: [],
+      // runtime
+      session: { userId: null, profile: null, loaded: false },
+      hydrated: false,
+
+      set: (k, v) => set({ [k]: v } as any),
       toggleTheme: () => set(s => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
-      addBooking: (b) => set(s => ({ bookings: [b, ...s.bookings] })),
-      updateBooking: (ref, patch) => set(s => ({
-        bookings: s.bookings.map(b => b.reference === ref ? { ...b, ...patch } : b),
-      })),
       addCart: (line) => set(s => {
         const existing = s.cart.find(c => c.itemId === line.itemId);
         const cart = existing
@@ -83,46 +96,79 @@ export const useStoreBase = create<State & Actions>()(
           : [...s.cart, line];
         return { cart };
       }),
-      updateCart: (itemId, patch) => set(s => ({
-        cart: s.cart.map(c => c.itemId === itemId ? { ...c, ...patch } : c),
-      })),
+      updateCart: (itemId, patch) => set(s => ({ cart: s.cart.map(c => c.itemId === itemId ? { ...c, ...patch } : c) })),
       removeCart: (itemId) => set(s => ({ cart: s.cart.filter(c => c.itemId !== itemId) })),
       clearCart: () => set({ cart: [] }),
-      login: (email, password) => {
-        const emp = get().employees.find(e => e.email.toLowerCase() === email.toLowerCase() && e.password === password);
-        if (!emp) return false;
-        set({ session: { employeeId: emp.id } });
-        return true;
+      setBookings: (b) => set({ bookings: b }),
+
+      hydrate: async () => {
+        const data = await loadCatalog();
+        set({
+          ...(data.branding ? { branding: data.branding } : {}),
+          ...(data.content ? { content: data.content } : {}),
+          hotels: data.hotels,
+          rooms: data.rooms,
+          halls: data.halls,
+          packages: data.packages,
+          arrangements: data.arrangements,
+          rentals: data.rentals,
+          faqs: data.faqs,
+          bookings: data.bookings,
+          movements: data.movements,
+          roles: data.roles,
+          hydrated: true,
+        } as any);
+        // Load employees only if signed in (RLS)
+        const session = get().session;
+        if (session.userId) {
+          try { set({ employees: await loadEmployees() } as any); } catch { /* ignore */ }
+        }
       },
-      logout: () => set({ session: { employeeId: null } }),
-      addMovement: (m) => set(s => ({ movements: [m, ...s.movements] })),
     }),
-    { name: 'abc-store-v3' },
+    {
+      name: 'abc-store-v4',
+      storage: createJSONStorage(() => localStorage),
+      partialize: (s) => ({ theme: s.theme, cart: s.cart }) as any,
+    },
   ),
 );
 
-export function useStore() {
-  const state = useStoreBase();
-  return {
-    store: state,
-    set: state.set,
-    reset: state.reset,
-    addBooking: state.addBooking,
-    updateBooking: state.updateBooking,
-    addCart: state.addCart,
-    updateCart: state.updateCart,
-    removeCart: state.removeCart,
-    clearCart: state.clearCart,
-    login: state.login,
-    logout: state.logout,
-    addMovement: state.addMovement,
+// Initialize auth state listener once
+let authInitialized = false;
+function initAuth() {
+  if (authInitialized) return;
+  authInitialized = true;
+
+  const handle = async (uid: string | null) => {
+    if (!uid) {
+      useStoreBase.setState({ session: { userId: null, profile: null, loaded: true }, employees: [] } as any);
+      return;
+    }
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id, name, email, role_id')
+      .eq('id', uid)
+      .maybeSingle();
+    useStoreBase.setState({
+      session: {
+        userId: uid,
+        profile: profile ? { id: profile.id, name: profile.name, email: profile.email, roleId: profile.role_id } : null,
+        loaded: true,
+      },
+    } as any);
+    try { useStoreBase.setState({ employees: await loadEmployees() } as any); } catch { /* ignore */ }
   };
+
+  supabase.auth.onAuthStateChange((_evt, session) => { handle(session?.user?.id ?? null); });
+  supabase.auth.getSession().then(({ data }) => { handle(data.session?.user?.id ?? null); });
 }
 
 /** Apply branding accent + theme + title. Mount once at app root. */
 export function BrandingEffects() {
   const branding = useStoreBase(s => s.branding);
   const theme = useStoreBase(s => s.theme);
+  const hydrate = useStoreBase(s => s.hydrate);
+  useEffect(() => { initAuth(); hydrate(); }, [hydrate]);
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     document.documentElement.style.colorScheme = theme;
@@ -147,13 +193,12 @@ export function fmt(n: number) {
   return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 }).format(n);
 }
 
-export function currentEmployee() {
-  const s = useStoreBase.getState();
-  return s.employees.find(e => e.id === s.session.employeeId) || null;
-}
-
-export function useCurrentEmployee() {
-  return useStoreBase(s => s.employees.find(e => e.id === s.session.employeeId) || null);
+export function useCurrentEmployee(): Employee | null {
+  return useStoreBase(s => {
+    const p = s.session.profile;
+    if (!p) return null;
+    return { id: p.id, name: p.name, email: p.email, password: '', roleId: p.roleId ?? '' };
+  });
 }
 
 export function useAllowedTabs(): AdminTab[] {
@@ -162,6 +207,12 @@ export function useAllowedTabs(): AdminTab[] {
   return role?.tabs ?? [];
 }
 
-export function StoreProvider({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+export async function logout() {
+  await supabase.auth.signOut();
+}
+
+// Backwards-compat helpers used by some components
+export function useStore() {
+  const s = useStoreBase();
+  return { store: s, set: s.set, addCart: s.addCart, removeCart: s.removeCart, updateCart: s.updateCart, clearCart: s.clearCart };
 }
