@@ -17,7 +17,9 @@ const METHODS = [
 export default function Checkout() {
   const cart = useStoreBase(s => s.cart);
   const rentals = useStoreBase(s => s.rentals);
-  const hydrate = useStoreBase(s => s.hydrate);
+  const addBooking = useStoreBase(s => s.addBooking);
+  const addMovement = useStoreBase(s => s.addMovement);
+  const set = useStoreBase(s => s.set);
   const clearCart = useStoreBase(s => s.clearCart);
   const allRentals = useStoreBase(s => s.rentals);
   const nav = useNavigate();
