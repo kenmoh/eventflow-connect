@@ -1,9 +1,9 @@
-import { Link, NavLink, Outlet, Navigate, Route, Routes, useLocation } from 'react-router-dom';
-import { useStoreBase, useCurrentEmployee, useAllowedTabs } from '@/lib/store';
+import { Link, NavLink, Outlet, Navigate, Route, Routes } from 'react-router-dom';
+import { useStoreBase, useCurrentEmployee, useAllowedTabs, logout } from '@/lib/store';
+import { supabase } from '@/integrations/supabase/client';
 import { ArrowLeft, LogOut } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { useConfirm } from '@/components/ConfirmProvider';
 import type { AdminTab } from '@/lib/types';
 
 import AdminBranding from './admin/Branding';
@@ -38,16 +38,52 @@ const NAV: [AdminTab, string][] = [
   ['employees', 'Employees'],
 ];
 
-function Login() {
+function AuthScreen() {
   const branding = useStoreBase(s => s.branding);
-  const login = useStoreBase(s => s.login);
+  const hydrate = useStoreBase(s => s.hydrate);
+  const [mode, setMode] = useState<'sign-in' | 'sign-up'>('sign-in');
+  const [ownerExists, setOwnerExists] = useState<boolean | null>(null);
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
-  const submit = (e: React.FormEvent) => {
+
+  useEffect(() => {
+    supabase.rpc('owner_exists').then(({ data }) => {
+      const exists = !!data;
+      setOwnerExists(exists);
+      if (!exists) setMode('sign-up');
+    });
+  }, []);
+
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!login(email, password)) setErr('Invalid email or password.');
+    setErr(''); setBusy(true);
+    try {
+      if (mode === 'sign-up') {
+        if (ownerExists) { setErr('Sign-ups are by invitation. Ask the owner to add you.'); return; }
+        const { data, error } = await supabase.auth.signUp({
+          email, password,
+          options: { data: { name }, emailRedirectTo: `${window.location.origin}/admin` },
+        });
+        if (error) { setErr(error.message); return; }
+        if (data.session) {
+          const { error: bErr } = await supabase.rpc('bootstrap_owner');
+          if (bErr) { setErr(bErr.message); return; }
+          await hydrate();
+          toast.success('Owner account created.');
+        } else {
+          toast.success('Check your email to confirm.');
+        }
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) { setErr(error.message); return; }
+        await hydrate();
+      }
+    } finally { setBusy(false); }
   };
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
       <form onSubmit={submit} className="w-full max-w-md bg-card border border-border p-10">
@@ -55,20 +91,40 @@ function Login() {
           <ArrowLeft className="w-3 h-3" /> Back to site
         </Link>
         <div className="font-display text-3xl">{branding.brandName}</div>
-        <div className="text-[10px] uppercase tracking-[0.3em] text-gold mt-1 mb-8">Studio · CMS</div>
+        <div className="text-[10px] uppercase tracking-[0.3em] text-gold mt-1 mb-8">
+          Studio · {ownerExists === false ? 'Create owner' : mode === 'sign-up' ? 'Sign up' : 'Sign in'}
+        </div>
+
+        {mode === 'sign-up' && (
+          <label className="block mb-4">
+            <span className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground block mb-1">Name</span>
+            <input className="field" value={name} onChange={e => setName(e.target.value)} required />
+          </label>
+        )}
         <label className="block mb-4">
           <span className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground block mb-1">Email</span>
-          <input className="field" value={email} onChange={e => setEmail(e.target.value)} />
+          <input type="email" className="field" value={email} onChange={e => setEmail(e.target.value)} required />
         </label>
         <label className="block mb-2">
           <span className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground block mb-1">Password</span>
-          <input type="password" className="field" value={password} onChange={e => setPassword(e.target.value)} />
+          <input type="password" className="field" value={password} onChange={e => setPassword(e.target.value)} required minLength={6} />
         </label>
         {err && <p className="text-destructive text-xs mt-2">{err}</p>}
-        <button className="mt-6 w-full bg-gold text-gold-foreground py-3 text-xs uppercase tracking-[0.3em] hover:opacity-90">Sign in</button>
-        <p className="mt-6 text-[10px] uppercase tracking-[0.3em] text-muted-foreground text-center">
-          Demo: owner@allbrothersconsult.ng / admin123
-        </p>
+        <button disabled={busy} className="mt-6 w-full bg-gold text-gold-foreground py-3 text-xs uppercase tracking-[0.3em] hover:opacity-90 disabled:opacity-60">
+          {busy ? 'Working…' : (mode === 'sign-up' ? (ownerExists === false ? 'Create owner account' : 'Request access') : 'Sign in')}
+        </button>
+
+        {ownerExists !== false && (
+          <button type="button" onClick={() => setMode(m => m === 'sign-in' ? 'sign-up' : 'sign-in')}
+            className="mt-6 block w-full text-[10px] uppercase tracking-[0.3em] text-muted-foreground text-center hover:text-foreground">
+            {mode === 'sign-in' ? 'No account? Sign up' : 'Have an account? Sign in'}
+          </button>
+        )}
+        {ownerExists === false && (
+          <p className="mt-6 text-[10px] uppercase tracking-[0.3em] text-muted-foreground text-center">
+            First setup — this account becomes the Owner.
+          </p>
+        )}
       </form>
     </div>
   );
@@ -76,18 +132,9 @@ function Login() {
 
 function Shell() {
   const branding = useStoreBase(s => s.branding);
-  const reset = useStoreBase(s => s.reset);
-  const logout = useStoreBase(s => s.logout);
   const emp = useCurrentEmployee();
   const allowed = useAllowedTabs();
   const role = useStoreBase(s => s.roles.find(r => r.id === emp?.roleId));
-  const { confirm } = useConfirm();
-
-  const onReset = async () => {
-    if (await confirm({ title: 'Reset all CMS data?', description: 'This restores demo seed data and signs you out.', destructive: true, confirmText: 'Reset' })) {
-      reset(); toast.success('Reset to defaults.');
-    }
-  };
 
   return (
     <div className="min-h-screen flex bg-background">
@@ -111,12 +158,9 @@ function Shell() {
         </nav>
         <div className="p-6 border-t border-bone/10 text-xs">
           <div className="opacity-90">{emp?.name}</div>
-          <div className="opacity-50 text-[10px] uppercase tracking-[0.3em]">{role?.name}</div>
+          <div className="opacity-50 text-[10px] uppercase tracking-[0.3em]">{role?.name ?? 'No role'}</div>
           <button onClick={() => logout()} className="mt-4 inline-flex items-center gap-2 opacity-60 hover:opacity-100">
             <LogOut className="w-3 h-3" /> Sign out
-          </button>
-          <button onClick={onReset} className="mt-3 block text-[10px] uppercase tracking-[0.3em] opacity-40 hover:text-destructive">
-            Reset to defaults
           </button>
         </div>
       </aside>
@@ -141,10 +185,25 @@ function FirstAllowed() {
 }
 
 export default function Admin() {
-  const emp = useCurrentEmployee();
-  const loc = useLocation();
-  if (!emp) return <Login />;
-  void loc;
+  const sessionLoaded = useStoreBase(s => s.session.loaded);
+  const userId = useStoreBase(s => s.session.userId);
+  const profile = useStoreBase(s => s.session.profile);
+
+  if (!sessionLoaded) {
+    return <div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground text-xs uppercase tracking-[0.3em]">Loading…</div>;
+  }
+  if (!userId) return <AuthScreen />;
+  if (!profile?.roleId) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <div className="max-w-md text-center">
+          <h1 className="font-display text-4xl">No role assigned</h1>
+          <p className="mt-3 text-muted-foreground">Your account exists, but the owner hasn't given it a role yet.</p>
+          <button onClick={() => logout()} className="mt-6 underline text-sm">Sign out</button>
+        </div>
+      </div>
+    );
+  }
   return (
     <Routes>
       <Route element={<Shell />}>
