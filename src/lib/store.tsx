@@ -70,6 +70,9 @@ type Actions = {
   clearCart: () => void;
   hydrate: () => Promise<void>;
   setBookings: (b: Booking[]) => void;
+  addBooking: (b: Booking) => Promise<void>;
+  updateBooking: (ref: string, patch: Partial<Booking>) => Promise<void>;
+  addMovement: (m: InventoryMovement) => Promise<void>;
 };
 
 export const useStoreBase = create<State & Actions>()(
@@ -100,6 +103,22 @@ export const useStoreBase = create<State & Actions>()(
       removeCart: (itemId) => set(s => ({ cart: s.cart.filter(c => c.itemId !== itemId) })),
       clearCart: () => set({ cart: [] }),
       setBookings: (b) => set({ bookings: b }),
+
+      addBooking: async (b) => {
+        set(s => ({ bookings: [b, ...s.bookings] }));
+        const { insertBooking } = await import('./db');
+        try { await insertBooking(b); } catch (e) { console.error('insertBooking', e); }
+      },
+      updateBooking: async (ref, patch) => {
+        set(s => ({ bookings: s.bookings.map(b => b.reference === ref ? { ...b, ...patch } : b) }));
+        const { updateBookingDb } = await import('./db');
+        try { await updateBookingDb(ref, patch); } catch (e) { console.error('updateBooking', e); }
+      },
+      addMovement: async (m) => {
+        set(s => ({ movements: [m, ...s.movements] }));
+        const { insertMovement } = await import('./db');
+        try { await insertMovement(m); } catch (e) { console.error('insertMovement', e); }
+      },
 
       hydrate: async () => {
         const data = await loadCatalog();
