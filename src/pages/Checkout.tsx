@@ -1,5 +1,6 @@
 import SiteLayout from '@/components/SiteLayout';
 import { useStoreBase, makeReference, fmt } from '@/lib/store';
+import { insertBooking, insertMovement, adjustStock, lookupCustomer } from '@/lib/db';
 import { useNavigate, Link } from 'react-router-dom';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -16,10 +17,8 @@ const METHODS = [
 export default function Checkout() {
   const cart = useStoreBase(s => s.cart);
   const rentals = useStoreBase(s => s.rentals);
-  const addBooking = useStoreBase(s => s.addBooking);
-  const addMovement = useStoreBase(s => s.addMovement);
+  const hydrate = useStoreBase(s => s.hydrate);
   const clearCart = useStoreBase(s => s.clearCart);
-  const set = useStoreBase(s => s.set);
   const allRentals = useStoreBase(s => s.rentals);
   const nav = useNavigate();
   const { alert: alertDialog } = useConfirm();
