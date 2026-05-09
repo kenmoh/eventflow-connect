@@ -515,6 +515,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      bootstrap_owner: { Args: never; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -557,6 +558,7 @@ export type Database = {
           phone: string
         }[]
       }
+      owner_exists: { Args: never; Returns: boolean }
     }
     Enums: {
       app_role: "owner" | "admin" | "staff"
