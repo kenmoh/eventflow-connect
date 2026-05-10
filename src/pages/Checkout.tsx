@@ -164,7 +164,7 @@ export default function Checkout() {
             </div>
             <button type="submit" disabled={paying}
               className="mt-6 w-full bg-gold text-ink py-4 text-xs uppercase tracking-[0.3em] hover:bg-gold/90 transition disabled:opacity-60">
-              {paying ? 'Connecting to Paystack…' : `Pay ${fmt(dueNow)} with Paystack`}
+              {paying ? 'Connecting to Flutterwave…' : `Pay ${fmt(dueNow)} with Flutterwave`}
             </button>
             <p className="mt-3 text-[10px] uppercase tracking-[0.25em] text-muted-foreground text-center">
               Tracked by email · No sign-up
