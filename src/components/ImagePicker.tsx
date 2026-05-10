@@ -1,18 +1,28 @@
 import { useRef, useState } from 'react';
-import { Upload, Link2 } from 'lucide-react';
+import { Upload, Link2, Loader2 } from 'lucide-react';
+import { uploadImage } from '@/lib/db';
+import { toast } from 'sonner';
 
 export default function ImagePicker({
   value, onChange, label = 'Image',
 }: { value: string; onChange: (v: string) => void; label?: string }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [mode, setMode] = useState<'url' | 'upload'>('url');
+  const [busy, setBusy] = useState(false);
 
   const onFile = async (f: File | null) => {
     if (!f) return;
-    if (f.size > 4 * 1024 * 1024) { alert('Max 4MB'); return; }
-    const reader = new FileReader();
-    reader.onload = () => onChange(reader.result as string);
-    reader.readAsDataURL(f);
+    if (f.size > 5 * 1024 * 1024) { toast.error('Max 5MB'); return; }
+    setBusy(true);
+    try {
+      const url = await uploadImage(f);
+      onChange(url);
+      toast.success('Uploaded.');
+    } catch (e: any) {
+      toast.error(e?.message ?? 'Upload failed');
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -35,9 +45,9 @@ export default function ImagePicker({
         <>
           <input ref={fileRef} type="file" accept="image/*" className="hidden"
             onChange={e => onFile(e.target.files?.[0] ?? null)} />
-          <button type="button" onClick={() => fileRef.current?.click()}
-            className="w-full border border-dashed border-border py-3 text-xs uppercase tracking-[0.25em] hover:bg-secondary">
-            Select image…
+          <button type="button" disabled={busy} onClick={() => fileRef.current?.click()}
+            className="w-full border border-dashed border-border py-3 text-xs uppercase tracking-[0.25em] hover:bg-secondary inline-flex items-center justify-center gap-2 disabled:opacity-50">
+            {busy ? <><Loader2 className="w-3 h-3 animate-spin"/> Uploading…</> : 'Select image…'}
           </button>
         </>
       )}
