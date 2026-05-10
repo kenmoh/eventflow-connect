@@ -57,7 +57,7 @@ export default function Checkout() {
     }
     setErrors({});
     setPaying(true);
-    // Simulated Paystack flow
+    // Simulated Flutterwave flow
     await new Promise(r => setTimeout(r, 1400));
     setPaying(false);
 
