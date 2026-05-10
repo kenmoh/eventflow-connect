@@ -1,4 +1,4 @@
-import { Link, NavLink } from 'react-router-dom';
+import { Link } from '@tanstack/react-router';
 import { useStoreBase } from '@/lib/store';
 import { ShoppingBag, Search, Sun, Moon } from 'lucide-react';
 import { ReactNode } from 'react';
@@ -21,10 +21,12 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
           </Link>
           <nav className="hidden md:flex items-center gap-8 text-xs uppercase tracking-[0.2em]">
             {[['Hotels', '/hotels'], ['Rentals', '/rentals'], ['Packages', '/packages'], ['Track', '/track'], ['Admin', '/admin']].map(([label, to]) => (
-              <NavLink key={to} to={to}
-                className={({ isActive }) => `relative pb-1 transition-opacity hover:opacity-100 ${isActive ? 'opacity-100' : 'opacity-70'}`}>
-                {({ isActive }) => (<>{label}{isActive && <span className="absolute -bottom-0.5 left-0 right-0 h-px bg-gold" />}</>)}
-              </NavLink>
+              <Link key={to} to={to}
+                className="group relative pb-1 transition-opacity hover:opacity-100 opacity-70 aria-[current=page]:opacity-100"
+              >
+                {label}
+                <span className="absolute -bottom-0.5 left-0 right-0 h-px bg-gold opacity-0 group-aria-[current=page]:opacity-100 transition-opacity" />
+              </Link>
             ))}
           </nav>
           <div className="flex items-center gap-4">

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type {
   Hotel, Room, Hall, Pkg, RentalItem, Booking, CartLine, Branding,
@@ -146,7 +146,7 @@ export const useStoreBase = create<State & Actions>()(
     }),
     {
       name: 'abc-store-v4',
-      storage: createJSONStorage(() => localStorage),
+      storage: typeof window !== 'undefined' ? createJSONStorage(() => localStorage) : undefined,
       partialize: (s) => ({ theme: s.theme, cart: s.cart }) as any,
     },
   ),
@@ -213,17 +213,19 @@ export function fmt(n: number) {
 }
 
 export function useCurrentEmployee(): Employee | null {
-  return useStoreBase(s => {
-    const p = s.session.profile;
-    if (!p) return null;
-    return { id: p.id, name: p.name, email: p.email, password: '', roleId: p.roleId ?? '' };
-  });
+  const profile = useStoreBase(s => s.session.profile);
+  return useMemo(() => {
+    if (!profile) return null;
+    return { id: profile.id, name: profile.name, email: profile.email, password: '', roleId: profile.roleId ?? '' };
+  }, [profile]);
 }
 
+const EMPTY_TABS: AdminTab[] = [];
+
 export function useAllowedTabs(): AdminTab[] {
-  const emp = useCurrentEmployee();
-  const role = useStoreBase(s => s.roles.find(r => r.id === emp?.roleId));
-  return role?.tabs ?? [];
+  const roleId = useStoreBase(s => s.session.profile?.roleId);
+  const tabs = useStoreBase(s => s.roles.find(r => r.id === roleId)?.tabs);
+  return tabs ?? EMPTY_TABS;
 }
 
 export async function logout() {
