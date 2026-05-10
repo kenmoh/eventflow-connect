@@ -16,15 +16,18 @@ export default function AdminArrangements() {
   const [editing, setEditing] = useState<SeatArrangement | null>(null);
   const { confirm } = useConfirm();
 
-  const save = () => {
+  const save = async () => {
     if (!editing) return;
     const exists = arrangements.some(a => a.id === editing.id);
     set('arrangements', exists ? arrangements.map(a => a.id === editing.id ? editing : a) : [...arrangements, editing]);
-    setEditing(null); toast.success('Saved.');
+    setEditing(null);
+    try { await upsertArrangement(editing); toast.success('Saved.'); }
+    catch (e: any) { toast.error(e?.message ?? 'Save failed'); }
   };
   const remove = async (id: string) => {
     if (await confirm({ title: 'Delete arrangement?', destructive: true, confirmText: 'Delete' })) {
       set('arrangements', arrangements.filter(a => a.id !== id));
+      try { await deleteArrangement(id); } catch (e: any) { toast.error(e?.message ?? 'Delete failed'); }
     }
   };
 
