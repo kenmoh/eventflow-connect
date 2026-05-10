@@ -14,7 +14,7 @@ export const reservationSchema = customerSchema.extend({
 export const checkoutSchema = customerSchema.extend({
   date: z.string().min(1, 'Event date required'),
   address: z.string().trim().min(3, 'Delivery address required').max(300),
-  method: z.enum(['paystack-card', 'paystack-transfer', 'paystack-ussd']),
+  method: z.enum(['flutterwave-card', 'flutterwave-transfer', 'flutterwave-ussd']),
 });
 
 export const employeeSchema = z.object({
