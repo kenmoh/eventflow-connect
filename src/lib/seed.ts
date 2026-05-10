@@ -60,7 +60,7 @@ export const seedContent: SiteContent = {
   about: legal('About All Brothers Consult',
     'All Brothers Consult is a hospitality consultancy that connects clients to a curated roster of hotels and event partners across Nigeria.\n\nWe were founded on a simple idea — booking a great venue or a good sound system should not require ten phone calls. We do the legwork, you get the room.'),
   privacy: legal('Privacy Policy',
-    'We collect only the information needed to fulfil your booking: name, email, phone, event details, and payment metadata returned by Paystack. We never sell your data.\n\nYou can request deletion of your records at any time by emailing hello@allbrothersconsult.ng.'),
+    'We collect only the information needed to fulfil your booking: name, email, phone, event details, and payment metadata returned by Flutterwave. We never sell your data.\n\nYou can request deletion of your records at any time by emailing hello@allbrothersconsult.ng.'),
   terms: legal('Terms of Service',
     'By placing a booking you agree to the rates and policies displayed at checkout. Deposits are non-refundable beyond 14 days from the event date. Partner-fulfilled items are subject to the partner’s own terms, communicated before confirmation.'),
   refund: legal('Refund Policy',
