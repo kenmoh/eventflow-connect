@@ -6,6 +6,7 @@ import type { RentalItem, RentalCategory } from '@/lib/types';
 import { toast } from 'sonner';
 import heroRentals from '@/assets/hero-rentals.jpg';
 import { useConfirm } from '@/components/ConfirmProvider';
+import { upsertRental, deleteRental } from '@/lib/db';
 
 const CATS: RentalCategory[] = ['Sound', 'Lighting', 'Seating', 'Tents', 'Decor'];
 const blank = (): RentalItem => ({ id: crypto.randomUUID(), name: '', category: 'Sound', pricePerDay: 50000, ownership: 'internal', depositPct: 100, image: heroRentals, description: '', available: true, stockTotal: 1, stockAvailable: 1, location: '' });
@@ -16,15 +17,20 @@ export default function AdminRentals() {
   const [editing, setEditing] = useState<RentalItem | null>(null);
   const { confirm } = useConfirm();
 
-  const save = () => {
+  const save = async () => {
     if (!editing) return;
     const it = { ...editing, depositPct: editing.ownership === 'internal' ? 100 : Math.min(100, Math.max(50, editing.depositPct)) };
     const exists = rentals.some(r => r.id === it.id);
     set('rentals', exists ? rentals.map(r => r.id === it.id ? it : r) : [...rentals, it]);
-    setEditing(null); toast.success('Saved.');
+    setEditing(null);
+    try { await upsertRental(it); toast.success('Saved.'); }
+    catch (e: any) { toast.error(e?.message ?? 'Save failed'); }
   };
   const remove = async (id: string) => {
-    if (await confirm({ title: 'Delete item?', destructive: true, confirmText: 'Delete' })) set('rentals', rentals.filter(r => r.id !== id));
+    if (await confirm({ title: 'Delete item?', destructive: true, confirmText: 'Delete' })) {
+      set('rentals', rentals.filter(r => r.id !== id));
+      try { await deleteRental(id); } catch (e: any) { toast.error(e?.message ?? 'Delete failed'); }
+    }
   };
 
   return (

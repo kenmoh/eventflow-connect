@@ -3,6 +3,7 @@ import { AdminPage, Field, inputCls, PrimaryBtn } from './_shared';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import type { SiteContent, LegalPage } from '@/lib/types';
+import { saveContent } from '@/lib/db';
 
 type Key = 'about' | 'privacy' | 'terms' | 'refund';
 
@@ -15,7 +16,11 @@ export default function AdminLegal() {
   const update = (key: Key, patch: Partial<LegalPage>) => {
     setDraft({ ...draft, [key]: { ...draft[key], ...patch, updatedAt: new Date().toISOString() } });
   };
-  const save = () => { set('content', draft); toast.success('Pages updated.'); };
+  const save = async () => {
+    set('content', draft);
+    try { await saveContent(draft); toast.success('Pages updated.'); }
+    catch (e: any) { toast.error(e?.message ?? 'Save failed'); }
+  };
 
   return (
     <AdminPage title="Legal & About" subtitle="About, Privacy, Terms and Refund pages."

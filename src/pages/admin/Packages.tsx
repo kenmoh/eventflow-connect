@@ -5,6 +5,7 @@ import type { Pkg, PackageKind, TimeSlot } from '@/lib/types';
 import { toast } from 'sonner';
 import { useConfirm } from '@/components/ConfirmProvider';
 import { X } from 'lucide-react';
+import { upsertPackage, deletePackage } from '@/lib/db';
 
 const blank = (hotelId: string): Pkg => ({
   id: crypto.randomUUID(), hotelId, kind: 'coffee', name: '', description: '',
@@ -19,16 +20,19 @@ export default function AdminPackages() {
   const [editing, setEditing] = useState<Pkg | null>(null);
   const { confirm } = useConfirm();
 
-  const save = () => {
+  const save = async () => {
     if (!editing) return;
     if (!editing.hotelId) { toast.error('Pick a hotel.'); return; }
     const exists = packages.some(p => p.id === editing.id);
     set('packages', exists ? packages.map(p => p.id === editing.id ? editing : p) : [...packages, editing]);
-    setEditing(null); toast.success('Saved.');
+    setEditing(null);
+    try { await upsertPackage(editing); toast.success('Saved.'); }
+    catch (e: any) { toast.error(e?.message ?? 'Save failed'); }
   };
   const remove = async (id: string) => {
     if (await confirm({ title: 'Delete package?', destructive: true, confirmText: 'Delete' })) {
       set('packages', packages.filter(p => p.id !== id));
+      try { await deletePackage(id); } catch (e: any) { toast.error(e?.message ?? 'Delete failed'); }
     }
   };
 

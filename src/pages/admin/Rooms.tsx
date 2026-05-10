@@ -6,6 +6,7 @@ import type { Room } from '@/lib/types';
 import { toast } from 'sonner';
 import heroBallroom from '@/assets/hero-ballroom.jpg';
 import { useConfirm } from '@/components/ConfirmProvider';
+import { upsertRoom, deleteRoom } from '@/lib/db';
 
 const blank = (hotelId: string): Room => ({ id: crypto.randomUUID(), hotelId, type: '', description: '', price: 150000, capacity: 2, image: heroBallroom });
 
@@ -16,14 +17,19 @@ export default function AdminRooms() {
   const [editing, setEditing] = useState<Room | null>(null);
   const { confirm } = useConfirm();
 
-  const save = () => {
+  const save = async () => {
     if (!editing) return;
     const exists = rooms.some(r => r.id === editing.id);
     set('rooms', exists ? rooms.map(r => r.id === editing.id ? editing : r) : [...rooms, editing]);
-    setEditing(null); toast.success('Saved.');
+    setEditing(null);
+    try { await upsertRoom(editing); toast.success('Saved.'); }
+    catch (e: any) { toast.error(e?.message ?? 'Save failed'); }
   };
   const remove = async (id: string) => {
-    if (await confirm({ title: 'Delete room?', destructive: true, confirmText: 'Delete' })) set('rooms', rooms.filter(r => r.id !== id));
+    if (await confirm({ title: 'Delete room?', destructive: true, confirmText: 'Delete' })) {
+      set('rooms', rooms.filter(r => r.id !== id));
+      try { await deleteRoom(id); } catch (e: any) { toast.error(e?.message ?? 'Delete failed'); }
+    }
   };
 
   return (

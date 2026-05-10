@@ -9,9 +9,9 @@ import { useConfirm } from '@/components/ConfirmProvider';
 import { ShieldCheck, CreditCard, Smartphone, Building2 } from 'lucide-react';
 
 const METHODS = [
-  { id: 'paystack-card', label: 'Card', icon: CreditCard, sub: 'Visa · Mastercard · Verve' },
-  { id: 'paystack-transfer', label: 'Bank transfer', icon: Building2, sub: 'Direct from your bank' },
-  { id: 'paystack-ussd', label: 'USSD / Mobile', icon: Smartphone, sub: 'Pay from any phone' },
+  { id: 'flutterwave-card', label: 'Card', icon: CreditCard, sub: 'Visa · Mastercard · Verve' },
+  { id: 'flutterwave-transfer', label: 'Bank transfer', icon: Building2, sub: 'Direct from your bank' },
+  { id: 'flutterwave-ussd', label: 'USSD / Mobile', icon: Smartphone, sub: 'Pay from any phone' },
 ] as const;
 
 export default function Checkout() {
@@ -32,7 +32,7 @@ export default function Checkout() {
   const dueNow = lines.reduce((a, l) => a + l.item.pricePerDay * l.quantity * l.days * (l.item.ownership === 'internal' ? 1 : l.item.depositPct / 100), 0);
   const balance = total - dueNow;
 
-  const [form, setForm] = useState({ name: '', email: '', phone: '', address: '', date: '', method: 'paystack-card' as typeof METHODS[number]['id'] });
+  const [form, setForm] = useState({ name: '', email: '', phone: '', address: '', date: '', method: 'flutterwave-card' as typeof METHODS[number]['id'] });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [paying, setPaying] = useState(false);
 
@@ -57,7 +57,7 @@ export default function Checkout() {
     }
     setErrors({});
     setPaying(true);
-    // Simulated Paystack flow
+    // Simulated Flutterwave flow
     await new Promise(r => setTimeout(r, 1400));
     setPaying(false);
 
@@ -140,7 +140,7 @@ export default function Checkout() {
             </div>
             <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
               <ShieldCheck className="w-4 h-4 text-gold" />
-              Secured by Paystack · Test mode (no real charge)
+              Secured by Flutterwave · Test mode (no real charge)
             </div>
           </Section>
         </div>
@@ -164,7 +164,7 @@ export default function Checkout() {
             </div>
             <button type="submit" disabled={paying}
               className="mt-6 w-full bg-gold text-ink py-4 text-xs uppercase tracking-[0.3em] hover:bg-gold/90 transition disabled:opacity-60">
-              {paying ? 'Connecting to Paystack…' : `Pay ${fmt(dueNow)} with Paystack`}
+              {paying ? 'Connecting to Flutterwave…' : `Pay ${fmt(dueNow)} with Flutterwave`}
             </button>
             <p className="mt-3 text-[10px] uppercase tracking-[0.25em] text-muted-foreground text-center">
               Tracked by email · No sign-up
