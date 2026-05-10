@@ -32,7 +32,7 @@ export default function Checkout() {
   const dueNow = lines.reduce((a, l) => a + l.item.pricePerDay * l.quantity * l.days * (l.item.ownership === 'internal' ? 1 : l.item.depositPct / 100), 0);
   const balance = total - dueNow;
 
-  const [form, setForm] = useState({ name: '', email: '', phone: '', address: '', date: '', method: 'paystack-card' as typeof METHODS[number]['id'] });
+  const [form, setForm] = useState({ name: '', email: '', phone: '', address: '', date: '', method: 'flutterwave-card' as typeof METHODS[number]['id'] });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [paying, setPaying] = useState(false);
 
