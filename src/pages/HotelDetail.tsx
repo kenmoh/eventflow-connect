@@ -351,7 +351,7 @@ export default function HotelDetail() {
 
             <button onClick={submit} disabled={paying || lines.length === 0}
               className="mt-5 w-full bg-gold text-gold-foreground py-4 text-xs uppercase tracking-[0.3em] hover:opacity-90 transition disabled:opacity-50">
-              {paying ? 'Connecting to Paystack…' : `Pay ${fmt(deposit)} deposit`}
+              {paying ? 'Connecting to Flutterwave…' : `Pay ${fmt(deposit)} deposit`}
             </button>
             <p className="mt-3 text-[10px] uppercase tracking-[0.25em] text-muted-foreground text-center">
               Tracked by email · No sign-up
