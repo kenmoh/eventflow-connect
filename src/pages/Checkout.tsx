@@ -9,9 +9,9 @@ import { useConfirm } from '@/components/ConfirmProvider';
 import { ShieldCheck, CreditCard, Smartphone, Building2 } from 'lucide-react';
 
 const METHODS = [
-  { id: 'paystack-card', label: 'Card', icon: CreditCard, sub: 'Visa · Mastercard · Verve' },
-  { id: 'paystack-transfer', label: 'Bank transfer', icon: Building2, sub: 'Direct from your bank' },
-  { id: 'paystack-ussd', label: 'USSD / Mobile', icon: Smartphone, sub: 'Pay from any phone' },
+  { id: 'flutterwave-card', label: 'Card', icon: CreditCard, sub: 'Visa · Mastercard · Verve' },
+  { id: 'flutterwave-transfer', label: 'Bank transfer', icon: Building2, sub: 'Direct from your bank' },
+  { id: 'flutterwave-ussd', label: 'USSD / Mobile', icon: Smartphone, sub: 'Pay from any phone' },
 ] as const;
 
 export default function Checkout() {
