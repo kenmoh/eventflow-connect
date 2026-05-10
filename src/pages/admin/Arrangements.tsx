@@ -6,6 +6,7 @@ import type { SeatArrangement } from '@/lib/types';
 import { toast } from 'sonner';
 import heroBallroom from '@/assets/hero-ballroom.jpg';
 import { useConfirm } from '@/components/ConfirmProvider';
+import { upsertArrangement, deleteArrangement } from '@/lib/db';
 
 const blank = (): SeatArrangement => ({ id: crypto.randomUUID(), name: '', description: '', image: heroBallroom });
 
