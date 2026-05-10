@@ -6,6 +6,7 @@ import type { Room } from '@/lib/types';
 import { toast } from 'sonner';
 import heroBallroom from '@/assets/hero-ballroom.jpg';
 import { useConfirm } from '@/components/ConfirmProvider';
+import { upsertRoom, deleteRoom } from '@/lib/db';
 
 const blank = (hotelId: string): Room => ({ id: crypto.randomUUID(), hotelId, type: '', description: '', price: 150000, capacity: 2, image: heroBallroom });
 
