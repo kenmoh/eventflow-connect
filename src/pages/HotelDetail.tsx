@@ -142,7 +142,7 @@ export default function HotelDetail() {
 
     await alertDialog({
       title: 'Reservation confirmed',
-      description: `Reference ${ref}. Deposit of ${fmt(deposit)} captured via Paystack (test mode).`,
+      description: `Reference ${ref}. Deposit of ${fmt(deposit)} captured via Flutterwave (test mode).`,
       confirmText: 'View booking',
     });
     toast.success('Reservation confirmed.');
