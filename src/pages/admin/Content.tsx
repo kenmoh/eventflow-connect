@@ -3,13 +3,18 @@ import { AdminPage, Field, inputCls, PrimaryBtn } from './_shared';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import type { SiteContent } from '@/lib/types';
+import { saveContent } from '@/lib/db';
 
 export default function AdminContent() {
   const content = useStoreBase(s => s.content);
   const set = useStoreBase(s => s.set);
   const [c, setC] = useState<SiteContent>(content);
 
-  const save = () => { set('content', c); toast.success('Site content updated.'); };
+  const save = async () => {
+    set('content', c);
+    try { await saveContent(c); toast.success('Site content updated.'); }
+    catch (e: any) { toast.error(e?.message ?? 'Save failed'); }
+  };
   const upd = <K extends keyof SiteContent>(k: K, v: SiteContent[K]) => setC(p => ({ ...p, [k]: v }));
 
   return (
