@@ -6,6 +6,8 @@ import { toast } from 'sonner';
 import { employeeSchema } from '@/lib/validation';
 import { useConfirm } from '@/components/ConfirmProvider';
 import { useCurrentEmployee } from '@/lib/store';
+import { upsertRole, deleteRole, setEmployeeRole, loadEmployees } from '@/lib/db';
+import { supabase } from '@/integrations/supabase/client';
 
 const ALL_TABS: AdminTab[] = ['branding', 'content', 'hotels', 'rooms', 'halls', 'packages', 'rentals', 'inventory', 'bookings', 'employees'];
 
