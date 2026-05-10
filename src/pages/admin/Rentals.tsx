@@ -6,6 +6,7 @@ import type { RentalItem, RentalCategory } from '@/lib/types';
 import { toast } from 'sonner';
 import heroRentals from '@/assets/hero-rentals.jpg';
 import { useConfirm } from '@/components/ConfirmProvider';
+import { upsertRental, deleteRental } from '@/lib/db';
 
 const CATS: RentalCategory[] = ['Sound', 'Lighting', 'Seating', 'Tents', 'Decor'];
 const blank = (): RentalItem => ({ id: crypto.randomUUID(), name: '', category: 'Sound', pricePerDay: 50000, ownership: 'internal', depositPct: 100, image: heroRentals, description: '', available: true, stockTotal: 1, stockAvailable: 1, location: '' });
