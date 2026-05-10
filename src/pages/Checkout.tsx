@@ -140,7 +140,7 @@ export default function Checkout() {
             </div>
             <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
               <ShieldCheck className="w-4 h-4 text-gold" />
-              Secured by Paystack · Test mode (no real charge)
+              Secured by Flutterwave · Test mode (no real charge)
             </div>
           </Section>
         </div>
