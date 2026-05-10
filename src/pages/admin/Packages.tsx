@@ -5,6 +5,7 @@ import type { Pkg, PackageKind, TimeSlot } from '@/lib/types';
 import { toast } from 'sonner';
 import { useConfirm } from '@/components/ConfirmProvider';
 import { X } from 'lucide-react';
+import { upsertPackage, deletePackage } from '@/lib/db';
 
 const blank = (hotelId: string): Pkg => ({
   id: crypto.randomUUID(), hotelId, kind: 'coffee', name: '', description: '',
