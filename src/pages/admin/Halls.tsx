@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import heroBallroom from '@/assets/hero-ballroom.jpg';
 import { useConfirm } from '@/components/ConfirmProvider';
 import { X } from 'lucide-react';
+import { upsertHall, deleteHall } from '@/lib/db';
 
 const SUGGESTED = ['PA System', 'Mints', 'Notepad', 'Pen', 'Flip Chart', 'Projector', 'Wireless Mics', 'Stage', 'Whiteboard', 'Coffee station'];
 
