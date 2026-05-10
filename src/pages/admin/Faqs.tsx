@@ -4,6 +4,7 @@ import { useState } from 'react';
 import type { FAQ } from '@/lib/types';
 import { toast } from 'sonner';
 import { useConfirm } from '@/components/ConfirmProvider';
+import { upsertFaq, deleteFaq } from '@/lib/db';
 
 const blank = (order: number): FAQ => ({ id: crypto.randomUUID(), question: '', answer: '', order, published: true });
 
