@@ -25,8 +25,20 @@ export default function AdminEmployees() {
   const [role, setRole] = useState<Role | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const saveEmp = () => {
+  const saveEmp = async () => {
     if (!emp) return;
+    const exists = employees.some(e => e.id === emp.id);
+    // Existing user → only update role mapping
+    if (exists) {
+      if (!emp.roleId) { setErrors({ roleId: 'Pick a role' }); return; }
+      setErrors({});
+      set('employees', employees.map(e => e.id === emp.id ? emp : e));
+      setEmp(null);
+      try { await setEmployeeRole(emp.id, emp.roleId); toast.success('Role updated.'); }
+      catch (e: any) { toast.error(e?.message ?? 'Update failed'); }
+      return;
+    }
+    // New user → validate + edge function
     const res = employeeSchema.safeParse(emp);
     if (!res.success) {
       const m: Record<string, string> = {};
@@ -34,28 +46,44 @@ export default function AdminEmployees() {
       setErrors(m); return;
     }
     setErrors({});
-    const exists = employees.some(e => e.id === emp.id);
-    set('employees', exists ? employees.map(e => e.id === emp.id ? emp : e) : [...employees, emp]);
-    setEmp(null); toast.success('Employee saved.');
+    try {
+      const { data, error } = await supabase.functions.invoke('create-employee', {
+        body: { name: emp.name, email: emp.email, password: emp.password, roleId: emp.roleId },
+      });
+      if (error) throw new Error(error.message);
+      if (data?.error) throw new Error(data.error);
+      const fresh = await loadEmployees();
+      set('employees', fresh);
+      setEmp(null);
+      toast.success('Employee created.');
+    } catch (e: any) {
+      toast.error(e?.message ?? 'Create failed');
+    }
   };
 
-  const saveRole = () => {
+  const saveRole = async () => {
     if (!role || !role.name.trim()) { toast.error('Name required.'); return; }
     const exists = roles.some(r => r.id === role.id);
     set('roles', exists ? roles.map(r => r.id === role.id ? role : r) : [...roles, role]);
-    setRole(null); toast.success('Role saved.');
+    setRole(null);
+    try { await upsertRole(role); toast.success('Role saved.'); }
+    catch (e: any) { toast.error(e?.message ?? 'Save failed'); }
   };
 
   const removeEmp = async (e: Employee) => {
     if (e.id === me?.id) return toast.error("You can't delete yourself.");
     if (await confirm({ title: `Delete ${e.name}?`, destructive: true, confirmText: 'Delete' })) {
+      // We don't delete the auth user from the client; just unset their role.
       set('employees', employees.filter(x => x.id !== e.id));
+      try { await setEmployeeRole(e.id, ''); } catch { /* ignore */ }
+      toast.success('Employee removed from staff list.');
     }
   };
   const removeRole = async (r: Role) => {
     if (employees.some(e => e.roleId === r.id)) return toast.error('Role is in use.');
     if (await confirm({ title: `Delete role ${r.name}?`, destructive: true, confirmText: 'Delete' })) {
       set('roles', roles.filter(x => x.id !== r.id));
+      try { await deleteRole(r.id); } catch (e: any) { toast.error(e?.message ?? 'Delete failed'); }
     }
   };
 
