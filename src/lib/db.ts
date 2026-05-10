@@ -171,8 +171,8 @@ export async function loadEmployees(): Promise<Employee[]> {
   const { data } = await supabase.from('profiles').select('id, name, email, role_id').order('name');
   return (data ?? []).map((p: any): Employee => ({ id: p.id, name: p.name, email: p.email, password: '', roleId: p.role_id ?? '' }));
 }
-export async function setEmployeeRole(userId: string, roleId: string) {
-  await supabase.from('profiles').update({ role_id: roleId }).eq('id', userId);
+export async function setEmployeeRole(userId: string, roleId: string | null) {
+  await supabase.from('profiles').update({ role_id: roleId || null }).eq('id', userId);
 }
 
 // ---------- storage ----------

@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import heroBallroom from '@/assets/hero-ballroom.jpg';
 import { useConfirm } from '@/components/ConfirmProvider';
 import { X } from 'lucide-react';
+import { upsertHall, deleteHall } from '@/lib/db';
 
 const SUGGESTED = ['PA System', 'Mints', 'Notepad', 'Pen', 'Flip Chart', 'Projector', 'Wireless Mics', 'Stage', 'Whiteboard', 'Coffee station'];
 
@@ -23,14 +24,19 @@ export default function AdminHalls() {
   const [amenityInput, setAmenityInput] = useState('');
   const { confirm } = useConfirm();
 
-  const save = () => {
+  const save = async () => {
     if (!editing) return;
     const exists = halls.some(h => h.id === editing.id);
     set('halls', exists ? halls.map(h => h.id === editing.id ? editing : h) : [...halls, editing]);
-    setEditing(null); toast.success('Saved.');
+    setEditing(null);
+    try { await upsertHall(editing); toast.success('Saved.'); }
+    catch (e: any) { toast.error(e?.message ?? 'Save failed'); }
   };
   const remove = async (id: string) => {
-    if (await confirm({ title: 'Delete hall?', destructive: true, confirmText: 'Delete' })) set('halls', halls.filter(h => h.id !== id));
+    if (await confirm({ title: 'Delete hall?', destructive: true, confirmText: 'Delete' })) {
+      set('halls', halls.filter(h => h.id !== id));
+      try { await deleteHall(id); } catch (e: any) { toast.error(e?.message ?? 'Delete failed'); }
+    }
   };
 
   const addAmenity = (val: string) => {
