@@ -27,6 +27,7 @@ import { Route as HotelsIdRouteImport } from './routes/hotels/$id'
 import { Route as AdminRoomsRouteImport } from './routes/admin/rooms'
 import { Route as AdminRevenueRouteImport } from './routes/admin/revenue'
 import { Route as AdminRentalsRouteImport } from './routes/admin/rentals'
+import { Route as AdminReceiptsRouteImport } from './routes/admin/receipts'
 import { Route as AdminPackagesRouteImport } from './routes/admin/packages'
 import { Route as AdminLegalRouteImport } from './routes/admin/legal'
 import { Route as AdminInventoryRouteImport } from './routes/admin/inventory'
@@ -129,6 +130,11 @@ const AdminRentalsRoute = AdminRentalsRouteImport.update({
   path: '/rentals',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminReceiptsRoute = AdminReceiptsRouteImport.update({
+  id: '/receipts',
+  path: '/receipts',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminPackagesRoute = AdminPackagesRouteImport.update({
   id: '/packages',
   path: '/packages',
@@ -209,6 +215,7 @@ export interface FileRoutesByFullPath {
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/legal': typeof AdminLegalRoute
   '/admin/packages': typeof AdminPackagesRoute
+  '/admin/receipts': typeof AdminReceiptsRoute
   '/admin/rentals': typeof AdminRentalsRoute
   '/admin/revenue': typeof AdminRevenueRoute
   '/admin/rooms': typeof AdminRoomsRoute
@@ -239,6 +246,7 @@ export interface FileRoutesByTo {
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/legal': typeof AdminLegalRoute
   '/admin/packages': typeof AdminPackagesRoute
+  '/admin/receipts': typeof AdminReceiptsRoute
   '/admin/rentals': typeof AdminRentalsRoute
   '/admin/revenue': typeof AdminRevenueRoute
   '/admin/rooms': typeof AdminRoomsRoute
@@ -271,6 +279,7 @@ export interface FileRoutesById {
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/legal': typeof AdminLegalRoute
   '/admin/packages': typeof AdminPackagesRoute
+  '/admin/receipts': typeof AdminReceiptsRoute
   '/admin/rentals': typeof AdminRentalsRoute
   '/admin/revenue': typeof AdminRevenueRoute
   '/admin/rooms': typeof AdminRoomsRoute
@@ -304,6 +313,7 @@ export interface FileRouteTypes {
     | '/admin/inventory'
     | '/admin/legal'
     | '/admin/packages'
+    | '/admin/receipts'
     | '/admin/rentals'
     | '/admin/revenue'
     | '/admin/rooms'
@@ -334,6 +344,7 @@ export interface FileRouteTypes {
     | '/admin/inventory'
     | '/admin/legal'
     | '/admin/packages'
+    | '/admin/receipts'
     | '/admin/rentals'
     | '/admin/revenue'
     | '/admin/rooms'
@@ -365,6 +376,7 @@ export interface FileRouteTypes {
     | '/admin/inventory'
     | '/admin/legal'
     | '/admin/packages'
+    | '/admin/receipts'
     | '/admin/rentals'
     | '/admin/revenue'
     | '/admin/rooms'
@@ -518,6 +530,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRentalsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/receipts': {
+      id: '/admin/receipts'
+      path: '/receipts'
+      fullPath: '/admin/receipts'
+      preLoaderRoute: typeof AdminReceiptsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/packages': {
       id: '/admin/packages'
       path: '/packages'
@@ -610,6 +629,7 @@ interface AdminRouteChildren {
   AdminInventoryRoute: typeof AdminInventoryRoute
   AdminLegalRoute: typeof AdminLegalRoute
   AdminPackagesRoute: typeof AdminPackagesRoute
+  AdminReceiptsRoute: typeof AdminReceiptsRoute
   AdminRentalsRoute: typeof AdminRentalsRoute
   AdminRevenueRoute: typeof AdminRevenueRoute
   AdminRoomsRoute: typeof AdminRoomsRoute
@@ -628,6 +648,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminInventoryRoute: AdminInventoryRoute,
   AdminLegalRoute: AdminLegalRoute,
   AdminPackagesRoute: AdminPackagesRoute,
+  AdminReceiptsRoute: AdminReceiptsRoute,
   AdminRentalsRoute: AdminRentalsRoute,
   AdminRevenueRoute: AdminRevenueRoute,
   AdminRoomsRoute: AdminRoomsRoute,

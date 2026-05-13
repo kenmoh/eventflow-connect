@@ -64,9 +64,9 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
                 </div>
               </SheetContent>
             </Sheet>
-            <Link to="/" className="flex items-baseline gap-2">
+            <Link to="/" className="flex items-center gap-1">
+              <img src="/logo.png" alt={branding.brandName} className="h-16 w-auto object-contain" />
               <span className="font-display text-xl tracking-tight">{branding.brandName}</span>
-              <span className="hidden sm:inline text-[10px] uppercase tracking-[0.3em] opacity-50">est. 2026</span>
             </Link>
           </div>
           <nav className="hidden md:flex items-center gap-8 text-xs uppercase tracking-[0.2em]">

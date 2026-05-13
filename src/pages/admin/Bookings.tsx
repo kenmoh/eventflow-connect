@@ -11,15 +11,15 @@ export default function AdminBookings() {
       <div className="space-y-4">
         {bookings.map(b => (
           <article key={b.reference} className="border border-border bg-card p-3 sm:p-4 lg:p-6">
-            <div className="flex flex-wrap items-baseline gap-2 sm:gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-baseline flex-wrap gap-2 sm:gap-3">
               <span className="chip text-xs">{b.type}</span>
               <span className="font-display text-lg sm:text-2xl">{b.reference}</span>
               <span className="chip text-xs">{b.fulfillment}</span>
               <span className="chip-gold chip text-xs">{b.paymentStatus}</span>
-              <span className="ml-auto text-xs text-muted-foreground hidden sm:block">{new Date(b.createdAt).toLocaleString()}</span>
+              <span className="text-xs text-muted-foreground sm:ml-auto">{new Date(b.createdAt).toLocaleString()}</span>
             </div>
 
-            <div className="mt-3 sm:mt-4 grid grid-cols-2 lg:grid-cols-4 gap-x-4 lg:gap-x-6 gap-y-2 text-sm">
+            <div className="mt-3 sm:mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-x-4 lg:gap-x-6 gap-y-3 text-sm">
               <Detail k="Name" v={b.customer.name}/>
               <Detail k="Email" v={b.customer.email}/>
               <Detail k="Phone" v={b.customer.phone}/>
@@ -28,18 +28,18 @@ export default function AdminBookings() {
               {(b.details as { address?: string }).address && <Detail k="Address" v={String((b.details as { address?: string }).address)}/>}
             </div>
 
-            <div className="mt-4 border-t border-border pt-3 sm:pt-4">
+            <div className="mt-4 border-t border-border pt-3 sm:pt-4 overflow-x-hidden">
               <div className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground mb-2">Items</div>
               {b.lines && b.lines.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 max-w-full">
                   {b.lines.map((l, i) => <LinePill key={i} l={l}/>)}
                 </div>
               ) : (
-                <p className="text-xs text-muted-foreground">Legacy booking — see raw details: {JSON.stringify(b.details)}</p>
+                <p className="text-xs text-muted-foreground break-all">Legacy booking — see raw details: {JSON.stringify(b.details)}</p>
               )}
             </div>
 
-            <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 items-end border-t border-border pt-3 sm:pt-4">
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 items-start border-t border-border pt-3 sm:pt-4">
               <div>
                 <div className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Total</div>
                 <div className="font-display text-lg sm:text-xl">{fmt(b.total)}</div>
@@ -76,7 +76,7 @@ function LinePill({ l }: { l: BookingLine }) {
   if (l.kind === 'hall') label = `Hall · ${l.name} · ${l.days}d${l.timeSlot ? ` · ${l.timeSlot}` : ''}${l.seatArrangement ? ` · ${l.seatArrangement}` : ''} · ${fmt(l.subtotal)}`;
   if (l.kind === 'package') label = `Package · ${l.name} · ${l.persons} pax${l.timeSlot ? ` · ${l.timeSlot}` : ''} · ${fmt(l.subtotal)}`;
   if (l.kind === 'rental') label = `Rental · ${l.name} · ${l.quantity}× · ${l.days}d · ${fmt(l.subtotal)}`;
-  return <span className={`chip ${accent}`}>{label}</span>;
+  return <span className={`chip ${accent} whitespace-nowrap max-w-full`}>{label}</span>;
 }
 
 function Detail({ k, v }: { k: string; v: string }) {

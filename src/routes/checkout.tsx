@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { ShieldCheck, CreditCard, Smartphone, Building2 } from 'lucide-react'
+import { ShieldCheck, CreditCard, Building2 } from 'lucide-react'
 import SiteLayout from '@/components/SiteLayout'
 import { useStoreBase, makeReference, fmt } from '@/lib/store'
 import { checkoutSchema } from '@/lib/validation'
@@ -10,7 +10,6 @@ import { useConfirm } from '@/components/ConfirmProvider'
 const METHODS = [
   { id: 'paystack-card', label: 'Card', icon: CreditCard, sub: 'Visa · Mastercard · Verve' },
   { id: 'paystack-transfer', label: 'Bank transfer', icon: Building2, sub: 'Direct from your bank' },
-  { id: 'paystack-ussd', label: 'USSD / Mobile', icon: Smartphone, sub: 'Pay from any phone' },
 ] as const;
 
 export const Route = createFileRoute('/checkout')({
@@ -20,6 +19,7 @@ export const Route = createFileRoute('/checkout')({
 function Checkout() {
   const cart = useStoreBase(s => s.cart);
   const rentals = useStoreBase(s => s.rentals);
+  const bookings = useStoreBase(s => s.bookings);
   const addBooking = useStoreBase(s => s.addBooking);
   const addMovement = useStoreBase(s => s.addMovement);
   const set = useStoreBase(s => s.set);
@@ -27,6 +27,15 @@ function Checkout() {
   const allRentals = useStoreBase(s => s.rentals);
   const navigate = useNavigate();
   const { alert: alertDialog } = useConfirm();
+
+  const onEmailBlur = () => {
+    if (!form.email.trim()) return;
+    const prior = bookings.find(b => b.customer.email.toLowerCase() === form.email.trim().toLowerCase());
+    if (prior) {
+      setForm(f => ({ ...f, name: f.name || prior.customer.name, phone: f.phone || prior.customer.phone }));
+      toast.success('Welcome back — details prefilled.');
+    }
+  };
 
   const lines = cart
     .map(c => ({ ...c, item: rentals.find(r => r.id === c.itemId)! }))
@@ -119,8 +128,8 @@ function Checkout() {
         <div className="lg:col-span-7 space-y-8">
           <Section n="01" title="Contact">
             <div className="grid sm:grid-cols-2 gap-4">
+              <Field label="Email" error={errors.email}><input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} onBlur={onEmailBlur} className="field"/></Field>
               <Field label="Full name" error={errors.name}><input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="field"/></Field>
-              <Field label="Email" error={errors.email}><input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className="field"/></Field>
               <Field label="Phone" error={errors.phone}><input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} className="field"/></Field>
               <Field label="Event date" error={errors.date}><input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} className="field"/></Field>
             </div>

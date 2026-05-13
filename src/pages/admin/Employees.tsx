@@ -9,7 +9,7 @@ import { useCurrentEmployee } from '@/lib/store';
 import { upsertRole, deleteRole, setEmployeeRole, loadEmployees } from '@/lib/db';
 import { supabase } from '@/integrations/supabase/client';
 
-const ALL_TABS: AdminTab[] = ['branding', 'content', 'hotels', 'rooms', 'halls', 'packages', 'rentals', 'inventory', 'bookings', 'employees'];
+const ALL_TABS: AdminTab[] = ['branding', 'content', 'hotels', 'rooms', 'halls', 'packages', 'rentals', 'inventory', 'bookings', 'employees', 'receipts', 'revenue', 'arrangements', 'faqs', 'legal'];
 
 const blankEmp = (roleId: string): Employee => ({ id: crypto.randomUUID(), name: '', email: '', password: '', roleId });
 const blankRole = (): Role => ({ id: crypto.randomUUID(), name: '', tabs: [] });

@@ -108,12 +108,13 @@ export type Branding = {
   brandName: string;
   tagline: string;
   primaryAccent: string;
+  logo?: string;
 };
 
 export type AdminTab =
   | 'branding' | 'content' | 'hotels' | 'rooms' | 'halls'
   | 'packages' | 'arrangements' | 'rentals' | 'inventory'
-  | 'bookings' | 'revenue' | 'faqs' | 'legal' | 'employees';
+  | 'bookings' | 'revenue' | 'faqs' | 'legal' | 'employees' | 'receipts';
 
 export type Role = {
   id: ID;
@@ -152,6 +153,19 @@ export type FAQ = {
 };
 
 export type LegalPage = { title: string; updatedAt: string; body: string };
+
+export type SavedReceipt = {
+  id: string;
+  docType: 'receipt' | 'quote' | 'invoice';
+  clientName: string;
+  clientEmail: string;
+  clientPhone: string;
+  clientAddress: string;
+  items: { description: string; quantity: number; unitPrice: number }[];
+  notes: string;
+  total: number;
+  createdAt: string;
+};
 
 export type SiteContent = {
   hero: {

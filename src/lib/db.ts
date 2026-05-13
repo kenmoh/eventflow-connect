@@ -2,7 +2,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type {
   Hotel, Room, Hall, Pkg, RentalItem, Booking, BookingLine, Branding,
   Employee, Role, InventoryMovement, SiteContent,
-  SeatArrangement, FAQ, AdminTab, RentalCategory,
+  SeatArrangement, FAQ, AdminTab, RentalCategory, SavedReceipt,
 } from './types';
 
 // ---------- mappers ----------
@@ -28,7 +28,7 @@ const mapBooking = (r: any): Booking => ({
 
 // ---------- bulk loader ----------
 export async function loadCatalog() {
-  const [branding, content, hotels, rooms, halls, packages, arrangements, rentals, faqs, bookings, movements, roles] = await Promise.all([
+  const [branding, content, hotels, rooms, halls, packages, arrangements, rentals, faqs, bookings, movements, roles, receipts] = await Promise.all([
     supabase.from('branding').select('*').limit(1).maybeSingle(),
     supabase.from('site_content').select('data').limit(1).maybeSingle(),
     supabase.from('hotels').select('*').order('name'),
@@ -41,6 +41,7 @@ export async function loadCatalog() {
     supabase.from('bookings').select('*').order('created_at', { ascending: false }),
     supabase.from('inventory_movements').select('*').order('at', { ascending: false }),
     supabase.from('roles').select('*').order('name'),
+    supabase.from('receipts').select('*').order('created_at', { ascending: false }),
   ]);
   return {
     branding: branding.data ? mapBranding(branding.data) : null,
@@ -55,6 +56,18 @@ export async function loadCatalog() {
     bookings: (bookings.data ?? []).map(mapBooking),
     movements: (movements.data ?? []).map(mapMovement),
     roles: (roles.data ?? []).map((r: any): Role => ({ id: r.id, name: r.name, tabs: (r.tabs ?? []) as AdminTab[] })),
+    receipts: (receipts.data ?? []).map((r: any): SavedReceipt => ({
+      id: r.id,
+      docType: r.doc_type,
+      clientName: r.client_name,
+      clientEmail: r.client_email,
+      clientPhone: r.client_phone,
+      clientAddress: r.client_address,
+      items: r.items ?? [],
+      notes: r.notes ?? '',
+      total: Number(r.total),
+      createdAt: r.created_at,
+    })),
   };
 }
 
@@ -183,4 +196,39 @@ export async function uploadImage(file: File): Promise<string> {
   if (error) throw error;
   const { data } = supabase.storage.from('media').getPublicUrl(path);
   return data.publicUrl;
+}
+
+// ---------- receipts ----------
+export async function loadReceipts(): Promise<SavedReceipt[]> {
+  const { data } = await supabase.from('receipts').select('*').order('created_at', { ascending: false });
+  return (data ?? []).map((r: any): SavedReceipt => ({
+    id: r.id,
+    docType: r.doc_type,
+    clientName: r.client_name,
+    clientEmail: r.client_email,
+    clientPhone: r.client_phone,
+    clientAddress: r.client_address,
+    items: r.items ?? [],
+    notes: r.notes ?? '',
+    total: Number(r.total),
+    createdAt: r.created_at,
+  }));
+}
+
+export async function insertReceipt(r: SavedReceipt) {
+  await supabase.from('receipts').insert({
+    id: r.id,
+    doc_type: r.docType,
+    client_name: r.clientName,
+    client_email: r.clientEmail,
+    client_phone: r.clientPhone,
+    client_address: r.clientAddress,
+    items: r.items,
+    notes: r.notes,
+    total: r.total,
+  } as any);
+}
+
+export async function deleteReceipt(id: string) {
+  await supabase.from('receipts').delete().eq('id', id);
 }

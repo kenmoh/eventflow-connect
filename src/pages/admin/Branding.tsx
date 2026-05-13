@@ -24,6 +24,12 @@ export default function AdminBranding() {
             <span className="w-10 h-10 border border-border" style={{ background: `hsl(${b.primaryAccent})` }} />
           </div>
         </Field>
+        <Field label="Logo URL">
+          <div className="flex gap-3 items-center">
+            <input className={inputCls} value={b.logo || ''} onChange={e => setB({ ...b, logo: e.target.value })} placeholder="/logo.png"/>
+            {b.logo && <img src={b.logo} alt="Logo preview" className="w-10 h-10 object-contain border border-border" />}
+          </div>
+        </Field>
       </div>
       <div className="mt-8"><PrimaryBtn onClick={save}>Save changes</PrimaryBtn></div>
     </AdminPage>

@@ -19,6 +19,7 @@ import type {
   SeatArrangement,
   FAQ,
   Theme,
+  SavedReceipt,
 } from "./types";
 import { loadCatalog, loadEmployees } from "./db";
 
@@ -26,6 +27,7 @@ const defaultBranding: Branding = {
   brandName: "AB Consult",
   tagline: "A new way to convene.",
   primaryAccent: "38 60% 56%",
+  logo: "/logo.png",
 };
 
 const defaultContent: SiteContent = {
@@ -71,6 +73,7 @@ type Loaded = {
   movements: InventoryMovement[];
   roles: Role[];
   employees: Employee[];
+  receipts: SavedReceipt[];
 };
 
 type Persisted = {
@@ -107,6 +110,8 @@ type Actions = {
   addBooking: (b: Booking) => Promise<void>;
   updateBooking: (ref: string, patch: Partial<Booking>) => Promise<void>;
   addMovement: (m: InventoryMovement) => Promise<void>;
+  addReceipt: (r: SavedReceipt) => void;
+  deleteReceipt: (id: string) => void;
 };
 
 export const useStoreBase = create<State & Actions>()(
@@ -126,6 +131,7 @@ export const useStoreBase = create<State & Actions>()(
       movements: [],
       roles: [],
       employees: [],
+      receipts: [],
       // persisted
       theme: "dark",
       cart: [],
@@ -194,6 +200,8 @@ export const useStoreBase = create<State & Actions>()(
           console.error("insertMovement", e);
         }
       },
+      addReceipt: (r) => set((s) => ({ receipts: [r, ...s.receipts] })),
+      deleteReceipt: (id) => set((s) => ({ receipts: s.receipts.filter((r) => r.id !== id) })),
 
       hydrate: async () => {
         const data = await loadCatalog();

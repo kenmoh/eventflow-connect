@@ -24,6 +24,7 @@ import {
   FileText,
   Palette,
   UserCog,
+  Receipt,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -39,6 +40,7 @@ const NAV: [AdminTab, string, React.ElementType][] = [
   ["packages", "Packages", ShoppingBag],
   ["arrangements", "Seat layouts", Building],
   ["rentals", "Rentals", ShoppingBag],
+  ["receipts", "Receipts", Receipt],
   ["faqs", "FAQs", HelpCircle],
   ["legal", "Legal & About", FileText],
   ["content", "Site content", FileText],
@@ -316,12 +318,20 @@ function Shell() {
         <div
           className={`border-b border-bone/10 ${collapsed ? 'p-2' : 'px-6 py-6'}`}
         >
-          <div
-            className={`font-display hidden lg:block ${collapsed ? 'text-lg text-center' : 'text-2xl'}`}
-          >
-            {branding.brandName}
-          </div>
-          {!collapsed && (
+          {branding.logo ? (
+            collapsed ? (
+              <img src={branding.logo} alt={branding.brandName} className="w-8 h-8 mx-auto object-contain" />
+            ) : (
+              <img src={branding.logo} alt={branding.brandName} className="h-10 w-auto object-contain" />
+            )
+          ) : (
+            <div
+              className={`font-display hidden lg:block ${collapsed ? 'text-lg text-center' : 'text-2xl'}`}
+            >
+              {branding.brandName}
+            </div>
+          )}
+          {!collapsed && !branding.logo && (
             <div className="text-[10px] uppercase tracking-[0.4em] text-gold mt-1 hidden lg:block">
               Studio · CMS
             </div>

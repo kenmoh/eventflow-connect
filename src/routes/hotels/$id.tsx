@@ -179,21 +179,21 @@ function HotelDetail() {
                 const sel = r.id === roomId;
                 return (
                   <div key={r.id}
-                    className={`grid grid-cols-[120px_1fr_auto] gap-6 p-4 border ${sel ? 'border-gold bg-secondary' : 'border-border hover:bg-secondary/50'}`}>
-                    <button type="button" onClick={() => setRoomId(sel ? '' : r.id)} className="contents text-left">
-                      <img src={r.image} alt={r.type} className="w-full h-24 object-cover" width={120} height={96} loading="lazy"/>
-                      <div>
-                        <div className="font-display text-2xl">{r.type}</div>
-                        <p className="text-sm text-muted-foreground">{r.description}</p>
+                    className={`flex flex-col sm:grid sm:grid-cols-[120px_1fr_auto] gap-4 sm:gap-6 p-4 border ${sel ? 'border-gold bg-secondary' : 'border-border hover:bg-secondary/50'}`}>
+                    <button type="button" onClick={() => setRoomId(sel ? '' : r.id)} className="flex flex-col sm:contents text-left gap-3 sm:gap-0">
+                      <img src={r.image} alt={r.type} className="w-full sm:w-32 h-32 sm:h-24 object-cover rounded-md" width={120} height={96} loading="lazy"/>
+                      <div className="flex-1">
+                        <div className="font-display text-xl sm:text-2xl">{r.type}</div>
+                        <p className="text-sm text-muted-foreground line-clamp-2">{r.description}</p>
                         <div className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground mt-2">Sleeps {r.capacity}</div>
                       </div>
-                      <div className="text-right">
-                        <div className="font-display text-2xl">{fmt(r.price)}</div>
+                      <div className="flex items-center justify-between sm:block sm:text-right mt-2 sm:mt-0">
+                        <div className="font-display text-xl sm:text-2xl">{fmt(r.price)}</div>
                         <div className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">/night</div>
                       </div>
                     </button>
                     {sel && (
-                      <div className="col-span-3 flex items-center gap-3 pt-3 border-t border-border">
+                      <div className="col-span-full flex flex-col sm:flex-row items-start sm:items-center gap-3 pt-3 border-t border-border">
                         <label className="text-xs">Nights
                           <input type="number" min={1} value={nights} onChange={e => setNights(Math.max(1, +e.target.value))}
                             className="ml-2 w-20 field" /></label>
@@ -215,11 +215,11 @@ function HotelDetail() {
                 const sel = h.id === hallId;
                 return (
                   <div key={h.id}
-                    className={`grid grid-cols-[120px_1fr_auto] gap-6 p-4 border ${sel ? 'border-gold bg-secondary' : 'border-border hover:bg-secondary/50'}`}>
-                    <button type="button" onClick={() => setHallId(sel ? '' : h.id)} className="contents text-left">
-                      <img src={h.image} alt={h.name} className="w-full h-24 object-cover" width={120} height={96} loading="lazy"/>
-                      <div>
-                        <div className="font-display text-2xl">{h.name}</div>
+                    className={`flex flex-col sm:grid sm:grid-cols-[120px_1fr_auto] gap-4 sm:gap-6 p-4 border ${sel ? 'border-gold bg-secondary' : 'border-border hover:bg-secondary/50'}`}>
+                    <button type="button" onClick={() => setHallId(sel ? '' : h.id)} className="flex flex-col sm:contents text-left gap-3 sm:gap-0">
+                      <img src={h.image} alt={h.name} className="w-full sm:w-32 h-32 sm:h-24 object-cover rounded-md" width={120} height={96} loading="lazy"/>
+                      <div className="flex-1">
+                        <div className="font-display text-xl sm:text-2xl">{h.name}</div>
                         <div className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground mt-2">Capacity {h.capacity}</div>
                         {h.amenities.length > 0 && (
                           <div className="mt-2 flex flex-wrap gap-1">
@@ -227,13 +227,13 @@ function HotelDetail() {
                           </div>
                         )}
                       </div>
-                      <div className="text-right">
-                        <div className="font-display text-2xl">{fmt(h.pricePerHour * 8)}</div>
+                      <div className="flex items-center justify-between sm:block sm:text-right mt-2 sm:mt-0">
+                        <div className="font-display text-xl sm:text-2xl">{fmt(h.pricePerHour * 8)}</div>
                         <div className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">/day (8h)</div>
                       </div>
                     </button>
                     {sel && (
-                      <div className="col-span-3 grid sm:grid-cols-2 gap-3 pt-3 border-t border-border">
+                      <div className="col-span-full grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-border">
                         <label className="text-xs">Days
                           <input type="number" min={1} value={days} onChange={e => setDays(Math.max(1, +e.target.value))}
                             className="ml-2 w-20 field" /></label>

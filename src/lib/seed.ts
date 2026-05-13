@@ -488,12 +488,13 @@ export const seedRoles: Role[] = [
       "faqs",
       "legal",
       "employees",
+      "receipts",
     ],
   },
   {
     id: "role-ops",
     name: "Operations",
-    tabs: ["bookings", "inventory", "rentals", "revenue"],
+    tabs: ["bookings", "inventory", "rentals", "revenue", "receipts"],
   },
   {
     id: "role-cms",
