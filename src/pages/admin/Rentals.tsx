@@ -38,19 +38,19 @@ export default function AdminRentals() {
       action={<PrimaryBtn onClick={() => setEditing(blank())}>+ New rental</PrimaryBtn>}>
       <div className="border border-border divide-y divide-border bg-card">
         {rentals.map(r => (
-          <div key={r.id} className="grid grid-cols-[60px_1fr_auto_auto_auto] gap-4 p-4 items-center">
-            <img src={r.image} alt={r.name} className="w-14 h-14 object-cover" loading="lazy"/>
-            <div>
-              <div className="font-display text-lg">{r.name}</div>
-              <div className="text-xs text-muted-foreground">{r.category}{r.ownership === 'internal' && ` · ${r.stockAvailable}/${r.stockTotal} in stock`}</div>
+          <div key={r.id} className="flex flex-col sm:flex-row gap-3 sm:gap-4 p-3 sm:p-4 items-start sm:items-center">
+            <img src={r.image} alt={r.name} className="w-full sm:w-14 h-32 sm:h-14 object-cover rounded-md" loading="lazy"/>
+            <div className="flex-1 min-w-0">
+              <div className="font-display text-base sm:text-lg truncate">{r.name}</div>
+              <div className="text-xs text-muted-foreground truncate">{r.category}{r.ownership === 'internal' && ` · ${r.stockAvailable}/${r.stockTotal} in stock`}</div>
             </div>
             <span className={`text-[10px] uppercase tracking-[0.3em] px-2 py-1 ${r.ownership === 'internal' ? 'bg-foreground/10' : 'bg-gold text-ink'}`}>
               {r.ownership === 'internal' ? '100%' : `${r.depositPct}%`}
             </span>
-            <div className="font-display">{fmt(r.pricePerDay)}/d</div>
-            <div className="flex gap-2">
-              <GhostBtn onClick={() => setEditing(r)}>Edit</GhostBtn>
-              <GhostBtn onClick={() => remove(r.id)}>Delete</GhostBtn>
+            <div className="font-display text-sm sm:text-base">{fmt(r.pricePerDay)}/d</div>
+            <div className="flex gap-2 w-full sm:w-auto">
+              <GhostBtn onClick={() => setEditing(r)} className="flex-1 sm:flex-none text-xs py-2">Edit</GhostBtn>
+              <GhostBtn onClick={() => remove(r.id)} className="flex-1 sm:flex-none text-xs py-2">Delete</GhostBtn>
             </div>
           </div>
         ))}

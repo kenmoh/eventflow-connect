@@ -1,7 +1,7 @@
 import SiteLayout from '@/components/SiteLayout';
 import { useStoreBase, makeReference, fmt } from '@/lib/store';
 import { insertBooking, insertMovement, adjustStock, lookupCustomer } from '@/lib/db';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link } from '@tanstack/react-router';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { checkoutSchema } from '@/lib/validation';

@@ -1,32 +1,60 @@
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import { useEffect, useMemo } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
+import { useEffect, useMemo } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import type {
-  Hotel, Room, Hall, Pkg, RentalItem, Booking, CartLine, Branding,
-  Employee, Role, InventoryMovement, SiteContent, AdminTab,
-  SeatArrangement, FAQ, Theme,
-} from './types';
-import { loadCatalog, loadEmployees } from './db';
+  Hotel,
+  Room,
+  Hall,
+  Pkg,
+  RentalItem,
+  Booking,
+  CartLine,
+  Branding,
+  Employee,
+  Role,
+  InventoryMovement,
+  SiteContent,
+  AdminTab,
+  SeatArrangement,
+  FAQ,
+  Theme,
+} from "./types";
+import { loadCatalog, loadEmployees } from "./db";
 
 const defaultBranding: Branding = {
-  brandName: 'All Brothers Consult',
-  tagline: 'A new way to convene.',
-  primaryAccent: '38 60% 56%',
+  brandName: "AB Consult",
+  tagline: "A new way to convene.",
+  primaryAccent: "38 60% 56%",
 };
 
 const defaultContent: SiteContent = {
-  hero: { eyebrow: '', title1: '', title2: '', title3: '', description: '', primaryCta: 'Browse hotels', secondaryCta: 'Rent equipment' },
-  stats: [], ticker: [],
-  reservations: { eyebrow: '', title: '' },
-  packagesSection: { eyebrow: '', title: '', copy: '' },
-  rentalsSection: { eyebrow: '', title: '' },
-  howItWorks: { eyebrow: '', title: '', steps: [] },
-  footer: { blurb: '', contactEmail: '', contactPhone: '', contactCity: '', rightsLine: '' },
-  about: { title: 'About', updatedAt: '', body: '' },
-  privacy: { title: 'Privacy', updatedAt: '', body: '' },
-  terms: { title: 'Terms', updatedAt: '', body: '' },
-  refund: { title: 'Refund', updatedAt: '', body: '' },
+  hero: {
+    eyebrow: "",
+    title1: "",
+    title2: "",
+    title3: "",
+    description: "",
+    primaryCta: "Browse hotels",
+    secondaryCta: "Rent equipment",
+  },
+  stats: [],
+  ticker: [],
+  reservations: { eyebrow: "", title: "" },
+  packagesSection: { eyebrow: "", title: "", copy: "" },
+  rentalsSection: { eyebrow: "", title: "" },
+  howItWorks: { eyebrow: "", title: "", steps: [] },
+  footer: {
+    blurb: "",
+    contactEmail: "",
+    contactPhone: "",
+    contactCity: "",
+    rightsLine: "",
+  },
+  about: { title: "About", updatedAt: "", body: "" },
+  privacy: { title: "Privacy", updatedAt: "", body: "" },
+  terms: { title: "Terms", updatedAt: "", body: "" },
+  refund: { title: "Refund", updatedAt: "", body: "" },
 };
 
 type Loaded = {
@@ -52,14 +80,20 @@ type Persisted = {
 
 type Auth = {
   userId: string | null;
-  profile: { id: string; name: string; email: string; roleId: string | null } | null;
+  profile: {
+    id: string;
+    name: string;
+    email: string;
+    roleId: string | null;
+  } | null;
   loaded: boolean;
 };
 
-type State = Loaded & Persisted & {
-  session: Auth;
-  hydrated: boolean;
-};
+type State = Loaded &
+  Persisted & {
+    session: Auth;
+    hydrated: boolean;
+  };
 
 type Actions = {
   set: <K extends keyof Loaded>(key: K, value: Loaded[K]) => void;
@@ -81,43 +115,84 @@ export const useStoreBase = create<State & Actions>()(
       // loaded (will be hydrated from DB)
       branding: defaultBranding,
       content: defaultContent,
-      hotels: [], rooms: [], halls: [], packages: [], arrangements: [],
-      rentals: [], faqs: [], bookings: [], movements: [], roles: [], employees: [],
+      hotels: [],
+      rooms: [],
+      halls: [],
+      packages: [],
+      arrangements: [],
+      rentals: [],
+      faqs: [],
+      bookings: [],
+      movements: [],
+      roles: [],
+      employees: [],
       // persisted
-      theme: 'dark',
+      theme: "dark",
       cart: [],
       // runtime
       session: { userId: null, profile: null, loaded: false },
       hydrated: false,
 
       set: (k, v) => set({ [k]: v } as any),
-      toggleTheme: () => set(s => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
-      addCart: (line) => set(s => {
-        const existing = s.cart.find(c => c.itemId === line.itemId);
-        const cart = existing
-          ? s.cart.map(c => c.itemId === line.itemId ? { ...c, quantity: c.quantity + line.quantity, days: line.days } : c)
-          : [...s.cart, line];
-        return { cart };
-      }),
-      updateCart: (itemId, patch) => set(s => ({ cart: s.cart.map(c => c.itemId === itemId ? { ...c, ...patch } : c) })),
-      removeCart: (itemId) => set(s => ({ cart: s.cart.filter(c => c.itemId !== itemId) })),
+      toggleTheme: () =>
+        set((s) => ({ theme: s.theme === "dark" ? "light" : "dark" })),
+      addCart: (line) =>
+        set((s) => {
+          const existing = s.cart.find((c) => c.itemId === line.itemId);
+          const cart = existing
+            ? s.cart.map((c) =>
+                c.itemId === line.itemId
+                  ? {
+                      ...c,
+                      quantity: c.quantity + line.quantity,
+                      days: line.days,
+                    }
+                  : c,
+              )
+            : [...s.cart, line];
+          return { cart };
+        }),
+      updateCart: (itemId, patch) =>
+        set((s) => ({
+          cart: s.cart.map((c) =>
+            c.itemId === itemId ? { ...c, ...patch } : c,
+          ),
+        })),
+      removeCart: (itemId) =>
+        set((s) => ({ cart: s.cart.filter((c) => c.itemId !== itemId) })),
       clearCart: () => set({ cart: [] }),
       setBookings: (b) => set({ bookings: b }),
 
       addBooking: async (b) => {
-        set(s => ({ bookings: [b, ...s.bookings] }));
-        const { insertBooking } = await import('./db');
-        try { await insertBooking(b); } catch (e) { console.error('insertBooking', e); }
+        set((s) => ({ bookings: [b, ...s.bookings] }));
+        const { insertBooking } = await import("./db");
+        try {
+          await insertBooking(b);
+        } catch (e) {
+          console.error("insertBooking", e);
+        }
       },
       updateBooking: async (ref, patch) => {
-        set(s => ({ bookings: s.bookings.map(b => b.reference === ref ? { ...b, ...patch } : b) }));
-        const { updateBookingDb } = await import('./db');
-        try { await updateBookingDb(ref, patch); } catch (e) { console.error('updateBooking', e); }
+        set((s) => ({
+          bookings: s.bookings.map((b) =>
+            b.reference === ref ? { ...b, ...patch } : b,
+          ),
+        }));
+        const { updateBookingDb } = await import("./db");
+        try {
+          await updateBookingDb(ref, patch);
+        } catch (e) {
+          console.error("updateBooking", e);
+        }
       },
       addMovement: async (m) => {
-        set(s => ({ movements: [m, ...s.movements] }));
-        const { insertMovement } = await import('./db');
-        try { await insertMovement(m); } catch (e) { console.error('insertMovement', e); }
+        set((s) => ({ movements: [m, ...s.movements] }));
+        const { insertMovement } = await import("./db");
+        try {
+          await insertMovement(m);
+        } catch (e) {
+          console.error("insertMovement", e);
+        }
       },
 
       hydrate: async () => {
@@ -140,13 +215,20 @@ export const useStoreBase = create<State & Actions>()(
         // Load employees only if signed in (RLS)
         const session = get().session;
         if (session.userId) {
-          try { set({ employees: await loadEmployees() } as any); } catch { /* ignore */ }
+          try {
+            set({ employees: await loadEmployees() } as any);
+          } catch {
+            /* ignore */
+          }
         }
       },
     }),
     {
-      name: 'abc-store-v4',
-      storage: typeof window !== 'undefined' ? createJSONStorage(() => localStorage) : undefined,
+      name: "abc-store-v4",
+      storage:
+        typeof window !== "undefined"
+          ? createJSONStorage(() => localStorage)
+          : undefined,
       partialize: (s) => ({ theme: s.theme, cart: s.cart }) as any,
     },
   ),
@@ -160,43 +242,76 @@ function initAuth() {
 
   const handle = async (uid: string | null) => {
     if (!uid) {
-      useStoreBase.setState({ session: { userId: null, profile: null, loaded: true }, employees: [] } as any);
+      useStoreBase.setState({
+        session: { userId: null, profile: null, loaded: true },
+        employees: [],
+      } as any);
       return;
     }
     const { data: profile } = await supabase
-      .from('profiles')
-      .select('id, name, email, role_id')
-      .eq('id', uid)
+      .from("profiles")
+      .select("id, name, email, role_id")
+      .eq("id", uid)
       .maybeSingle();
     useStoreBase.setState({
       session: {
         userId: uid,
-        profile: profile ? { id: profile.id, name: profile.name, email: profile.email, roleId: profile.role_id } : null,
+        profile: profile
+          ? {
+              id: profile.id,
+              name: profile.name,
+              email: profile.email,
+              roleId: profile.role_id,
+            }
+          : null,
         loaded: true,
       },
     } as any);
-    try { useStoreBase.setState({ employees: await loadEmployees() } as any); } catch { /* ignore */ }
+    try {
+      useStoreBase.setState({ employees: await loadEmployees() } as any);
+    } catch {
+      /* ignore */
+    }
   };
 
-  supabase.auth.onAuthStateChange((_evt, session) => { handle(session?.user?.id ?? null); });
-  supabase.auth.getSession().then(({ data }) => { handle(data.session?.user?.id ?? null); });
+  supabase.auth.onAuthStateChange((_evt, session) => {
+    handle(session?.user?.id ?? null);
+  });
+  supabase.auth.getSession().then(({ data }) => {
+    handle(data.session?.user?.id ?? null);
+  });
 }
 
 /** Apply branding accent + theme + title. Mount once at app root. */
 export function BrandingEffects() {
-  const branding = useStoreBase(s => s.branding);
-  const theme = useStoreBase(s => s.theme);
-  const hydrate = useStoreBase(s => s.hydrate);
-  useEffect(() => { initAuth(); hydrate(); }, [hydrate]);
+  const branding = useStoreBase((s) => s.branding);
+  const theme = useStoreBase((s) => s.theme);
+  const hydrate = useStoreBase((s) => s.hydrate);
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
+    initAuth();
+    hydrate();
+  }, [hydrate]);
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
     document.documentElement.style.colorScheme = theme;
   }, [theme]);
   useEffect(() => {
-    document.documentElement.style.setProperty('--accent', branding.primaryAccent);
-    document.documentElement.style.setProperty('--gold', branding.primaryAccent);
-    document.documentElement.style.setProperty('--ring', branding.primaryAccent);
-    document.documentElement.style.setProperty('--primary', branding.primaryAccent);
+    document.documentElement.style.setProperty(
+      "--accent",
+      branding.primaryAccent,
+    );
+    document.documentElement.style.setProperty(
+      "--gold",
+      branding.primaryAccent,
+    );
+    document.documentElement.style.setProperty(
+      "--ring",
+      branding.primaryAccent,
+    );
+    document.documentElement.style.setProperty(
+      "--primary",
+      branding.primaryAccent,
+    );
     document.title = `${branding.brandName} — ${branding.tagline}`;
   }, [branding]);
   return null;
@@ -209,22 +324,32 @@ export function makeReference() {
 }
 
 export function fmt(n: number) {
-  return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 }).format(n);
+  return new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN",
+    maximumFractionDigits: 0,
+  }).format(n);
 }
 
 export function useCurrentEmployee(): Employee | null {
-  const profile = useStoreBase(s => s.session.profile);
+  const profile = useStoreBase((s) => s.session.profile);
   return useMemo(() => {
     if (!profile) return null;
-    return { id: profile.id, name: profile.name, email: profile.email, password: '', roleId: profile.roleId ?? '' };
+    return {
+      id: profile.id,
+      name: profile.name,
+      email: profile.email,
+      password: "",
+      roleId: profile.roleId ?? "",
+    };
   }, [profile]);
 }
 
 const EMPTY_TABS: AdminTab[] = [];
 
 export function useAllowedTabs(): AdminTab[] {
-  const roleId = useStoreBase(s => s.session.profile?.roleId);
-  const tabs = useStoreBase(s => s.roles.find(r => r.id === roleId)?.tabs);
+  const roleId = useStoreBase((s) => s.session.profile?.roleId);
+  const tabs = useStoreBase((s) => s.roles.find((r) => r.id === roleId)?.tabs);
   return tabs ?? EMPTY_TABS;
 }
 
@@ -235,5 +360,12 @@ export async function logout() {
 // Backwards-compat helpers used by some components
 export function useStore() {
   const s = useStoreBase();
-  return { store: s, set: s.set, addCart: s.addCart, removeCart: s.removeCart, updateCart: s.updateCart, clearCart: s.clearCart };
+  return {
+    store: s,
+    set: s.set,
+    addCart: s.addCart,
+    removeCart: s.removeCart,
+    updateCart: s.updateCart,
+    clearCart: s.clearCart,
+  };
 }

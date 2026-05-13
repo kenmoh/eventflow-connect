@@ -39,15 +39,15 @@ export default function AdminRooms() {
         {rooms.map(r => {
           const hotel = hotels.find(h => h.id === r.hotelId);
           return (
-            <div key={r.id} className="grid grid-cols-[1fr_auto_auto] gap-4 p-4 items-center">
-              <div>
-                <div className="font-display text-xl">{r.type}</div>
-                <div className="text-xs text-muted-foreground">{hotel?.name || '—'} · sleeps {r.capacity}</div>
+            <div key={r.id} className="flex flex-col sm:flex-row gap-3 sm:gap-4 p-3 sm:p-4 items-start sm:items-center">
+              <div className="flex-1 min-w-0">
+                <div className="font-display text-base sm:text-xl truncate">{r.type}</div>
+                <div className="text-xs text-muted-foreground truncate">{hotel?.name || '—'} · sleeps {r.capacity}</div>
               </div>
-              <div className="font-display">{fmt(r.price)}/n</div>
-              <div className="flex gap-2">
-                <GhostBtn onClick={() => setEditing(r)}>Edit</GhostBtn>
-                <GhostBtn onClick={() => remove(r.id)}>Delete</GhostBtn>
+              <div className="font-display text-sm sm:text-base">{fmt(r.price)}/n</div>
+              <div className="flex gap-2 w-full sm:w-auto">
+                <GhostBtn onClick={() => setEditing(r)} className="flex-1 sm:flex-none text-xs py-2">Edit</GhostBtn>
+                <GhostBtn onClick={() => remove(r.id)} className="flex-1 sm:flex-none text-xs py-2">Delete</GhostBtn>
               </div>
             </div>
           );

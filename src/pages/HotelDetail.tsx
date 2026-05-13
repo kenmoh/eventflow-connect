@@ -1,6 +1,6 @@
 import SiteLayout from '@/components/SiteLayout';
 import { useStoreBase, makeReference, fmt } from '@/lib/store';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useNavigate, useParams, Link } from '@tanstack/react-router';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { reservationSchema } from '@/lib/validation';
@@ -175,21 +175,21 @@ export default function HotelDetail() {
                 const sel = r.id === roomId;
                 return (
                   <div key={r.id}
-                    className={`grid grid-cols-[120px_1fr_auto] gap-6 p-4 border ${sel ? 'border-gold bg-secondary' : 'border-border hover:bg-secondary/50'}`}>
-                    <button type="button" onClick={() => setRoomId(sel ? '' : r.id)} className="contents text-left">
-                      <img src={r.image} alt={r.type} className="w-full h-24 object-cover" width={120} height={96} loading="lazy"/>
-                      <div>
-                        <div className="font-display text-2xl">{r.type}</div>
-                        <p className="text-sm text-muted-foreground">{r.description}</p>
+                    className={`flex flex-col sm:grid sm:grid-cols-[120px_1fr_auto] gap-4 sm:gap-6 p-4 border ${sel ? 'border-gold bg-secondary' : 'border-border hover:bg-secondary/50'}`}>
+                    <button type="button" onClick={() => setRoomId(sel ? '' : r.id)} className="flex sm:contents text-left gap-4">
+                      <img src={r.image} alt={r.type} className="w-full sm:w-32 h-32 sm:h-24 object-cover rounded-md" width={120} height={96} loading="lazy"/>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-display text-xl sm:text-2xl">{r.type}</div>
+                        <p className="text-sm text-muted-foreground line-clamp-2">{r.description}</p>
                         <div className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground mt-2">Sleeps {r.capacity}</div>
                       </div>
-                      <div className="text-right">
-                        <div className="font-display text-2xl">{fmt(r.price)}</div>
-                        <div className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">/night</div>
-                      </div>
                     </button>
+                    <div className="flex items-center justify-between sm:block sm:text-right">
+                      <div className="font-display text-xl sm:text-2xl">{fmt(r.price)}</div>
+                      <div className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">/night</div>
+                    </div>
                     {sel && (
-                      <div className="col-span-3 flex items-center gap-3 pt-3 border-t border-border">
+                      <div className="sm:col-span-3 flex flex-col sm:flex-row items-start sm:items-center gap-3 pt-3 border-t border-border">
                         <label className="text-xs">Nights
                           <input type="number" min={1} value={nights} onChange={e => setNights(Math.max(1, +e.target.value))}
                             className="ml-2 w-20 field" /></label>
@@ -211,11 +211,11 @@ export default function HotelDetail() {
                 const sel = h.id === hallId;
                 return (
                   <div key={h.id}
-                    className={`grid grid-cols-[120px_1fr_auto] gap-6 p-4 border ${sel ? 'border-gold bg-secondary' : 'border-border hover:bg-secondary/50'}`}>
-                    <button type="button" onClick={() => setHallId(sel ? '' : h.id)} className="contents text-left">
-                      <img src={h.image} alt={h.name} className="w-full h-24 object-cover" width={120} height={96} loading="lazy"/>
-                      <div>
-                        <div className="font-display text-2xl">{h.name}</div>
+                    className={`flex flex-col sm:grid sm:grid-cols-[120px_1fr_auto] gap-4 sm:gap-6 p-4 border ${sel ? 'border-gold bg-secondary' : 'border-border hover:bg-secondary/50'}`}>
+                    <button type="button" onClick={() => setHallId(sel ? '' : h.id)} className="flex sm:contents text-left gap-4">
+                      <img src={h.image} alt={h.name} className="w-full sm:w-32 h-32 sm:h-24 object-cover rounded-md" width={120} height={96} loading="lazy"/>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-display text-xl sm:text-2xl">{h.name}</div>
                         <div className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground mt-2">Capacity {h.capacity}</div>
                         {h.amenities.length > 0 && (
                           <div className="mt-2 flex flex-wrap gap-1">
@@ -223,13 +223,13 @@ export default function HotelDetail() {
                           </div>
                         )}
                       </div>
-                      <div className="text-right">
-                        <div className="font-display text-2xl">{fmt(h.pricePerHour * 8)}</div>
-                        <div className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">/day (8h)</div>
-                      </div>
                     </button>
+                    <div className="flex items-center justify-between sm:block sm:text-right">
+                      <div className="font-display text-xl sm:text-2xl">{fmt(h.pricePerHour * 8)}</div>
+                      <div className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">/day (8h)</div>
+                    </div>
                     {sel && (
-                      <div className="col-span-3 grid sm:grid-cols-2 gap-3 pt-3 border-t border-border">
+                      <div className="sm:col-span-3 grid sm:grid-cols-2 gap-3 pt-3 border-t border-border">
                         <label className="text-xs">Days
                           <input type="number" min={1} value={days} onChange={e => setDays(Math.max(1, +e.target.value))}
                             className="ml-2 w-20 field" /></label>
@@ -245,43 +245,44 @@ export default function HotelDetail() {
             </div>
           </div>
 
-          {/* PACKAGES */}
-          <div>
-            <SectionTitle eyebrow="Optional · select multiple" title="Packages (coffee & food)" />
-            <div className="grid sm:grid-cols-2 gap-3">
-              {packages.map(p => {
-                const pick = picks.find(x => x.id === p.id);
-                return (
-                  <div key={p.id}
-                    className={`p-5 border ${pick ? 'border-gold bg-secondary' : 'border-border hover:bg-secondary/50'}`}>
-                    <button type="button" onClick={() => togglePick(p.id)} className="text-left w-full">
-                      <div className="flex items-center justify-between">
-                        <span className="chip">{p.kind === 'coffee' ? 'Coffee' : 'Food'}</span>
-                        <span className="font-display text-lg">{fmt(p.pricePerPerson)} <span className="text-xs text-muted-foreground font-sans">/pp</span></span>
-                      </div>
-                      <div className="font-display text-xl mt-2">{p.name}</div>
-                      <p className="text-xs text-muted-foreground mt-1">{p.description}</p>
-                    </button>
-                    {pick && (
-                      <div className="mt-3 pt-3 border-t border-border grid grid-cols-2 gap-2">
-                        <label className="text-xs">Persons
-                          <input type="number" min={1} value={pick.persons}
-                            onChange={e => updatePick(p.id, { persons: Math.max(1, +e.target.value) })}
-                            className="ml-2 w-20 field" /></label>
-                        <label className="text-xs">Time slot
-                          <select value={pick.timeSlotId} onChange={e => updatePick(p.id, { timeSlotId: e.target.value })}
-                            className="ml-2 field inline-block w-auto">
-                            {p.timeSlots.map(t => <option key={t.id} value={t.id}>{t.label} · {t.time}</option>)}
-                          </select>
-                        </label>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-              {packages.length === 0 && <p className="text-muted-foreground col-span-2">No packages tied to this hotel yet.</p>}
+          {/* ADD-ONS - only show if hotel has halls */}
+          {halls.length > 0 && packages.length > 0 && (
+            <div>
+              <SectionTitle eyebrow="Optional · select multiple" title="Add-ons (coffee & food)" />
+              <div className="grid sm:grid-cols-2 gap-3">
+                {packages.map(p => {
+                  const pick = picks.find(x => x.id === p.id);
+                  return (
+                    <div key={p.id}
+                      className={`p-5 border ${pick ? 'border-gold bg-secondary' : 'border-border hover:bg-secondary/50'}`}>
+                      <button type="button" onClick={() => togglePick(p.id)} className="text-left w-full">
+                        <div className="flex items-center justify-between">
+                          <span className="chip">{p.kind === 'coffee' ? 'Coffee' : 'Food'}</span>
+                          <span className="font-display text-lg">{fmt(p.pricePerPerson)} <span className="text-xs text-muted-foreground font-sans">/pp</span></span>
+                        </div>
+                        <div className="font-display text-xl mt-2">{p.name}</div>
+                        <p className="text-xs text-muted-foreground mt-1">{p.description}</p>
+                      </button>
+                      {pick && (
+                        <div className="mt-3 pt-3 border-t border-border grid grid-cols-2 gap-2">
+                          <label className="text-xs">Persons
+                            <input type="number" min={1} value={pick.persons}
+                              onChange={e => updatePick(p.id, { persons: Math.max(1, +e.target.value) })}
+                              className="ml-2 w-20 field" /></label>
+                          <label className="text-xs">Time slot
+                            <select value={pick.timeSlotId} onChange={e => updatePick(p.id, { timeSlotId: e.target.value })}
+                              className="ml-2 field inline-block w-auto">
+                              {p.timeSlots.map(t => <option key={t.id} value={t.id}>{t.label} · {t.time}</option>)}
+                            </select>
+                          </label>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* SIDEBAR — Seat arrangement library + summary */}

@@ -37,15 +37,17 @@ export default function AdminFaqs() {
       action={<PrimaryBtn onClick={() => setEditing(blank(faqs.length + 1))}>+ New FAQ</PrimaryBtn>}>
       <div className="border border-border divide-y divide-border bg-card">
         {sorted.map(f => (
-          <div key={f.id} className="grid grid-cols-[60px_1fr_auto_auto] gap-4 p-4 items-start">
-            <span className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground pt-1">#{f.order}</span>
-            <div>
-              <div className="font-display text-lg">{f.question}</div>
-              <p className="text-sm text-muted-foreground mt-1">{f.answer}</p>
+          <div key={f.id} className="flex flex-col sm:flex-row gap-3 sm:gap-4 p-3 sm:p-4 items-start min-w-0">
+            <span className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground shrink-0">#{f.order}</span>
+            <div className="flex-1 min-w-0 w-full">
+              <div className="font-display text-base sm:text-lg truncate">{f.question}</div>
+              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{f.answer}</p>
               {!f.published && <span className="chip mt-2">Draft</span>}
             </div>
-            <GhostBtn onClick={() => setEditing(f)}>Edit</GhostBtn>
-            <GhostBtn onClick={() => remove(f.id)}>Delete</GhostBtn>
+            <div className="flex gap-2 w-full sm:w-auto">
+              <GhostBtn onClick={() => setEditing(f)} className="flex-1 sm:flex-none text-xs py-2">Edit</GhostBtn>
+              <GhostBtn onClick={() => remove(f.id)} className="flex-1 sm:flex-none text-xs py-2">Delete</GhostBtn>
+            </div>
           </div>
         ))}
         {faqs.length === 0 && <p className="p-6 text-muted-foreground">No FAQs yet.</p>}

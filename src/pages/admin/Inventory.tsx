@@ -49,7 +49,7 @@ export default function AdminInventory() {
   return (
     <AdminPage title="Inventory" subtitle="Stock, location and check-in/out for in-house equipment.">
       {lowStock.length > 0 && (
-        <div className="mb-6 border border-gold/40 bg-gold/10 p-4">
+        <div className="mb-4 sm:mb-6 border border-gold/40 bg-gold/10 p-3 sm:p-4">
           <div className="text-[10px] uppercase tracking-[0.3em] text-gold">Heads up</div>
           <p className="text-sm mt-1">{lowStock.length} item{lowStock.length === 1 ? '' : 's'} at or near zero stock: {lowStock.map(r => r.name).join(', ')}.</p>
         </div>
@@ -59,36 +59,35 @@ export default function AdminInventory() {
         {internal.map(r => {
           const pct = r.stockTotal === 0 ? 0 : Math.round((r.stockAvailable / r.stockTotal) * 100);
           return (
-            <div key={r.id} className="grid grid-cols-[60px_1fr_auto_auto_auto_auto] gap-4 p-4 items-center">
-              <img src={r.image} alt={r.name} className="w-14 h-14 object-cover" loading="lazy" />
+            <div key={r.id} className="grid grid-cols-[50px_1fr] sm:grid-cols-[60px_1fr_auto_auto_auto_auto] gap-2 sm:gap-4 p-3 sm:p-4 items-center">
+              <img src={r.image} alt={r.name} className="w-10 h-10 sm:w-14 sm:h-14 object-cover" loading="lazy" />
               <div>
-                <div className="font-display text-lg">{r.name}</div>
+                <div className="font-display text-base sm:text-lg">{r.name}</div>
                 <div className="text-xs text-muted-foreground">{r.location || '—'} · {fmt(r.pricePerDay)}/day</div>
               </div>
-              <div className="text-right min-w-[120px]">
-                <div className="font-display text-lg">{r.stockAvailable} / {r.stockTotal}</div>
-                <div className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Available</div>
+              <div className="sm:text-right min-w-[80px] sm:min-w-[120px] col-span-2 sm:col-auto grid grid-cols-2 sm:block gap-2 sm:gap-0">
+                <div className="font-display text-base sm:text-lg">{r.stockAvailable} / {r.stockTotal}</div>
+                <div className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground sm:block hidden">Available</div>
               </div>
-              <div className="w-24">
+              <div className="w-16 sm:w-24 col-span-2 sm:col-auto">
                 <div className="h-1.5 bg-secondary border border-border">
                   <div className="h-full bg-gold" style={{ width: `${pct}%` }} />
                 </div>
               </div>
-              <GhostBtn onClick={() => setMov({ itemId: r.id, type: 'out', qty: 1, note: '', location: '', handledBy: me?.name || '' })}>Move</GhostBtn>
-              <GhostBtn onClick={() => setEdit({ id: r.id, total: r.stockTotal, available: r.stockAvailable, location: r.location })}>Edit</GhostBtn>
+              <GhostBtn onClick={() => setMov({ itemId: r.id, type: 'out', qty: 1, note: '', location: '', handledBy: me?.name || '' })} className="text-xs py-1 px-2 sm:py-2 sm:px-4">Move</GhostBtn>
+              <GhostBtn onClick={() => setEdit({ id: r.id, total: r.stockTotal, available: r.stockAvailable, location: r.location })} className="text-xs py-1 px-2 sm:py-2 sm:px-4">Edit</GhostBtn>
             </div>
           );
         })}
       </div>
 
-      <h2 className="font-display text-3xl mt-12 mb-4">Recent movements</h2>
+      <h2 className="font-display text-2xl sm:text-3xl mt-8 sm:mt-12 mb-3 sm:mb-4">Recent movements</h2>
       <div className="border border-border bg-card divide-y divide-border">
-        {movements.length === 0 && <p className="p-6 text-muted-foreground">No movements yet.</p>}
+        {movements.length === 0 && <p className="p-4 sm:p-6 text-muted-foreground">No movements yet.</p>}
         {movements.slice(0, 30).map(m => {
           const r = rentals.find(x => x.id === m.itemId);
           return (
-            <div key={m.id} className="grid grid-cols-[140px_1fr_auto_auto] gap-4 p-4 items-center text-sm">
-              <span className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">{new Date(m.at).toLocaleString()}</span>
+            <div key={m.id} className="grid grid-cols-[1fr_auto] sm:grid-cols-[140px_1fr_auto_auto] gap-2 sm:gap-4 p-3 sm:p-4 items-center text-sm">
               <div>
                 <div className="font-medium">{r?.name ?? m.itemId}</div>
                 <div className="text-xs text-muted-foreground">
@@ -99,7 +98,8 @@ export default function AdminInventory() {
                 </div>
               </div>
               <span className={`text-[10px] uppercase tracking-[0.3em] px-2 py-1 ${m.type === 'out' || m.type === 'damaged' ? 'bg-destructive/20 text-destructive' : 'bg-gold/20 text-gold'}`}>{m.type}</span>
-              <span className="font-display">{m.type === 'out' || m.type === 'damaged' ? '−' : '+'}{m.qty}</span>
+              <span className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground hidden sm:block">{new Date(m.at).toLocaleString()}</span>
+              <span className="font-display hidden sm:block">{m.type === 'out' || m.type === 'damaged' ? '−' : '+'}{m.qty}</span>
             </div>
           );
         })}
@@ -151,9 +151,9 @@ export default function AdminInventory() {
 
 function Modal({ children, onClose, title }: { children: React.ReactNode; onClose: () => void; title: string }) {
   return (
-    <div className="fixed inset-0 bg-ink/80 z-50 flex items-center justify-center p-6" onClick={onClose}>
-      <div className="bg-card border border-border w-full max-w-2xl p-8" onClick={e => e.stopPropagation()}>
-        <h2 className="font-display text-3xl mb-6">{title}</h2>
+    <div className="fixed inset-0 bg-ink/80 z-50 flex items-center justify-center p-3 sm:p-6" onClick={onClose}>
+      <div className="bg-card border border-border w-full max-w-2xl p-4 sm:p-8 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <h2 className="font-display text-2xl sm:text-3xl mb-4 sm:mb-6">{title}</h2>
         {children}
       </div>
     </div>

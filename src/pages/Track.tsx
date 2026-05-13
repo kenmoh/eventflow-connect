@@ -1,7 +1,7 @@
 import SiteLayout from '@/components/SiteLayout';
 import { useStoreBase, fmt } from '@/lib/store';
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearch } from '@tanstack/react-router';
 import type { Booking, BookingStatus } from '@/lib/types';
 import { trackSchema } from '@/lib/validation';
 
@@ -9,7 +9,6 @@ type Filter = { status: 'all' | BookingStatus; type: 'all' | 'rental' | 'reserva
 
 export default function Track() {
   const bookings = useStoreBase(s => s.bookings);
-  const [params] = useSearchParams();
   const [q, setQ] = useState('');
   const [results, setResults] = useState<Booking[] | null>(null);
   const [error, setError] = useState<string>('');
@@ -27,6 +26,7 @@ export default function Track() {
   };
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
     const ref = params.get('ref');
     if (ref) { setQ(ref); search(ref); }
     // eslint-disable-next-line react-hooks/exhaustive-deps

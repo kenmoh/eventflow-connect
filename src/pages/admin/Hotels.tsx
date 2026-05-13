@@ -36,15 +36,15 @@ export default function AdminHotels() {
       action={<PrimaryBtn onClick={() => setEditing(blank())}>+ New hotel</PrimaryBtn>}>
       <div className="border border-border divide-y divide-border bg-card">
         {hotels.map(h => (
-          <div key={h.id} className="grid grid-cols-[80px_1fr_auto] gap-4 p-4 items-center">
-            <img src={h.image} alt={h.name} className="w-20 h-16 object-cover" loading="lazy"/>
-            <div>
-              <div className="font-display text-xl">{h.name || '—'}</div>
-              <div className="text-xs text-muted-foreground">{h.location}</div>
+          <div key={h.id} className="flex flex-col sm:flex-row gap-3 sm:gap-4 p-3 sm:p-4 items-start sm:items-center">
+            <img src={h.image} alt={h.name} className="w-full sm:w-20 h-32 sm:h-16 object-cover rounded-md" loading="lazy"/>
+            <div className="flex-1 min-w-0">
+              <div className="font-display text-base sm:text-xl truncate">{h.name || '—'}</div>
+              <div className="text-xs text-muted-foreground truncate">{h.location}</div>
             </div>
-            <div className="flex gap-2">
-              <GhostBtn onClick={() => setEditing(h)}>Edit</GhostBtn>
-              <GhostBtn onClick={() => remove(h.id)}>Delete</GhostBtn>
+            <div className="flex gap-2 w-full sm:w-auto">
+              <GhostBtn onClick={() => setEditing(h)} className="flex-1 sm:flex-none text-xs py-2">Edit</GhostBtn>
+              <GhostBtn onClick={() => remove(h.id)} className="flex-1 sm:flex-none text-xs py-2">Delete</GhostBtn>
             </div>
           </div>
         ))}
@@ -72,9 +72,9 @@ export default function AdminHotels() {
 
 function Modal({ children, onClose, title }: { children: React.ReactNode; onClose: () => void; title: string }) {
   return (
-    <div className="fixed inset-0 bg-ink/80 z-50 flex items-center justify-center p-6" onClick={onClose}>
-      <div className="bg-card border border-border w-full max-w-2xl p-8 max-h-[90vh] overflow-auto" onClick={e => e.stopPropagation()}>
-        <h2 className="font-display text-3xl mb-6">{title}</h2>
+    <div className="fixed inset-0 bg-ink/80 z-50 flex items-center justify-center p-3 sm:p-6" onClick={onClose}>
+      <div className="bg-card border border-border w-full max-w-2xl p-4 sm:p-8 max-h-[90vh] overflow-auto" onClick={e => e.stopPropagation()}>
+        <h2 className="font-display text-2xl sm:text-3xl mb-4 sm:mb-6">{title}</h2>
         {children}
       </div>
     </div>

@@ -1,6 +1,6 @@
 import SiteLayout from '@/components/SiteLayout';
 import { useStoreBase, fmt } from '@/lib/store';
-import { Link } from 'react-router-dom';
+import { Link } from '@tanstack/react-router';
 import { useState } from 'react';
 
 export default function Packages() {

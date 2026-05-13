@@ -95,14 +95,16 @@ export default function AdminEmployees() {
         {employees.map(e => {
           const r = roles.find(x => x.id === e.roleId);
           return (
-            <div key={e.id} className="grid grid-cols-[1fr_1fr_auto_auto] gap-4 p-4 items-center">
-              <div>
-                <div className="font-display text-lg">{e.name}</div>
-                <div className="text-xs text-muted-foreground">{e.email}</div>
+            <div key={e.id} className="flex flex-col sm:flex-row gap-3 sm:gap-4 p-3 sm:p-4 items-start sm:items-center">
+              <div className="flex-1 min-w-0">
+                <div className="font-display text-base sm:text-lg truncate">{e.name}</div>
+                <div className="text-xs text-muted-foreground truncate">{e.email}</div>
               </div>
               <span className="text-[10px] uppercase tracking-[0.3em] text-gold">{r?.name ?? '—'}</span>
-              <GhostBtn onClick={() => setEmp(e)}>Edit</GhostBtn>
-              <GhostBtn onClick={() => removeEmp(e)}>Delete</GhostBtn>
+              <div className="flex gap-2 w-full sm:w-auto">
+                <GhostBtn onClick={() => setEmp(e)} className="flex-1 sm:flex-none text-xs py-2">Edit</GhostBtn>
+                <GhostBtn onClick={() => removeEmp(e)} className="flex-1 sm:flex-none text-xs py-2">Delete</GhostBtn>
+              </div>
             </div>
           );
         })}
@@ -111,14 +113,18 @@ export default function AdminEmployees() {
       <h2 className="font-display text-2xl mb-3">Roles</h2>
       <div className="border border-border divide-y divide-border bg-card">
         {roles.map(r => (
-          <div key={r.id} className="grid grid-cols-[200px_1fr_auto_auto] gap-4 p-4 items-center">
-            <div className="font-display text-lg">{r.name}</div>
-            <div className="flex flex-wrap gap-1">
+          <div key={r.id} className="flex flex-col sm:flex-row gap-3 sm:gap-4 p-3 sm:p-4 items-start sm:items-center">
+            <div className="min-w-[120px]">
+              <div className="font-display text-base sm:text-lg truncate">{r.name}</div>
+            </div>
+            <div className="flex flex-wrap gap-1 flex-1">
               {r.tabs.map(t => <span key={t} className="text-[10px] uppercase tracking-[0.25em] border border-border px-2 py-1">{t}</span>)}
               {r.tabs.length === 0 && <span className="text-xs text-muted-foreground">No tabs</span>}
             </div>
-            <GhostBtn onClick={() => setRole(r)}>Edit</GhostBtn>
-            <GhostBtn onClick={() => removeRole(r)}>Delete</GhostBtn>
+            <div className="flex gap-2 w-full sm:w-auto">
+              <GhostBtn onClick={() => setRole(r)} className="flex-1 sm:flex-none text-xs py-2">Edit</GhostBtn>
+              <GhostBtn onClick={() => removeRole(r)} className="flex-1 sm:flex-none text-xs py-2">Delete</GhostBtn>
+            </div>
           </div>
         ))}
       </div>

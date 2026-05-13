@@ -1,6 +1,6 @@
 import SiteLayout from '@/components/SiteLayout';
 import { useStore, fmt } from '@/lib/store';
-import { Link } from 'react-router-dom';
+import { Link } from '@tanstack/react-router';
 import { Trash2 } from 'lucide-react';
 
 export default function Cart() {
