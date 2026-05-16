@@ -326,9 +326,8 @@ export function BrandingEffects() {
 }
 
 export function makeReference() {
-  const a = Math.random().toString(36).slice(2, 6).toUpperCase();
-  const b = Math.random().toString(36).slice(2, 6).toUpperCase();
-  return `ABC-${a}-${b}`;
+  const uuid = crypto.randomUUID().replace(/-/g, '').slice(0, 10).toUpperCase();
+  return `ABC-${uuid.slice(0, 5)}-${uuid.slice(5)}`;
 }
 
 export function fmt(n: number) {
@@ -339,7 +338,7 @@ export function fmt(n: number) {
   }).format(n);
 }
 
-export function useCurrentEmployee(): Employee | null {
+export function useCurrentEmployee(): Omit<Employee, 'password'> | null {
   const profile = useStoreBase((s) => s.session.profile);
   return useMemo(() => {
     if (!profile) return null;
@@ -347,8 +346,7 @@ export function useCurrentEmployee(): Employee | null {
       id: profile.id,
       name: profile.name,
       email: profile.email,
-      password: "",
-      roleId: profile.roleId ?? "",
+      roleId: profile.roleId ?? '',
     };
   }, [profile]);
 }

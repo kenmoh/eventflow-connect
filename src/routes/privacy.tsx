@@ -3,6 +3,14 @@ import SiteLayout from "@/components/SiteLayout";
 import { useStoreBase } from "@/lib/store";
 
 export const Route = createFileRoute("/privacy")({
+  head: () => ({
+    meta: [
+      { title: "Privacy Policy — AB Consult" },
+      { name: "description", content: "Understand how AB Consult collects, uses, and protects your personal information." },
+      { property: "og:title", content: "Privacy Policy — AB Consult" },
+      { property: "og:url", content: "https://abconsult.com/privacy" },
+    ],
+  }),
   component: () => <StaticPage which="privacy" />,
 });
 

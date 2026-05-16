@@ -6,14 +6,19 @@ import viteReact from "@vitejs/plugin-react";
 export default defineConfig({
   server: {
     port: 3000,
-    allowedHosts: ["2082-102-89-34-91.ngrok-free.app"],
+    allowedHosts: process.env.NGROK_HOST ? [process.env.NGROK_HOST] : true,
+    headers: {
+      "X-Frame-Options": "DENY",
+      "X-Content-Type-Options": "nosniff",
+      "Referrer-Policy": "strict-origin-when-cross-origin",
+      "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+    },
   },
   resolve: {
     tsconfigPaths: true,
   },
   plugins: [
     tanstackStart(),
-    // react's vite plugin must come after start's vite plugin
     viteReact(),
   ],
 });

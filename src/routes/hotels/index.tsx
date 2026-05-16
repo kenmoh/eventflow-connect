@@ -4,6 +4,15 @@ import SiteLayout from '@/components/SiteLayout'
 import { useStore } from '@/lib/store'
 
 export const Route = createFileRoute('/hotels/')({
+  head: () => ({
+    meta: [
+      { title: "Hotel Venues — AB Consult" },
+      { name: "description", content: "Browse our curated selection of premium hotel venues for events, conferences, and celebrations. Book your perfect event space today." },
+      { property: "og:title", content: "Hotel Venues — AB Consult" },
+      { property: "og:description", content: "Curated hotel venues for events, conferences, and celebrations. Easy online booking." },
+      { property: "og:url", content: "https://abconsult.com/hotels" },
+    ],
+  }),
   component: Hotels,
 })
 

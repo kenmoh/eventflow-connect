@@ -34,7 +34,7 @@ export type Hall = {
 
 export type PackageKind = 'coffee' | 'food';
 
-export type TimeSlot = { id: ID; label: string; time: string };
+export type TimeSlot = { id: ID; label: string; startTime: string; endTime: string };
 
 export type Pkg = {
   id: ID;
@@ -84,8 +84,8 @@ export type BookingStatus = 'pending' | 'confirmed' | 'processing' | 'completed'
 export type PaymentStatus = 'unpaid' | 'deposit' | 'paid' | 'refunded';
 
 export type BookingLine =
-  | { kind: 'room'; name: string; nights: number; pricePerNight: number; subtotal: number }
-  | { kind: 'hall'; name: string; days: number; pricePerDay: number; timeSlot?: string; seatArrangement?: string; subtotal: number }
+  | { kind: 'room'; name: string; nights: number; rooms: number; pricePerNight: number; subtotal: number }
+  | { kind: 'hall'; name: string; days: number; startTime: string; endTime: string; pricePerDay: number; timeSlot?: string; seatArrangement?: string; subtotal: number }
   | { kind: 'package'; name: string; persons: number; pricePerPerson: number; timeSlot?: string; subtotal: number }
   | { kind: 'rental'; name: string; quantity: number; days: number; pricePerDay: number; ownership: RentalOwnership; subtotal: number };
 
@@ -126,7 +126,6 @@ export type Employee = {
   id: ID;
   name: string;
   email: string;
-  password: string;
   roleId: ID;
 };
 
@@ -164,6 +163,16 @@ export type SavedReceipt = {
   items: { description: string; quantity: number; unitPrice: number }[];
   notes: string;
   total: number;
+  createdAt: string;
+};
+
+export type Contact = {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  subject: string;
+  message: string;
   createdAt: string;
 };
 

@@ -5,11 +5,54 @@ import type {
   SeatArrangement, FAQ, AdminTab, RentalCategory, SavedReceipt,
 } from './types';
 
+// ---------- authorization helper ----------
+async function requireAdmin(): Promise<string | null> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.user) return null;
+  
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('id, role_id')
+    .eq('id', session.user.id)
+    .maybeSingle();
+  
+  if (!profile) return null;
+  
+  const { data: roles } = await supabase
+    .from('user_roles')
+    .select('role')
+    .eq('user_id', profile.id);
+  
+  const isAdmin = (roles ?? []).some((r: any) => r.role === 'owner' || r.role === 'admin');
+  return isAdmin ? session.user.id : null;
+}
+
+async function requireOwner(): Promise<string | null> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.user) return null;
+  
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('id, role_id')
+    .eq('id', session.user.id)
+    .maybeSingle();
+  
+  if (!profile) return null;
+  
+  const { data: roles } = await supabase
+    .from('user_roles')
+    .select('role')
+    .eq('user_id', profile.id);
+  
+  const isOwner = (roles ?? []).some((r: any) => r.role === 'owner');
+  return isOwner ? session.user.id : null;
+}
+
 // ---------- mappers ----------
 const mapHotel = (r: any): Hotel => ({ id: r.id, name: r.name, location: r.location, tagline: r.tagline ?? '', image: r.image ?? '', rating: Number(r.rating ?? 5), amenities: r.amenities ?? [] });
 const mapRoom = (r: any): Room => ({ id: r.id, hotelId: r.hotel_id, type: r.type, description: r.description ?? '', price: Number(r.price), capacity: r.capacity, image: r.image ?? '' });
 const mapHall = (r: any): Hall => ({ id: r.id, hotelId: r.hotel_id, name: r.name, capacity: r.capacity, pricePerHour: Number(r.price_per_hour), image: r.image ?? '', amenities: r.amenities ?? [] });
-const mapPkg = (r: any): Pkg => ({ id: r.id, hotelId: r.hotel_id, kind: r.kind, name: r.name, description: r.description ?? '', items: r.items ?? [], pricePerPerson: Number(r.price_per_person), timeSlots: (r.time_slots ?? []) as Pkg['timeSlots'] });
+const mapPkg = (r: any): Pkg => ({ id: r.id, hotelId: r.hotel_id, kind: r.kind, name: r.name, description: r.description ?? '', items: r.items ?? [], pricePerPerson: Number(r.price_per_person), timeSlots: (r.time_slots ?? []).map((t: any) => ({ id: t.id, label: t.label, startTime: t.startTime, endTime: t.endTime })) });
 const mapArr = (r: any): SeatArrangement => ({ id: r.id, name: r.name, description: r.description ?? '', image: r.image ?? '' });
 const mapRental = (r: any): RentalItem => ({ id: r.id, name: r.name, category: r.category as RentalCategory, pricePerDay: Number(r.price_per_day), ownership: r.ownership, depositPct: r.deposit_pct, image: r.image ?? '', description: r.description ?? '', available: r.available, stockTotal: r.stock_total, stockAvailable: r.stock_available, location: r.location ?? '' });
 const mapMovement = (r: any): InventoryMovement => ({ id: r.id, itemId: r.item_id, type: r.type, qty: r.qty, note: r.note ?? '', reference: r.reference ?? undefined, location: r.location ?? undefined, handledBy: r.handled_by ?? undefined, at: r.at });
@@ -73,12 +116,14 @@ export async function loadCatalog() {
 
 // ---------- single-row tables ----------
 export async function saveBranding(b: Branding) {
+  if (!await requireAdmin()) throw new Error('Unauthorized');
   const { data: existing } = await supabase.from('branding').select('id').limit(1).maybeSingle();
   const payload = { brand_name: b.brandName, tagline: b.tagline, primary_accent: b.primaryAccent };
   if (existing) await supabase.from('branding').update(payload).eq('id', existing.id);
   else await supabase.from('branding').insert(payload);
 }
 export async function saveContent(c: SiteContent) {
+  if (!await requireAdmin()) throw new Error('Unauthorized');
   const { data: existing } = await supabase.from('site_content').select('id').limit(1).maybeSingle();
   if (existing) await supabase.from('site_content').update({ data: c as any }).eq('id', existing.id);
   else await supabase.from('site_content').insert({ data: c as any });
@@ -86,43 +131,53 @@ export async function saveContent(c: SiteContent) {
 
 // ---------- catalog CRUD ----------
 type AnyTable = 'hotels' | 'rooms' | 'halls' | 'packages' | 'seat_arrangements' | 'rentals' | 'faqs';
-async function del(table: AnyTable, id: string) { await supabase.from(table).delete().eq('id', id); }
+async function del(table: AnyTable, id: string) {
+  if (!await requireAdmin()) throw new Error('Unauthorized');
+  await supabase.from(table).delete().eq('id', id);
+}
 
 const isUuid = (s: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
 const idOrNew = (id: string) => isUuid(id) ? id : undefined;
 
 export async function upsertHotel(h: Hotel) {
+  if (!await requireAdmin()) throw new Error('Unauthorized');
   const payload = { id: idOrNew(h.id), name: h.name, location: h.location, tagline: h.tagline, image: h.image, rating: h.rating, amenities: h.amenities };
   await supabase.from('hotels').upsert(payload as any);
 }
 export const deleteHotel = (id: string) => del('hotels', id);
 
 export async function upsertRoom(r: Room) {
+  if (!await requireAdmin()) throw new Error('Unauthorized');
   await supabase.from('rooms').upsert({ id: idOrNew(r.id), hotel_id: r.hotelId, type: r.type, description: r.description, price: r.price, capacity: r.capacity, image: r.image } as any);
 }
 export const deleteRoom = (id: string) => del('rooms', id);
 
 export async function upsertHall(h: Hall) {
+  if (!await requireAdmin()) throw new Error('Unauthorized');
   await supabase.from('halls').upsert({ id: idOrNew(h.id), hotel_id: h.hotelId, name: h.name, capacity: h.capacity, price_per_hour: h.pricePerHour, image: h.image, amenities: h.amenities } as any);
 }
 export const deleteHall = (id: string) => del('halls', id);
 
 export async function upsertPackage(p: Pkg) {
+  if (!await requireAdmin()) throw new Error('Unauthorized');
   await supabase.from('packages').upsert({ id: idOrNew(p.id), hotel_id: p.hotelId, kind: p.kind, name: p.name, description: p.description, items: p.items, price_per_person: p.pricePerPerson, time_slots: p.timeSlots as any } as any);
 }
 export const deletePackage = (id: string) => del('packages', id);
 
 export async function upsertArrangement(a: SeatArrangement) {
+  if (!await requireAdmin()) throw new Error('Unauthorized');
   await supabase.from('seat_arrangements').upsert({ id: idOrNew(a.id), name: a.name, description: a.description, image: a.image } as any);
 }
 export const deleteArrangement = (id: string) => del('seat_arrangements', id);
 
 export async function upsertRental(r: RentalItem) {
+  if (!await requireAdmin()) throw new Error('Unauthorized');
   await supabase.from('rentals').upsert({ id: idOrNew(r.id), name: r.name, category: r.category, price_per_day: r.pricePerDay, ownership: r.ownership, deposit_pct: r.depositPct, image: r.image, description: r.description, available: r.available, stock_total: r.stockTotal, stock_available: r.stockAvailable, location: r.location } as any);
 }
 export const deleteRental = (id: string) => del('rentals', id);
 
 export async function upsertFaq(f: FAQ) {
+  if (!await requireAdmin()) throw new Error('Unauthorized');
   await supabase.from('faqs').upsert({ id: idOrNew(f.id), question: f.question, answer: f.answer, order: f.order, published: f.published } as any);
 }
 export const deleteFaq = (id: string) => del('faqs', id);
@@ -142,6 +197,7 @@ export async function insertBooking(b: Booking) {
   } as any);
 }
 export async function updateBookingDb(ref: string, patch: Partial<Booking>) {
+  if (!await requireAdmin()) throw new Error('Unauthorized');
   const upd: any = {};
   if (patch.fulfillment) upd.fulfillment = patch.fulfillment;
   if (patch.paymentStatus) upd.payment_status = patch.paymentStatus;
@@ -176,20 +232,36 @@ export async function adjustStock(itemId: string, newAvailable: number) {
 
 // ---------- roles & employees ----------
 export async function upsertRole(r: Role) {
+  if (!await requireOwner()) throw new Error('Only the owner can manage roles');
   await supabase.from('roles').upsert({ id: idOrNew(r.id), name: r.name, tabs: r.tabs as any } as any);
 }
-export const deleteRole = (id: string) => supabase.from('roles').delete().eq('id', id);
+export const deleteRole = (id: string) => {
+  requireOwner().then(ok => { if (!ok) throw new Error('Only the owner can delete roles'); });
+  return supabase.from('roles').delete().eq('id', id);
+};
 
-export async function loadEmployees(): Promise<Employee[]> {
+export async function loadEmployees(): Promise<Omit<Employee, 'password'>[]> {
   const { data } = await supabase.from('profiles').select('id, name, email, role_id').order('name');
-  return (data ?? []).map((p: any): Employee => ({ id: p.id, name: p.name, email: p.email, password: '', roleId: p.role_id ?? '' }));
+  return (data ?? []).map((p: any): Omit<Employee, 'password'> => ({ id: p.id, name: p.name, email: p.email, roleId: p.role_id ?? '' }));
 }
 export async function setEmployeeRole(userId: string, roleId: string | null) {
   await supabase.from('profiles').update({ role_id: roleId || null }).eq('id', userId);
 }
 
 // ---------- storage ----------
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
+
 export async function uploadImage(file: File): Promise<string> {
+  // Validate MIME type
+  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+    throw new Error(`Invalid file type. Allowed: ${ALLOWED_IMAGE_TYPES.join(', ')}`);
+  }
+  // Validate file size
+  if (file.size > MAX_IMAGE_SIZE) {
+    throw new Error(`File too large. Maximum size: ${MAX_IMAGE_SIZE / 1024 / 1024}MB`);
+  }
+
   const ext = file.name.split('.').pop() || 'jpg';
   const path = `${crypto.randomUUID()}.${ext}`;
   const { error } = await supabase.storage.from('media').upload(path, file, { contentType: file.type, upsert: false });
@@ -216,6 +288,7 @@ export async function loadReceipts(): Promise<SavedReceipt[]> {
 }
 
 export async function insertReceipt(r: SavedReceipt) {
+  if (!await requireAdmin()) throw new Error('Unauthorized');
   await supabase.from('receipts').insert({
     id: r.id,
     doc_type: r.docType,
@@ -230,5 +303,6 @@ export async function insertReceipt(r: SavedReceipt) {
 }
 
 export async function deleteReceipt(id: string) {
+  if (!await requireAdmin()) throw new Error('Unauthorized');
   await supabase.from('receipts').delete().eq('id', id);
 }

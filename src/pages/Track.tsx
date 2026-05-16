@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSearch } from '@tanstack/react-router';
 import type { Booking, BookingStatus, BookingLine } from '@/lib/types';
 import { trackSchema } from '@/lib/validation';
+import { verifyPaystackPayment } from '@/integrations/paystack/client';
 
 type Filter = { status: 'all' | BookingStatus; type: 'all' | 'rental' | 'reservation' };
 
@@ -28,7 +29,23 @@ export default function Track() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const ref = params.get('ref');
-    if (ref) { setQ(ref); search(ref); }
+    const verified = params.get('verified');
+    if (ref) {
+      setQ(ref);
+      search(ref);
+      if (verified === 'true') {
+        verifyPaystackPayment(ref).then(result => {
+          if (result.success) {
+            const paid = result.amount / 100;
+            useStoreBase.getState().updateBooking(ref, {
+              paymentStatus: 'paid',
+              amountPaid: paid,
+              balanceDue: 0,
+            });
+          }
+        });
+      }
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

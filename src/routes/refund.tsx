@@ -3,6 +3,14 @@ import SiteLayout from "@/components/SiteLayout";
 import { useStoreBase } from "@/lib/store";
 
 export const Route = createFileRoute("/refund")({
+  head: () => ({
+    meta: [
+      { title: "Refund Policy — AB Consult" },
+      { name: "description", content: "Review AB Consult's refund and cancellation policies for venue bookings and equipment rentals." },
+      { property: "og:title", content: "Refund Policy — AB Consult" },
+      { property: "og:url", content: "https://abconsult.com/refund" },
+    ],
+  }),
   component: () => <StaticPage which="refund" />,
 });
 

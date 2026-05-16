@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import type { InventoryMovement } from '@/lib/types';
 import { useConfirm } from '@/components/ConfirmProvider';
+import { upsertRental } from '@/lib/db';
 
 export default function AdminInventory() {
   const rentals = useStoreBase(s => s.rentals);
@@ -11,17 +12,20 @@ export default function AdminInventory() {
   const set = useStoreBase(s => s.set);
   const addMovement = useStoreBase(s => s.addMovement);
   const me = useCurrentEmployee();
+  const role = useStoreBase(s => s.roles.find(r => r.id === me?.roleId));
   const { confirm } = useConfirm();
 
   const internal = rentals.filter(r => r.ownership === 'internal');
   const lowStock = internal.filter(r => r.stockAvailable === 0 || r.stockAvailable <= r.stockTotal * 0.2);
 
   const [edit, setEdit] = useState<{ id: string; total: number; available: number; location: string } | null>(null);
-  const [mov, setMov] = useState<{ itemId: string; type: InventoryMovement['type']; qty: number; note: string; location: string; handledBy: string } | null>(null);
+  const [mov, setMov] = useState<{ itemId: string; type: InventoryMovement['type']; qty: number; note: string; location: string } | null>(null);
 
-  const saveStock = () => {
+  const saveStock = async () => {
     if (!edit) return;
-    set('rentals', rentals.map(r => r.id === edit.id ? { ...r, stockTotal: edit.total, stockAvailable: edit.available, location: edit.location } : r));
+    const updated = rentals.map(r => r.id === edit.id ? { ...r, stockTotal: edit.total, stockAvailable: edit.available, location: edit.location } : r);
+    set('rentals', updated);
+    try { await upsertRental(updated.find(r => r.id === edit.id)!); } catch (e: any) { toast.error(e?.message ?? 'Failed to persist stock change'); }
     setEdit(null);
     toast.success('Stock updated.');
   };
@@ -37,10 +41,12 @@ export default function AdminInventory() {
       const ok = await confirm({ title: 'Insufficient stock', description: `Only ${r.stockAvailable} available. Continue anyway?`, confirmText: 'Continue' });
       if (!ok) return;
     }
-    set('rentals', rentals.map(x => x.id === r.id ? { ...x, stockAvailable: newAvail, stockTotal: mov.type === 'damaged' ? Math.max(0, x.stockTotal - mov.qty) : x.stockTotal } : x));
+    const updated = { ...r, stockAvailable: newAvail, stockTotal: mov.type === 'damaged' ? Math.max(0, r.stockTotal - mov.qty) : r.stockTotal };
+    set('rentals', rentals.map(x => x.id === r.id ? updated : x));
+    try { await upsertRental(updated); } catch (e: any) { toast.error(e?.message ?? 'Failed to persist stock change'); }
     addMovement({
       id: crypto.randomUUID(), itemId: r.id, type: mov.type, qty: mov.qty, note: mov.note,
-      location: mov.location, handledBy: mov.handledBy, at: new Date().toISOString(),
+      location: mov.location, handledBy: role?.name ? `${role.name} · ${me?.email ?? ''}` : me?.email ?? '', at: new Date().toISOString(),
     });
     setMov(null);
     toast.success('Movement logged.');
@@ -74,7 +80,7 @@ export default function AdminInventory() {
                   <div className="h-full bg-gold" style={{ width: `${pct}%` }} />
                 </div>
               </div>
-              <GhostBtn onClick={() => setMov({ itemId: r.id, type: 'out', qty: 1, note: '', location: '', handledBy: me?.name || '' })} className="text-xs py-1 px-2 sm:py-2 sm:px-4">Move</GhostBtn>
+              <GhostBtn onClick={() => setMov({ itemId: r.id, type: 'out', qty: 1, note: '', location: '' })} className="text-xs py-1 px-2 sm:py-2 sm:px-4">Move</GhostBtn>
               <GhostBtn onClick={() => setEdit({ id: r.id, total: r.stockTotal, available: r.stockAvailable, location: r.location })} className="text-xs py-1 px-2 sm:py-2 sm:px-4">Edit</GhostBtn>
             </div>
           );
@@ -123,7 +129,7 @@ export default function AdminInventory() {
         <Modal onClose={() => setMov(null)} title="Log movement">
           <div className="grid md:grid-cols-2 gap-4">
             <Field label="Type">
-              <select className={inputCls} value={mov.type} onChange={e => setMov({ ...mov, type: e.target.value as InventoryMovement['type'] })}>
+              <select className={`${inputCls} bg-card text-foreground [&>option]:bg-card [&>option]:text-foreground`} value={mov.type} onChange={e => setMov({ ...mov, type: e.target.value as InventoryMovement['type'] })}>
                 <option value="out">Check out</option>
                 <option value="in">Check in (return)</option>
                 <option value="restock">Restock</option>
@@ -135,7 +141,7 @@ export default function AdminInventory() {
               <input className={inputCls} value={mov.location} onChange={e => setMov({ ...mov, location: e.target.value })} placeholder="Venue / address"/>
             </Field>
             <Field label="Handled by">
-              <input className={inputCls} value={mov.handledBy} onChange={e => setMov({ ...mov, handledBy: e.target.value })} placeholder="Employee name"/>
+              <input className={inputCls} value={role?.name ? `${role.name} · ${me?.email ?? ''}` : me?.email ?? ''} disabled />
             </Field>
             <div className="md:col-span-2"><Field label="Note"><input className={inputCls} value={mov.note} onChange={e => setMov({ ...mov, note: e.target.value })} placeholder="Reason / event"/></Field></div>
           </div>

@@ -53,6 +53,7 @@ export default {
         },
         ink: "hsl(var(--ink))",
         bone: "hsl(var(--bone))",
+        boneForeground: "hsl(var(--bone-foreground))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",

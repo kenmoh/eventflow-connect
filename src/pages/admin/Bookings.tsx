@@ -1,3 +1,4 @@
+import { useState, useMemo } from 'react';
 import { useStoreBase, fmt } from '@/lib/store';
 import { AdminPage, inputCls } from './_shared';
 import type { BookingStatus, PaymentStatus, BookingLine } from '@/lib/types';
@@ -5,11 +6,38 @@ import type { BookingStatus, PaymentStatus, BookingLine } from '@/lib/types';
 export default function AdminBookings() {
   const bookings = useStoreBase(s => s.bookings);
   const updateBooking = useStoreBase(s => s.updateBooking);
+
+  const [search, setSearch] = useState('');
+  const [dateFilter, setDateFilter] = useState('');
+
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase().trim();
+    return bookings.filter(b => {
+      const matchSearch = !q || b.reference.toLowerCase().includes(q) || b.customer.email.toLowerCase().includes(q);
+      const matchDate = !dateFilter || new Date((b.details as { date?: string }).date ?? b.createdAt).toDateString() === new Date(dateFilter).toDateString();
+      return matchSearch && matchDate;
+    });
+  }, [bookings, search, dateFilter]);
   return (
     <AdminPage title="Bookings" subtitle="Items shown as pills. Update fulfilment and payment status inline.">
-      {bookings.length === 0 && <p className="text-muted-foreground">No bookings yet.</p>}
+      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+        <input
+          type="text"
+          placeholder="Search by reference or email…"
+          className={inputCls}
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
+        <input
+          type="date"
+          className={inputCls}
+          value={dateFilter}
+          onChange={e => setDateFilter(e.target.value)}
+        />
+      </div>
+      {filtered.length === 0 && <p className="text-muted-foreground">No bookings found.</p>}
       <div className="space-y-4">
-        {bookings.map(b => (
+        {filtered.map(b => (
           <article key={b.reference} className="border border-border bg-card p-3 sm:p-4 lg:p-6">
             <div className="flex flex-col sm:flex-row sm:items-baseline flex-wrap gap-2 sm:gap-3">
               <span className="chip text-xs">{b.type}</span>
@@ -64,7 +92,7 @@ export default function AdminBookings() {
           </article>
         ))}
       </div>
-      {bookings.length > 0 && <p className="mt-6 sm:mt-10 text-xs text-muted-foreground">Total volume: {fmt(bookings.reduce((a, b) => a + b.total, 0))}</p>}
+      {filtered.length > 0 && <p className="mt-6 sm:mt-10 text-xs text-muted-foreground">Showing {filtered.length} of {bookings.length} — Total volume: {fmt(filtered.reduce((a, b) => a + b.total, 0))}</p>}
     </AdminPage>
   );
 }

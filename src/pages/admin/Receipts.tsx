@@ -204,11 +204,124 @@ export default function AdminReceipts() {
       return;
     }
 
+    toast.success(`Preparing ${docType}...`);
+
+    const printContent = printRef.current;
+    if (!printContent) {
+      toast.error('No preview available');
+      return;
+    }
+
+    const itemsHtml = items.map(item => `
+      <tr>
+        <td style="padding: 12px 0; border-bottom: 1px solid #eee;">${item.description || '—'}</td>
+        <td style="padding: 12px 0; border-bottom: 1px solid #eee; text-align: right;">${item.quantity}</td>
+        <td style="padding: 12px 0; border-bottom: 1px solid #eee; text-align: right;">₦${item.unitPrice.toLocaleString()}</td>
+        <td style="padding: 12px 0; border-bottom: 1px solid #eee; text-align: right;">₦${(item.quantity * item.unitPrice).toLocaleString()}</td>
+      </tr>
+    `).join('');
+
+    const docNumber = `DOC-${Date.now().toString(36).toUpperCase()}`;
+    const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>${docType.charAt(0).toUpperCase() + docType.slice(1)} - ${clientName}</title>
+          <style>
+            * { box-sizing: border-box; margin: 0; padding: 0; }
+            body { font-family: Georgia, serif; padding: 40px; max-width: 800px; margin: 0 auto; color: #1a1a1a; }
+            .header { display: flex; justify-content: space-between; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 2px solid #1a1a1a; }
+            .brand { font-size: 24px; font-weight: bold; }
+            .doc-title { font-size: 32px; text-transform: uppercase; letter-spacing: 4px; }
+            .meta { text-align: right; font-size: 12px; }
+            .client-info { margin-bottom: 30px; }
+            .client-info h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; color: #666; }
+            .client-info p { margin: 4px 0; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+            th { text-align: left; border-bottom: 2px solid #1a1a1a; padding: 10px 0; font-size: 12px; text-transform: uppercase; letter-spacing: 2px; }
+            .totals { margin-left: auto; width: 300px; }
+            .totals-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+            .totals-row.total { border-bottom: 2px solid #1a1a1a; font-weight: bold; font-size: 18px; margin-top: 10px; }
+            .notes { margin-top: 40px; padding: 20px; background: #f9f9f9; }
+            .notes h4 { font-size: 12px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; }
+          </style>
+        </head>
+        <body>
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #1a1a1a; padding-bottom: 20px; margin-bottom: 30px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <img src="/logo.png" alt="${branding.brandName}" style="height: 48px; width: auto; object-contain;" />
+              <span style="font-size: 24px; font-weight: bold;">${branding.brandName}</span>
+            </div>
+            <div style="font-size: 24px; text-transform: uppercase; letter-spacing: 4px;">${docType}</div>
+          </div>
+          <div style="text-align: right; font-size: 12px; margin-bottom: 30px;">
+            <div>${docNumber}</div>
+            <div style="color: #666;">${today}</div>
+          </div>
+          <div style="margin-bottom: 30px;">
+            <h3 style="font-size: 12px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; color: #666;">Bill To</h3>
+            <p style="font-weight: bold; margin: 4px 0;">${clientName}</p>
+            <p style="margin: 4px 0; color: #666;">${clientEmail}</p>
+            <p style="margin: 4px 0; color: #666;">${clientPhone}</p>
+            <p style="margin: 4px 0; color: #666;">${clientAddress}</p>
+          </div>
+          <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+            <thead>
+              <tr style="border-bottom: 2px solid #1a1a1a;">
+                <th style="text-align: left; padding: 10px 0; font-size: 12px; text-transform: uppercase; letter-spacing: 2px;">Description</th>
+                <th style="text-align: right; padding: 10px 0; font-size: 12px; text-transform: uppercase; letter-spacing: 2px;">Qty</th>
+                <th style="text-align: right; padding: 10px 0; font-size: 12px; text-transform: uppercase; letter-spacing: 2px;">Price</th>
+                <th style="text-align: right; padding: 10px 0; font-size: 12px; text-transform: uppercase; letter-spacing: 2px;">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itemsHtml}
+            </tbody>
+          </table>
+          <div style="margin-left: auto; width: 300px;">
+            <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee;">
+              <span style="color: #666;">Subtotal</span>
+              <span>₦${subtotal.toLocaleString()}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 2px solid #1a1a1a; font-weight: bold; font-size: 18px; margin-top: 10px;">
+              <span>Total</span>
+              <span>₦${subtotal.toLocaleString()}</span>
+            </div>
+          </div>
+          ${notes ? `
+          <div class="notes">
+            <h4>Notes / Terms</h4>
+            <p>${notes}</p>
+          </div>` : ''}
+        </body>
+      </html>
+    `;
+
     toast.success(`Sending ${docType} to ${clientEmail}...`);
-    
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    toast.success(`${docType.charAt(0).toUpperCase() + docType.slice(1)} sent to ${clientEmail} (via Resend - Mocked)`);
+
+    try {
+      const res = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: clientEmail,
+          subject: `${docType.charAt(0).toUpperCase() + docType.slice(1)} - ${docNumber} from ${branding.brandName}`,
+          html,
+        }),
+      });
+
+      const result = await res.json();
+
+      if (result.success) {
+        toast.success(`${docType.charAt(0).toUpperCase() + docType.slice(1)} sent to ${clientEmail}`);
+      } else {
+        toast.error(result.error || 'Failed to send email');
+      }
+    } catch (err) {
+      toast.error('Failed to send email');
+    }
   };
 
   const docNumber = `DOC-${Date.now().toString(36).toUpperCase()}`;

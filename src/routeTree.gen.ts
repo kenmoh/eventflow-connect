@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WebhookRouteImport } from './routes/webhook'
 import { Route as TrackRouteImport } from './routes/track'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as RentalsRouteImport } from './routes/rentals'
@@ -24,6 +25,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as HotelsIndexRouteImport } from './routes/hotels/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as HotelsIdRouteImport } from './routes/hotels/$id'
+import { Route as ApiCallbackRouteImport } from './routes/api/callback'
 import { Route as AdminRoomsRouteImport } from './routes/admin/rooms'
 import { Route as AdminRevenueRouteImport } from './routes/admin/revenue'
 import { Route as AdminRentalsRouteImport } from './routes/admin/rentals'
@@ -40,6 +42,11 @@ import { Route as AdminBrandingRouteImport } from './routes/admin/branding'
 import { Route as AdminBookingsRouteImport } from './routes/admin/bookings'
 import { Route as AdminArrangementsRouteImport } from './routes/admin/arrangements'
 
+const WebhookRoute = WebhookRouteImport.update({
+  id: '/webhook',
+  path: '/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TrackRoute = TrackRouteImport.update({
   id: '/track',
   path: '/track',
@@ -113,6 +120,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
 const HotelsIdRoute = HotelsIdRouteImport.update({
   id: '/hotels/$id',
   path: '/hotels/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCallbackRoute = ApiCallbackRouteImport.update({
+  id: '/api/callback',
+  path: '/api/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoomsRoute = AdminRoomsRouteImport.update({
@@ -204,6 +216,7 @@ export interface FileRoutesByFullPath {
   '/rentals': typeof RentalsRoute
   '/terms': typeof TermsRoute
   '/track': typeof TrackRoute
+  '/webhook': typeof WebhookRoute
   '/admin/arrangements': typeof AdminArrangementsRoute
   '/admin/bookings': typeof AdminBookingsRoute
   '/admin/branding': typeof AdminBrandingRoute
@@ -219,6 +232,7 @@ export interface FileRoutesByFullPath {
   '/admin/rentals': typeof AdminRentalsRoute
   '/admin/revenue': typeof AdminRevenueRoute
   '/admin/rooms': typeof AdminRoomsRoute
+  '/api/callback': typeof ApiCallbackRoute
   '/hotels/$id': typeof HotelsIdRoute
   '/admin/': typeof AdminIndexRoute
   '/hotels/': typeof HotelsIndexRoute
@@ -235,6 +249,7 @@ export interface FileRoutesByTo {
   '/rentals': typeof RentalsRoute
   '/terms': typeof TermsRoute
   '/track': typeof TrackRoute
+  '/webhook': typeof WebhookRoute
   '/admin/arrangements': typeof AdminArrangementsRoute
   '/admin/bookings': typeof AdminBookingsRoute
   '/admin/branding': typeof AdminBrandingRoute
@@ -250,6 +265,7 @@ export interface FileRoutesByTo {
   '/admin/rentals': typeof AdminRentalsRoute
   '/admin/revenue': typeof AdminRevenueRoute
   '/admin/rooms': typeof AdminRoomsRoute
+  '/api/callback': typeof ApiCallbackRoute
   '/hotels/$id': typeof HotelsIdRoute
   '/admin': typeof AdminIndexRoute
   '/hotels': typeof HotelsIndexRoute
@@ -268,6 +284,7 @@ export interface FileRoutesById {
   '/rentals': typeof RentalsRoute
   '/terms': typeof TermsRoute
   '/track': typeof TrackRoute
+  '/webhook': typeof WebhookRoute
   '/admin/arrangements': typeof AdminArrangementsRoute
   '/admin/bookings': typeof AdminBookingsRoute
   '/admin/branding': typeof AdminBrandingRoute
@@ -283,6 +300,7 @@ export interface FileRoutesById {
   '/admin/rentals': typeof AdminRentalsRoute
   '/admin/revenue': typeof AdminRevenueRoute
   '/admin/rooms': typeof AdminRoomsRoute
+  '/api/callback': typeof ApiCallbackRoute
   '/hotels/$id': typeof HotelsIdRoute
   '/admin/': typeof AdminIndexRoute
   '/hotels/': typeof HotelsIndexRoute
@@ -302,6 +320,7 @@ export interface FileRouteTypes {
     | '/rentals'
     | '/terms'
     | '/track'
+    | '/webhook'
     | '/admin/arrangements'
     | '/admin/bookings'
     | '/admin/branding'
@@ -317,6 +336,7 @@ export interface FileRouteTypes {
     | '/admin/rentals'
     | '/admin/revenue'
     | '/admin/rooms'
+    | '/api/callback'
     | '/hotels/$id'
     | '/admin/'
     | '/hotels/'
@@ -333,6 +353,7 @@ export interface FileRouteTypes {
     | '/rentals'
     | '/terms'
     | '/track'
+    | '/webhook'
     | '/admin/arrangements'
     | '/admin/bookings'
     | '/admin/branding'
@@ -348,6 +369,7 @@ export interface FileRouteTypes {
     | '/admin/rentals'
     | '/admin/revenue'
     | '/admin/rooms'
+    | '/api/callback'
     | '/hotels/$id'
     | '/admin'
     | '/hotels'
@@ -365,6 +387,7 @@ export interface FileRouteTypes {
     | '/rentals'
     | '/terms'
     | '/track'
+    | '/webhook'
     | '/admin/arrangements'
     | '/admin/bookings'
     | '/admin/branding'
@@ -380,6 +403,7 @@ export interface FileRouteTypes {
     | '/admin/rentals'
     | '/admin/revenue'
     | '/admin/rooms'
+    | '/api/callback'
     | '/hotels/$id'
     | '/admin/'
     | '/hotels/'
@@ -398,12 +422,21 @@ export interface RootRouteChildren {
   RentalsRoute: typeof RentalsRoute
   TermsRoute: typeof TermsRoute
   TrackRoute: typeof TrackRoute
+  WebhookRoute: typeof WebhookRoute
+  ApiCallbackRoute: typeof ApiCallbackRoute
   HotelsIdRoute: typeof HotelsIdRoute
   HotelsIndexRoute: typeof HotelsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/webhook': {
+      id: '/webhook'
+      path: '/webhook'
+      fullPath: '/webhook'
+      preLoaderRoute: typeof WebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/track': {
       id: '/track'
       path: '/track'
@@ -507,6 +540,13 @@ declare module '@tanstack/react-router' {
       path: '/hotels/$id'
       fullPath: '/hotels/$id'
       preLoaderRoute: typeof HotelsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/callback': {
+      id: '/api/callback'
+      path: '/api/callback'
+      fullPath: '/api/callback'
+      preLoaderRoute: typeof ApiCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/rooms': {
@@ -670,6 +710,8 @@ const rootRouteChildren: RootRouteChildren = {
   RentalsRoute: RentalsRoute,
   TermsRoute: TermsRoute,
   TrackRoute: TrackRoute,
+  WebhookRoute: WebhookRoute,
+  ApiCallbackRoute: ApiCallbackRoute,
   HotelsIdRoute: HotelsIdRoute,
   HotelsIndexRoute: HotelsIndexRoute,
 }

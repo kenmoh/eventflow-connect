@@ -22,8 +22,31 @@ export const Route = createRootRoute({
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "AB Consult — Book Events. Rent Equipment." },
+      { name: "description", content: "AB Consult - Professional event venue booking and equipment rental services. Book hotels, event halls, and rent premium equipment for your events." },
+      { name: "keywords", content: "event venue, hotel booking, equipment rental, event hall, conference room, party equipment, Nigeria events" },
+      { name: "theme-color", content: "#1A1A1A" },
+      { name: "geo.region", content: "NG" },
+      { name: "geo.country", content: "Nigeria" },
+      
+      { property: "og:title", content: "AB Consult — Book Events. Rent Equipment." },
+      { property: "og:description", content: "Professional event venue booking and equipment rental services." },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://abconsult.com" },
+      { property: "og:site_name", content: "AB Consult" },
+      { property: "og:image", content: "https://abconsult.com/og-image.jpg" },
+      
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "AB Consult — Book Events. Rent Equipment." },
+      { name: "twitter:description", content: "Professional event venue booking and equipment rental services." },
+      { name: "twitter:image", content: "https://abconsult.com/og-image.jpg" },
+      
+      { name: "robots", content: "index, follow" },
+      { name: "author", content: "AB Consult" },
     ],
     links: [
+      { rel: "icon", href: "/favicon.ico" },
+      { rel: "apple-touch-icon", href: "/favicon.ico" },
+      { rel: "canonical", href: "https://abconsult.com" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       {
         rel: "preconnect",
@@ -33,6 +56,20 @@ export const Route = createRootRoute({
       {
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@300;400;500;600;700&display=swap",
+      },
+    ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        innerHTML: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "AB Consult",
+          "url": "https://abconsult.com",
+          "description": "Professional event venue booking and equipment rental services in Nigeria.",
+          "areaServed": { "@type": "Country", "name": "Nigeria" },
+          "serviceType": ["Hotel Venue Booking", "Event Equipment Rental", "Conference Hall Rental"],
+        }),
       },
     ],
   }),

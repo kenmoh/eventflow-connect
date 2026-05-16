@@ -59,7 +59,7 @@ export const seedContent: SiteContent = {
     title: "Hotels, halls and quiet boardrooms.",
   },
   packagesSection: {
-    eyebrow: "02 — Packages",
+    eyebrow: "02 — Catering",
     title: "Coffee breaks and full menus.",
     copy: "From quick coffee to plated buffets, every package is curated and priced per person.",
   },
@@ -96,7 +96,7 @@ export const seedContent: SiteContent = {
   ),
   privacy: legal(
     "Privacy Policy",
-    "We collect only the information needed to fulfil your booking: name, email, phone, event details, and payment metadata returned by Flutterwave. We never sell your data.\n\nYou can request deletion of your records at any time by emailing hello@allbrothersconsult.ng.",
+    "We collect only the information needed to fulfil your booking: name, email, phone, event details, and payment metadata returned by Paystack. We never sell your data.\n\nYou can request deletion of your records at any time by emailing hello@allbrothersconsult.ng.",
   ),
   terms: legal(
     "Terms of Service",
@@ -216,10 +216,11 @@ export const seedHalls: Hall[] = [
   },
 ];
 
-const ts = (label: string, time: string) => ({
+const ts = (label: string, startTime: string, endTime: string) => ({
   id: crypto.randomUUID(),
   label,
-  time,
+  startTime,
+  endTime,
 });
 
 export const seedPackages: Pkg[] = [
@@ -236,7 +237,7 @@ export const seedPackages: Pkg[] = [
       "Seasonal fruit",
     ],
     pricePerPerson: 12000,
-    timeSlots: [ts("Morning", "10:00"), ts("Late morning", "11:30")],
+    timeSlots: [ts("Morning", "10:00", "11:00"), ts("Late morning", "11:30", "12:30")],
   },
   {
     id: "p2",
@@ -251,7 +252,7 @@ export const seedPackages: Pkg[] = [
       "Sparkling water",
     ],
     pricePerPerson: 22000,
-    timeSlots: [ts("Midday", "12:00"), ts("Afternoon", "15:00")],
+    timeSlots: [ts("Midday", "12:00", "13:30"), ts("Afternoon", "15:00", "16:30")],
   },
   {
     id: "p3",
@@ -261,7 +262,7 @@ export const seedPackages: Pkg[] = [
     description: "Plated and buffet lunch, served to your room.",
     items: ["Three mains", "Two sides", "Dessert table", "Soft drinks"],
     pricePerPerson: 38000,
-    timeSlots: [ts("Lunch", "13:00"), ts("Dinner", "19:00")],
+    timeSlots: [ts("Lunch", "13:00", "14:30"), ts("Dinner", "19:00", "21:00")],
   },
   {
     id: "p4",
@@ -271,7 +272,7 @@ export const seedPackages: Pkg[] = [
     description: "Chef-led, course-by-course dining.",
     items: ["Amuse-bouche", "Three courses", "Wine pairing", "Coffee service"],
     pricePerPerson: 65000,
-    timeSlots: [ts("Lunch", "13:00"), ts("Dinner", "19:30")],
+    timeSlots: [ts("Lunch", "13:00", "15:00"), ts("Dinner", "19:30", "21:30")],
   },
   {
     id: "p5",
@@ -281,7 +282,7 @@ export const seedPackages: Pkg[] = [
     description: "Pastries and pour-over to start.",
     items: ["Pour-over coffee", "Fresh juices", "Viennoiserie"],
     pricePerPerson: 14000,
-    timeSlots: [ts("Morning", "08:00")],
+    timeSlots: [ts("Morning", "08:00", "09:30")],
   },
   {
     id: "p6",
@@ -291,7 +292,7 @@ export const seedPackages: Pkg[] = [
     description: "Light, garden-side three-course lunch.",
     items: ["Salad bar", "Two mains", "Dessert", "Iced tea"],
     pricePerPerson: 32000,
-    timeSlots: [ts("Lunch", "12:30")],
+    timeSlots: [ts("Lunch", "12:30", "14:30")],
   },
 ];
 
@@ -573,8 +574,10 @@ export const seedBookings: Booking[] = [
         kind: "hall",
         name: "The Conservatory",
         days: 1,
+        startTime: "10:00",
+        endTime: "18:00",
         pricePerDay: 960000,
-        timeSlot: "Morning · 10:00",
+        timeSlot: "10:00–18:00",
         seatArrangement: "Theatre",
         subtotal: 960000,
       },
@@ -583,7 +586,7 @@ export const seedBookings: Booking[] = [
         name: "Buffet Elysium",
         persons: 80,
         pricePerPerson: 38000,
-        timeSlot: "Lunch · 13:00",
+        timeSlot: "Lunch · 13:00–14:30",
         subtotal: 3040000,
       },
       {
@@ -591,7 +594,7 @@ export const seedBookings: Booking[] = [
         name: "Morning Star",
         persons: 80,
         pricePerPerson: 12000,
-        timeSlot: "Morning · 10:00",
+        timeSlot: "Morning · 10:00–11:00",
         subtotal: 960000,
       },
     ],
@@ -652,6 +655,7 @@ export const seedBookings: Booking[] = [
         kind: "room",
         name: "Solène Deluxe",
         nights: 2,
+        rooms: 1,
         pricePerNight: 165000,
         subtotal: 330000,
       },

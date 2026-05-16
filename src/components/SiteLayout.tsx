@@ -100,15 +100,15 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
 
       <main className="flex-1 pt-0">{children}</main>
 
-      <footer className="mt-32 bg-ink text-ink-foreground border-t border-border">
+      <footer className="mt-32 bg-secondary border-t border-border text-foreground">
         <div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-20 grid md:grid-cols-4 gap-12">
           <div className="md:col-span-2">
             <div className="font-display text-4xl">{branding.brandName}.</div>
-            <p className="mt-4 max-w-md opacity-70">{footer.blurb}</p>
+            <p className="mt-4 max-w-md text-muted-foreground">{footer.blurb}</p>
           </div>
           <div>
             <div className="text-[10px] uppercase tracking-[0.3em] text-gold mb-4">Discover</div>
-            <ul className="space-y-2 opacity-70">
+            <ul className="space-y-2 text-muted-foreground">
               <li><Link to="/hotels">Hotels</Link></li>
               <li><Link to="/rentals">Rentals</Link></li>
               <li><Link to="/track">Track booking</Link></li>
@@ -117,7 +117,7 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
           </div>
           <div>
             <div className="text-[10px] uppercase tracking-[0.3em] text-gold mb-4">Studio</div>
-            <ul className="space-y-2 opacity-70">
+            <ul className="space-y-2 text-muted-foreground">
               <li>{footer.contactEmail}</li>
               <li>{footer.contactPhone}</li>
               <li>{footer.contactCity}</li>
@@ -128,8 +128,8 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
             </ul>
           </div>
         </div>
-        <div className="border-t border-bone/10">
-          <div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-6 flex flex-wrap items-center justify-between text-xs opacity-60">
+        <div className="border-t border-border">
+          <div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-6 flex flex-wrap items-center justify-between text-xs text-muted-foreground">
             <span>© {new Date().getFullYear()} {branding.brandName}. All rights reserved.</span>
             <span className="uppercase tracking-[0.3em]">{footer.rightsLine}</span>
           </div>

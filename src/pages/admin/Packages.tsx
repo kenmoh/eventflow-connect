@@ -10,7 +10,7 @@ import { upsertPackage, deletePackage } from '@/lib/db';
 const blank = (hotelId: string): Pkg => ({
   id: crypto.randomUUID(), hotelId, kind: 'coffee', name: '', description: '',
   items: [], pricePerPerson: 15000,
-  timeSlots: [{ id: crypto.randomUUID(), label: 'Morning', time: '10:00' }],
+  timeSlots: [{ id: crypto.randomUUID(), label: 'Morning', startTime: '10:00', endTime: '11:00' }],
 });
 
 export default function AdminPackages() {
@@ -42,7 +42,7 @@ export default function AdminPackages() {
   };
   const addSlot = () => {
     if (!editing) return;
-    setEditing({ ...editing, timeSlots: [...editing.timeSlots, { id: crypto.randomUUID(), label: 'New', time: '12:00' }] });
+    setEditing({ ...editing, timeSlots: [...editing.timeSlots, { id: crypto.randomUUID(), label: 'New', startTime: '12:00', endTime: '13:00' }] });
   };
   const removeSlot = (id: string) => {
     if (!editing) return;
@@ -66,7 +66,7 @@ export default function AdminPackages() {
               <p className="text-sm text-muted-foreground mt-2">{p.description}</p>
               <div className="mt-3 font-display">{fmt(p.pricePerPerson)} <span className="text-xs text-muted-foreground">/pp</span></div>
               <div className="mt-2 flex flex-wrap gap-1">
-                {p.timeSlots.map(t => <span key={t.id} className="chip">{t.label} · {t.time}</span>)}
+                {p.timeSlots.map(t => <span key={t.id} className="chip">{t.label} · {t.startTime}–{t.endTime}</span>)}
               </div>
               <ul className="mt-3 text-xs text-muted-foreground space-y-1">{p.items.map(it => <li key={it}>— {it}</li>)}</ul>
               <div className="mt-4 flex gap-2">
@@ -109,9 +109,10 @@ export default function AdminPackages() {
                 <span className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground block mb-2">Time slots</span>
                 <div className="space-y-2">
                   {editing.timeSlots.map((s, i) => (
-                    <div key={s.id} className="grid grid-cols-[1fr_140px_auto] gap-2 items-center">
+                    <div key={s.id} className="grid grid-cols-[1fr_80px_80px_auto] gap-2 items-center">
                       <input className={inputCls} placeholder="Label e.g. Morning" value={s.label} onChange={e => updateSlot(i, { label: e.target.value })}/>
-                      <input type="time" className={inputCls} value={s.time} onChange={e => updateSlot(i, { time: e.target.value })}/>
+                      <input type="time" className={inputCls} value={s.startTime} onChange={e => updateSlot(i, { startTime: e.target.value })}/>
+                      <input type="time" className={inputCls} value={s.endTime} onChange={e => updateSlot(i, { endTime: e.target.value })}/>
                       <button type="button" onClick={() => removeSlot(s.id)} className="text-muted-foreground hover:text-destructive p-2"><X className="w-4 h-4"/></button>
                     </div>
                   ))}

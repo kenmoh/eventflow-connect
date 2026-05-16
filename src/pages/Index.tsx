@@ -164,12 +164,12 @@ export default function Home() {
         <div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-24 lg:py-32">
           <div className="text-[10px] uppercase tracking-[0.4em] text-gold mb-3">{c.howItWorks.eyebrow}</div>
           <h2 className="font-display text-5xl md:text-6xl max-w-3xl">{c.howItWorks.title}</h2>
-          <div className="mt-16 grid md:grid-cols-3 gap-px bg-bone/10">
+          <div className="mt-16 grid md:grid-cols-3 gap-px bg-border">
             {c.howItWorks.steps.map((s, i) => (
-              <div key={s.title} className="bg-ink p-10">
-                <div className="font-display text-7xl text-gold/80">0{i+1}</div>
+              <div key={s.title} className="bg-card p-10">
+                <div className="font-display text-7xl text-gold">0{i+1}</div>
                 <div className="font-display text-3xl mt-4">{s.title}.</div>
-                <p className="mt-3 text-bone/70 max-w-xs">{s.copy}</p>
+                <p className="mt-3 text-muted-foreground max-w-xs">{s.copy}</p>
               </div>
             ))}
           </div>

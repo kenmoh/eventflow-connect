@@ -57,7 +57,7 @@ export default function AdminHotels() {
             <Field label="Location"><input className={inputCls} value={editing.location} onChange={e => setEditing({ ...editing, location: e.target.value })}/></Field>
             <Field label="Tagline"><input className={inputCls} value={editing.tagline} onChange={e => setEditing({ ...editing, tagline: e.target.value })}/></Field>
             <Field label="Rating"><input type="number" step="0.1" className={inputCls} value={editing.rating} onChange={e => setEditing({ ...editing, rating: +e.target.value })}/></Field>
-            <Field label="Amenities (comma-separated)"><input className={inputCls} value={editing.amenities.join(', ')} onChange={e => setEditing({ ...editing, amenities: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}/></Field>
+            <Field label="Amenities (comma-separated)"><input className={inputCls} defaultValue={editing.amenities.join(', ')} onBlur={e => { setEditing({ ...editing, amenities: e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean) }); }} /></Field>
             <div className="md:col-span-2"><ImagePicker value={editing.image} onChange={v => setEditing({ ...editing, image: v })}/></div>
           </div>
           <div className="mt-6 flex gap-2 justify-end">

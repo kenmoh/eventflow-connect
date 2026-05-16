@@ -5,6 +5,15 @@ import SiteLayout from '@/components/SiteLayout'
 import { useStoreBase } from '@/lib/store'
 
 export const Route = createFileRoute('/faqs')({
+  head: () => ({
+    meta: [
+      { title: "FAQ — AB Consult" },
+      { name: "description", content: "Answers to frequently asked questions about AB Consult's venue booking and equipment rental services." },
+      { property: "og:title", content: "FAQ — AB Consult" },
+      { property: "og:description", content: "Frequently asked questions about our event venues and equipment rentals." },
+      { property: "og:url", content: "https://abconsult.com/faqs" },
+    ],
+  }),
   component: Faqs,
 })
 

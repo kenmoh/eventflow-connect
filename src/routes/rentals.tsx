@@ -8,6 +8,15 @@ import type { RentalCategory } from '@/lib/types'
 const CATS: ('All' | RentalCategory)[] = ['All', 'Sound', 'Lighting', 'Seating', 'Tents', 'Decor'];
 
 export const Route = createFileRoute('/rentals')({
+  head: () => ({
+    meta: [
+      { title: "Equipment Rentals — AB Consult" },
+      { name: "description", content: "Rent premium equipment for your events: sound systems, lighting, seating, tents, and decor. Flexible pricing with vendor and internal fulfillment." },
+      { property: "og:title", content: "Equipment Rentals — AB Consult" },
+      { property: "og:description", content: "Premium event equipment rentals. Sound, lighting, seating, tents, and more." },
+      { property: "og:url", content: "https://abconsult.com/rentals" },
+    ],
+  }),
   component: Rentals,
 })
 

@@ -12,6 +12,14 @@ export const Route = createFileRoute('/track')({
   validateSearch: z.object({
     ref: z.string().optional(),
   }),
+  head: () => ({
+    meta: [
+      { title: "Track Booking — AB Consult" },
+      { name: "description", content: "Track the status of your AB Consult booking using your email or booking reference." },
+      { property: "og:title", content: "Track Booking — AB Consult" },
+      { property: "og:url", content: "https://abconsult.com/track" },
+    ],
+  }),
   component: Track,
 })
 
@@ -27,7 +35,9 @@ function Track() {
     setError('');
     const parsed = trackSchema.safeParse({ query: val });
     if (!parsed.success) { setError(parsed.error.issues[0].message); return; }
-    const v = parsed.data.query.toLowerCase();
+    // Sanitize input — only allow alphanumeric, @, -, . and spaces
+    const sanitized = parsed.data.query.replace(/[^a-zA-Z0-9@.\- ]/g, '');
+    const v = sanitized.toLowerCase();
     const matches = bookings.filter(b =>
       b.reference.toLowerCase() === v || b.customer.email.toLowerCase() === v
     );
@@ -143,9 +153,9 @@ export function BookingCard({ b }: { b: Booking }) {
 function LinePill({ l }: { l: BookingLine }) {
   const accent = l.kind === 'package' ? 'chip-gold' : '';
   let label = '';
-  if (l.kind === 'room') label = `Room · ${l.name} · ${l.nights}n · ${fmt(l.subtotal)}`;
-  if (l.kind === 'hall') label = `Hall · ${l.name} · ${l.days}d${l.timeSlot ? ` · ${l.timeSlot}` : ''}${l.seatArrangement ? ` · ${l.seatArrangement}` : ''} · ${fmt(l.subtotal)}`;
-  if (l.kind === 'package') label = `Package · ${l.name} · ${l.persons} pax${l.timeSlot ? ` · ${l.timeSlot}` : ''} · ${fmt(l.subtotal)}`;
+  if (l.kind === 'room') label = `Room · ${l.name} · ${l.rooms}× · ${l.nights}n · ${fmt(l.subtotal)}`;
+  if (l.kind === 'hall') label = `Hall · ${l.name} · ${l.days}d · ${l.startTime}–${l.endTime}${l.seatArrangement ? ` · ${l.seatArrangement}` : ''} · ${fmt(l.subtotal)}`;
+  if (l.kind === 'package') label = `Package · ${l.name} · ${l.persons} pax · ${l.timeSlot} · ${fmt(l.subtotal)}`;
   if (l.kind === 'rental') label = `Rental · ${l.name} · ${l.quantity}× · ${l.days}d · ${fmt(l.subtotal)}`;
   return <span className={`chip ${accent} whitespace-nowrap max-w-full`}>{label}</span>;
 }

@@ -3,6 +3,14 @@ import SiteLayout from "@/components/SiteLayout";
 import { useStoreBase } from "@/lib/store";
 
 export const Route = createFileRoute("/terms")({
+  head: () => ({
+    meta: [
+      { title: "Terms of Service — AB Consult" },
+      { name: "description", content: "Read the terms and conditions governing AB Consult's venue booking and equipment rental services." },
+      { property: "og:title", content: "Terms of Service — AB Consult" },
+      { property: "og:url", content: "https://abconsult.com/terms" },
+    ],
+  }),
   component: () => <StaticPage which="terms" />,
 });
 

@@ -80,7 +80,7 @@
     --ink: 222 47% 9%;
     --ink-foreground: 36 30% 97%;
     --bone: 36 30% 97%;
-    --bone-foreground: 222 47% 9%;
+    --bone-foreground: 36 10% 15%;
 
     --destructive: 0 72% 45%;
     --destructive-foreground: 36 30% 97%;
@@ -119,6 +119,10 @@
     font-family: "Fraunces", "Times New Roman", serif;
     font-feature-settings: "ss01";
     letter-spacing: -0.02em;
+  }
+  select,
+  option {
+    @apply bg-card text-foreground;
   }
 }
 

@@ -3,6 +3,14 @@ import SiteLayout from "@/components/SiteLayout";
 import { useStoreBase } from "@/lib/store";
 
 export const Route = createFileRoute("/about")({
+  head: () => ({
+    meta: [
+      { title: "About Us — AB Consult" },
+      { name: "description", content: "Learn about AB Consult's mission to provide exceptional event venue booking and equipment rental services." },
+      { property: "og:title", content: "About Us — AB Consult" },
+      { property: "og:url", content: "https://abconsult.com/about" },
+    ],
+  }),
   component: () => <StaticPage which="about" />,
 });
 

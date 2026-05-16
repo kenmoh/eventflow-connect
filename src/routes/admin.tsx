@@ -25,10 +25,13 @@ import {
   Palette,
   UserCog,
   Receipt,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { AdminTab } from "@/lib/types";
+import { checkRateLimit } from "@/lib/security";
 
 const NAV: [AdminTab, string, React.ElementType][] = [
   ["revenue", "Revenue", TrendingUp],
@@ -37,7 +40,7 @@ const NAV: [AdminTab, string, React.ElementType][] = [
   ["hotels", "Hotels", Building],
   ["rooms", "Rooms", Bed],
   ["halls", "Halls", Users],
-  ["packages", "Packages", ShoppingBag],
+  ["packages", "Catering", ShoppingBag],
   ["arrangements", "Seat layouts", Building],
   ["rentals", "Rentals", ShoppingBag],
   ["receipts", "Receipts", Receipt],
@@ -106,6 +109,13 @@ function AuthScreen() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErr("");
+    
+    // Rate limiting
+    if (!checkRateLimit(`auth:${email}`, 'auth')) {
+      setErr("Too many attempts. Please wait and try again.");
+      return;
+    }
+    
     setBusy(true);
     try {
       if (mode === "sign-up") {
@@ -126,6 +136,10 @@ function AuthScreen() {
           return;
         }
         if (data.session) {
+          if (!data.user?.email_confirmed_at) {
+            setErr('Please verify your email before continuing.');
+            return;
+          }
           const { error: bErr } = await supabase.rpc("bootstrap_owner");
           if (bErr) {
             setErr(bErr.message);
@@ -209,7 +223,7 @@ function AuthScreen() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            minLength={6}
+            minLength={8}
           />
         </label>
         {err && <p className="text-destructive text-xs mt-2">{err}</p>}
@@ -260,6 +274,8 @@ function Shell() {
   const emp = useCurrentEmployee();
   const allowed = useAllowedTabs();
   const role = useStoreBase((s) => s.roles.find((r) => r.id === emp?.roleId));
+  const theme = useStoreBase((s) => s.theme);
+  const toggleTheme = useStoreBase((s) => s.toggleTheme);
   const [collapsed, setCollapsed] = useState(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("adminSidebarCollapsed");
@@ -283,7 +299,7 @@ function Shell() {
       <button
         onClick={() => setMobileOpen(!mobileOpen)}
         aria-label={mobileOpen ? "Close menu" : "Open menu"}
-        className="lg:hidden fixed top-4 left-4 z-40 bg-ink text-ink-foreground p-2 rounded-md border border-border"
+        className="lg:hidden fixed top-4 left-4 z-40 bg-ink text-bone p-2 rounded-md border border-border"
       >
         {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
       </button>
@@ -299,11 +315,10 @@ function Shell() {
       {/* Sidebar */}
       <aside
         className={`
-          fixed lg:relative z-30 h-screen 
-          bg-ink text-ink-foreground flex flex-col border-r border-border 
+          z-30 h-screen 
+          bg-ink text-bone flex flex-col border-r border-border 
           transition-all duration-300
-          ${mobileOpen ? 'translate-x-0 w-64' : '-translate-x-full w-0 lg:w-64'} 
-          lg:translate-x-0
+          ${mobileOpen ? 'fixed inset-y-0 left-0 w-64 z-40' : 'fixed -translate-x-full lg:relative lg:translate-x-0 lg:sticky lg:top-0 lg:w-64'}
           ${collapsed ? 'lg:w-16' : ''}
         `}
       >
@@ -368,6 +383,13 @@ function Shell() {
                 {emp?.name?.charAt(0) ?? "?"}
               </div>
               <button
+                onClick={toggleTheme}
+                className="opacity-60 hover:opacity-100 p-1"
+                title="Toggle theme"
+              >
+                {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              </button>
+              <button
                 onClick={() => logout()}
                 className="opacity-60 hover:opacity-100 p-1"
                 title="Sign out"
@@ -381,12 +403,20 @@ function Shell() {
               <div className="opacity-50 text-[10px] uppercase tracking-[0.3em]">
                 {role?.name ?? "No role"}
               </div>
-              <button
-                onClick={() => logout()}
-                className="mt-4 inline-flex items-center gap-2 opacity-60 hover:opacity-100"
-              >
-                <LogOut className="w-3 h-3" /> Sign out
-              </button>
+              <div className="mt-4 flex items-center gap-4">
+                <button
+                  onClick={toggleTheme}
+                  className="inline-flex items-center gap-2 opacity-60 hover:opacity-100"
+                >
+                  {theme === 'dark' ? <Sun className="w-3 h-3" /> : <Moon className="w-3 h-3" />} Toggle theme
+                </button>
+                <button
+                  onClick={() => logout()}
+                  className="inline-flex items-center gap-2 opacity-60 hover:opacity-100"
+                >
+                  <LogOut className="w-3 h-3" /> Sign out
+                </button>
+              </div>
             </>
           )}
         </div>
@@ -395,7 +425,7 @@ function Shell() {
       {/* Desktop collapse toggle */}
       <button
         onClick={toggleCollapsed}
-        className="hidden lg:flex absolute top-1/2 left-16 -translate-y-1/2 bg-ink text-ink-foreground border border-border rounded-r-md p-1 hover:bg-bone/20 transition-colors z-20"
+        className="hidden lg:flex absolute top-1/2 left-16 -translate-y-1/2 bg-ink text-bone border border-border rounded-r-md p-1 hover:bg-bone/20 transition-colors z-20"
         title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
       >
         {collapsed ? (

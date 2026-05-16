@@ -9,9 +9,11 @@ import { useCurrentEmployee } from '@/lib/store';
 import { upsertRole, deleteRole, setEmployeeRole, loadEmployees } from '@/lib/db';
 import { supabase } from '@/integrations/supabase/client';
 
+type EmployeeForm = Employee & { password: string };
+
 const ALL_TABS: AdminTab[] = ['branding', 'content', 'hotels', 'rooms', 'halls', 'packages', 'rentals', 'inventory', 'bookings', 'employees', 'receipts', 'revenue', 'arrangements', 'faqs', 'legal'];
 
-const blankEmp = (roleId: string): Employee => ({ id: crypto.randomUUID(), name: '', email: '', password: '', roleId });
+const blankEmp = (roleId: string): EmployeeForm => ({ id: crypto.randomUUID(), name: '', email: '', password: '', roleId });
 const blankRole = (): Role => ({ id: crypto.randomUUID(), name: '', tabs: [] });
 
 export default function AdminEmployees() {
@@ -21,7 +23,7 @@ export default function AdminEmployees() {
   const me = useCurrentEmployee();
   const { confirm } = useConfirm();
 
-  const [emp, setEmp] = useState<Employee | null>(null);
+  const [emp, setEmp] = useState<EmployeeForm | null>(null);
   const [role, setRole] = useState<Role | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -89,7 +91,7 @@ export default function AdminEmployees() {
 
   return (
     <AdminPage title="Employees & roles" subtitle="Create staff accounts and decide which CMS tabs they see."
-      action={<div className="flex gap-2"><PrimaryBtn onClick={() => setRole(blankRole())}>+ Role</PrimaryBtn><PrimaryBtn onClick={() => setEmp(blankEmp(roles[0]?.id || ''))}>+ Employee</PrimaryBtn></div>}>
+      action={<div className="flex gap-2"><PrimaryBtn onClick={() => setRole(blankRole())}>+ Role</PrimaryBtn><PrimaryBtn onClick={() => { const r = roles[0]?.id || ''; setEmp({ id: crypto.randomUUID(), name: '', email: '', password: '', roleId: r }); }}>+ Employee</PrimaryBtn></div>}>
       <h2 className="font-display text-2xl mb-3">Employees</h2>
       <div className="border border-border divide-y divide-border bg-card mb-12">
         {employees.map(e => {

@@ -6,6 +6,7 @@ import SiteLayout from '@/components/SiteLayout'
 import { useStoreBase, makeReference, fmt } from '@/lib/store'
 import { checkoutSchema } from '@/lib/validation'
 import { useConfirm } from '@/components/ConfirmProvider'
+import { verifyPaystackPayment } from '@/integrations/paystack/client'
 
 const METHODS = [
   { id: 'paystack-card', label: 'Card', icon: CreditCard, sub: 'Visa · Mastercard · Verve' },
@@ -13,6 +14,14 @@ const METHODS = [
 ] as const;
 
 export const Route = createFileRoute('/checkout')({
+  head: () => ({
+    meta: [
+      { title: "Checkout — AB Consult" },
+      { name: "description", content: "Complete your equipment rental order with secure payment via Paystack." },
+      { property: "og:title", content: "Checkout — AB Consult" },
+      { property: "og:url", content: "https://abconsult.com/checkout" },
+    ],
+  }),
   component: Checkout,
 })
 
@@ -58,7 +67,7 @@ function Checkout() {
     );
   }
 
-  const submit = async (e: React.FormEvent) => {
+const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const res = checkoutSchema.safeParse(form);
     if (!res.success) {
@@ -69,50 +78,189 @@ function Checkout() {
     }
     setErrors({});
     setPaying(true);
-    // Simulated Paystack flow
-    await new Promise(r => setTimeout(r, 1400));
-    setPaying(false);
-
+    
+    // Generate reference for this booking attempt
     const ref = makeReference();
+    
+    // Create booking with pending payment status first
     addBooking({
       reference: ref,
       createdAt: new Date().toISOString(),
       type: 'rental',
       customer: { name: form.name, email: form.email, phone: form.phone },
+      lines: lines.map(l => ({
+        kind: 'rental' as const,
+        name: l.item.name,
+        quantity: l.quantity,
+        days: l.days,
+        pricePerDay: l.item.pricePerDay,
+        subtotal: l.item.pricePerDay * l.quantity * l.days,
+      })),
       details: {
         items: lines.map(l => ({ name: l.item.name, qty: l.quantity, days: l.days, ownership: l.item.ownership })),
         address: form.address, date: form.date, method: form.method,
       },
-      total, amountPaid: Math.round(dueNow), balanceDue: Math.round(balance),
-      paymentStatus: balance > 0 ? 'deposit' : 'paid',
+      total, amountPaid: 0, balanceDue: total,
+      paymentStatus: 'pending',
       fulfillment: 'pending',
     });
-
-    // Decrement internal inventory + log movement
-    const updatedRentals = allRentals.map(r => {
-      const line = lines.find(l => l.itemId === r.id);
-      if (!line || r.ownership !== 'internal') return r;
-      const newAvail = Math.max(0, r.stockAvailable - line.quantity);
-      return { ...r, stockAvailable: newAvail };
-    });
-    set('rentals', updatedRentals);
-    lines.filter(l => l.item.ownership === 'internal').forEach(l => {
-      addMovement({
-        id: crypto.randomUUID(),
-        itemId: l.itemId, type: 'out', qty: l.quantity,
-        note: `Checkout · ${l.days} day(s)`,
-        reference: ref, at: new Date().toISOString(),
+    
+    // Initialize Paystack payment
+    await new Promise<void>((resolve, reject) => {
+      // @ts-ignore - Paystack will be available via window object
+      if (window.PaystackPop) {
+        const handler = window.PaystackPop.setup({
+          key: import.meta.env.VITE_PAYSTACK_PUBLIC, // Public key
+          email: form.email,
+          amount: Math.round(dueNow) * 100, // Amount in kobo (NGN)
+          ref: ref, // Use the reference we just created
+          metadata: {
+            custom_fields: [
+              {
+                display_name: "Name",
+                variable_name: "name",
+                value: form.name
+              },
+              {
+                display_name: "Phone",
+                variable_name: "phone",
+                value: form.phone
+              },
+              {
+                display_name: "Address",
+                variable_name: "address",
+                value: form.address
+              },
+              {
+                display_name: "Date",
+                variable_name: "date",
+                value: form.date
+              }
+            ]
+          },
+          onClose: () => {
+            setPaying(false);
+            // Update booking status to failed if payment cancelled
+            // In a real app, you might want to delete the pending booking or mark it failed
+            reject(new Error('Payment cancelled'));
+          },
+          callback: (response: any) => {
+            setPaying(false);
+            verifyPaystackPayment(ref).then(result => {
+              if (result.success) {
+                const paid = result.amount / 100;
+                useStoreBase.getState().updateBooking(ref, {
+                  paymentStatus: 'paid',
+                  amountPaid: paid,
+                  balanceDue: total - paid,
+                });
+              }
+            });
+            resolve(response);
+          }
+        });
+        
+        // Open the Paystack payment modal
+        handler.openIframe();
+      } else {
+        // Fallback: Load Paystack script then initialize
+        const script = document.createElement('script');
+        script.src = 'https://js.paystack.co/v1/inline.js';
+        script.onload = () => {
+          // @ts-ignore - Paystack will be available after script loads
+          const handler = window.PaystackPop.setup({
+            key: import.meta.env.VITE_PAYSTACK_PUBLIC,
+            email: form.email,
+            amount: Math.round(dueNow) * 100,
+            ref: ref,
+            metadata: {
+              custom_fields: [
+                {
+                  display_name: "Name",
+                  variable_name: "name",
+                  value: form.name
+                },
+                {
+                  display_name: "Phone",
+                  variable_name: "phone",
+                  value: form.phone
+                },
+                {
+                  display_name: "Address",
+                  variable_name: "address",
+                  value: form.address
+                },
+                {
+                  display_name: "Date",
+                  variable_name: "date",
+                  value: form.date
+                }
+              ]
+            },
+            onClose: () => {
+              setPaying(false);
+              reject(new Error('Payment cancelled'));
+            },
+            callback: (response: any) => {
+              setPaying(false);
+              verifyPaystackPayment(ref).then(result => {
+                if (result.success) {
+                  const paid = result.amount / 100;
+                  useStoreBase.getState().updateBooking(ref, {
+                    paymentStatus: 'paid',
+                    amountPaid: paid,
+                    balanceDue: total - paid,
+                  });
+                }
+              });
+              resolve(response);
+            }
+          });
+          
+          // Open the Paystack payment modal
+          handler.openIframe();
+        };
+        script.onerror = () => {
+          setPaying(false);
+          reject(new Error('Failed to load Paystack script'));
+        };
+        document.body.appendChild(script);
+      }
+    }).then((response: any) => {
+      setPaying(false);
+      
+      const updatedRentals = allRentals.map(r => {
+        const line = lines.find(l => l.itemId === r.id);
+        if (!line || r.ownership !== 'internal') return r;
+        const newAvail = Math.max(0, r.stockAvailable - line.quantity);
+        return { ...r, stockAvailable: newAvail };
       });
+      set('rentals', updatedRentals);
+      lines.filter(l => l.item.ownership === 'internal').forEach(l => {
+        addMovement({
+          id: crypto.randomUUID(),
+          itemId: l.itemId, type: 'out', qty: l.quantity,
+          note: `Checkout · ${l.days} day(s)`,
+          reference: ref, at: new Date().toISOString(),
+        });
+      });
+      
+      clearCart();
+      
+      alertDialog({
+        title: 'Payment successful',
+        description: `Reference ${ref}. We've also emailed your receipt to ${form.email}.`,
+        confirmText: 'View booking',
+      });
+      
+      toast.success('Booking confirmed.');
+      navigate({ to: '/track', search: { ref } });
+    }).catch((error: any) => {
+      setPaying(false);
+      if (error.message !== 'Payment cancelled') {
+        toast.error(`Payment failed: ${error.message}`);
+      }
     });
-
-    clearCart();
-    await alertDialog({
-      title: 'Payment successful',
-      description: `Reference ${ref}. We've also emailed your receipt to ${form.email}.`,
-      confirmText: 'View booking',
-    });
-    toast.success('Booking confirmed.');
-    navigate({ to: '/track', search: { ref } });
   };
 
   return (

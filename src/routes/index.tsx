@@ -5,6 +5,14 @@ import { useStoreBase, fmt } from '@/lib/store'
 import heroBallroom from '@/assets/hero-ballroom.jpg'
 
 export const Route = createFileRoute('/')({
+  head: () => ({
+    meta: [
+      { name: "description", content: "AB Consult - Premium event venue booking and equipment rental. Find hotels, event halls, and rent equipment for weddings, conferences, and parties." },
+      { property: "og:title", content: "AB Consult — Book Events. Rent Equipment." },
+      { property: "og:description", content: "Premium event venue booking and equipment rental services." },
+      { property: "og:url", content: "https://abconsult.com/" },
+    ],
+  }),
   component: Home,
 })
 
@@ -106,12 +114,12 @@ function Home() {
         <div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-24 lg:py-32">
           <div className="grid lg:grid-cols-12 gap-10">
             <div className="lg:col-span-4">
-              <div className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground mb-3">{c.packagesSection.eyebrow}</div>
+              <div className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground mb-3">02 — Catering</div>
               <h2 className="font-display text-5xl md:text-6xl">{c.packagesSection.title}</h2>
               <p className="mt-6 text-muted-foreground max-w-md">{c.packagesSection.copy}</p>
             </div>
             <div className="lg:col-span-8 grid sm:grid-cols-3 gap-px bg-border">
-              {packages.map((p, i) => (
+              {packages.slice(0, 3).map((p, i) => (
                 <div key={p.id} className="bg-background p-8 flex flex-col">
                   <div className="font-display text-5xl text-gold/70">0{i+1}</div>
                   <h3 className="font-display text-2xl mt-4">{p.name}</h3>
@@ -142,7 +150,7 @@ function Home() {
           </Link>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {rentals.slice(0, 6).map((r) => (
+          {rentals.slice(0, 3).map((r) => (
             <Link key={r.id} to="/rentals" className="group block">
               <div className="aspect-[5/4] overflow-hidden bg-muted mb-4">
                 <img src={r.image} alt={r.name} loading="lazy" width={800} height={640}
@@ -164,16 +172,16 @@ function Home() {
       </section>
 
       {/* HOW IT WORKS */}
-      <section className="bg-ink text-bone grain border-t border-border">
+      <section className="bg-secondary border-t border-border">
         <div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-24 lg:py-32">
           <div className="text-[10px] uppercase tracking-[0.4em] text-gold mb-3">{c.howItWorks.eyebrow}</div>
           <h2 className="font-display text-5xl md:text-6xl max-w-3xl">{c.howItWorks.title}</h2>
-          <div className="mt-16 grid md:grid-cols-3 gap-px bg-bone/10">
+          <div className="mt-16 grid md:grid-cols-3 gap-px bg-border">
             {c.howItWorks.steps.map((s, i) => (
-              <div key={s.title} className="bg-ink p-10">
+              <div key={s.title} className="bg-secondary p-10">
                 <div className="font-display text-7xl text-gold/80">0{i+1}</div>
                 <div className="font-display text-3xl mt-4">{s.title}.</div>
-                <p className="mt-3 text-bone/70 max-w-xs">{s.copy}</p>
+                <p className="mt-3 text-muted-foreground max-w-xs">{s.copy}</p>
               </div>
             ))}
           </div>
