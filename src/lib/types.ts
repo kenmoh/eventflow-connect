@@ -114,7 +114,7 @@ export type Branding = {
 export type AdminTab =
   | 'branding' | 'content' | 'hotels' | 'rooms' | 'halls'
   | 'packages' | 'arrangements' | 'rentals' | 'inventory'
-  | 'bookings' | 'revenue' | 'faqs' | 'legal' | 'employees' | 'receipts';
+  | 'bookings' | 'revenue' | 'faqs' | 'legal' | 'employees' | 'receipts' | 'contacts';
 
 export type Role = {
   id: ID;

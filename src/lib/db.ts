@@ -2,7 +2,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type {
   Hotel, Room, Hall, Pkg, RentalItem, Booking, BookingLine, Branding,
   Employee, Role, InventoryMovement, SiteContent,
-  SeatArrangement, FAQ, AdminTab, RentalCategory, SavedReceipt,
+  SeatArrangement, FAQ, AdminTab, RentalCategory, SavedReceipt, Contact,
 } from './types';
 
 // ---------- authorization helper ----------
@@ -57,6 +57,7 @@ const mapArr = (r: any): SeatArrangement => ({ id: r.id, name: r.name, descripti
 const mapRental = (r: any): RentalItem => ({ id: r.id, name: r.name, category: r.category as RentalCategory, pricePerDay: Number(r.price_per_day), ownership: r.ownership, depositPct: r.deposit_pct, image: r.image ?? '', description: r.description ?? '', available: r.available, stockTotal: r.stock_total, stockAvailable: r.stock_available, location: r.location ?? '' });
 const mapMovement = (r: any): InventoryMovement => ({ id: r.id, itemId: r.item_id, type: r.type, qty: r.qty, note: r.note ?? '', reference: r.reference ?? undefined, location: r.location ?? undefined, handledBy: r.handled_by ?? undefined, at: r.at });
 const mapFaq = (r: any): FAQ => ({ id: r.id, question: r.question, answer: r.answer, order: r.order, published: r.published });
+const mapContact = (r: any): Contact => ({ id: r.id, name: r.name, email: r.email, phone: r.phone ?? '', subject: r.subject, message: r.message, createdAt: r.created_at });
 const mapBranding = (r: any): Branding => ({ brandName: r.brand_name, tagline: r.tagline, primaryAccent: r.primary_accent });
 const mapBooking = (r: any): Booking => ({
   reference: r.reference,
@@ -71,7 +72,7 @@ const mapBooking = (r: any): Booking => ({
 
 // ---------- bulk loader ----------
 export async function loadCatalog() {
-  const [branding, content, hotels, rooms, halls, packages, arrangements, rentals, faqs, bookings, movements, roles, receipts] = await Promise.all([
+  const [branding, content, hotels, rooms, halls, packages, arrangements, rentals, faqs, bookings, movements, roles, receipts, contacts] = await Promise.all([
     supabase.from('branding').select('*').limit(1).maybeSingle(),
     supabase.from('site_content').select('data').limit(1).maybeSingle(),
     supabase.from('hotels').select('*').order('name'),
@@ -85,6 +86,7 @@ export async function loadCatalog() {
     supabase.from('inventory_movements').select('*').order('at', { ascending: false }),
     supabase.from('roles').select('*').order('name'),
     supabase.from('receipts').select('*').order('created_at', { ascending: false }),
+    supabase.from('contacts').select('*').order('created_at', { ascending: false }),
   ]);
   return {
     branding: branding.data ? mapBranding(branding.data) : null,
@@ -111,6 +113,7 @@ export async function loadCatalog() {
       total: Number(r.total),
       createdAt: r.created_at,
     })),
+    contacts: (contacts.data ?? []).map(mapContact),
   };
 }
 
@@ -305,4 +308,17 @@ export async function insertReceipt(r: SavedReceipt) {
 export async function deleteReceipt(id: string) {
   if (!await requireAdmin()) throw new Error('Unauthorized');
   await supabase.from('receipts').delete().eq('id', id);
+}
+
+// ---------- contacts ----------
+export async function insertContact(c: Omit<Contact, 'id' | 'createdAt'>) {
+  await supabase.from('contacts').insert({
+    name: c.name, email: c.email, phone: c.phone || null,
+    subject: c.subject, message: c.message,
+  } as any);
+}
+
+export async function deleteContact(id: string) {
+  if (!await requireOwner()) throw new Error('Only the owner can delete contacts');
+  await supabase.from('contacts').delete().eq('id', id);
 }

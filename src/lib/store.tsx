@@ -20,6 +20,7 @@ import type {
   FAQ,
   Theme,
   SavedReceipt,
+  Contact,
 } from "./types";
 import { loadCatalog, loadEmployees } from "./db";
 
@@ -74,6 +75,7 @@ type Loaded = {
   roles: Role[];
   employees: Employee[];
   receipts: SavedReceipt[];
+  contacts: Contact[];
 };
 
 type Persisted = {
@@ -132,6 +134,7 @@ export const useStoreBase = create<State & Actions>()(
       roles: [],
       employees: [],
       receipts: [],
+      contacts: [],
       // persisted
       theme: "dark",
       cart: [],
@@ -219,6 +222,7 @@ export const useStoreBase = create<State & Actions>()(
           movements: data.movements,
           roles: data.roles,
           hydrated: true,
+          contacts: data.contacts,
         } as any);
         // Load employees only if signed in (RLS)
         const session = get().session;

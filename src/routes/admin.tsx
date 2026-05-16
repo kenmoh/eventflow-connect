@@ -27,6 +27,7 @@ import {
   Receipt,
   Sun,
   Moon,
+  Mail,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -36,6 +37,7 @@ import { checkRateLimit } from "@/lib/security";
 const NAV: [AdminTab, string, React.ElementType][] = [
   ["revenue", "Revenue", TrendingUp],
   ["bookings", "Bookings", Calendar],
+  ["contacts", "Contacts", Mail],
   ["inventory", "Inventory", Building],
   ["hotels", "Hotels", Building],
   ["rooms", "Rooms", Bed],

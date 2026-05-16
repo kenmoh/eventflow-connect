@@ -14,22 +14,10 @@ export default function AdminBranding() {
     catch (e: any) { toast.error(e?.message ?? 'Save failed'); }
   };
   return (
-    <AdminPage title="Branding" subtitle="Name, tagline and accent — applied across the entire site.">
+    <AdminPage title="Branding" subtitle="Name and tagline — applied across the entire site.">
       <div className="grid md:grid-cols-2 gap-6 max-w-3xl">
         <Field label="Brand name"><input className={inputCls} value={b.brandName} onChange={e => setB({ ...b, brandName: e.target.value })}/></Field>
         <Field label="Tagline"><input className={inputCls} value={b.tagline} onChange={e => setB({ ...b, tagline: e.target.value })}/></Field>
-        <Field label="Accent (HSL — e.g. 38 60% 56%)">
-          <div className="flex gap-3 items-center">
-            <input className={inputCls} value={b.primaryAccent} onChange={e => setB({ ...b, primaryAccent: e.target.value })}/>
-            <span className="w-10 h-10 border border-border" style={{ background: `hsl(${b.primaryAccent})` }} />
-          </div>
-        </Field>
-        <Field label="Logo URL">
-          <div className="flex gap-3 items-center">
-            <input className={inputCls} value={b.logo || ''} onChange={e => setB({ ...b, logo: e.target.value })} placeholder="/logo.png"/>
-            {b.logo && <img src={b.logo} alt="Logo preview" className="w-10 h-10 object-contain border border-border" />}
-          </div>
-        </Field>
       </div>
       <div className="mt-8"><PrimaryBtn onClick={save}>Save changes</PrimaryBtn></div>
     </AdminPage>

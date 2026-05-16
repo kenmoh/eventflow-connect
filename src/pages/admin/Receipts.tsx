@@ -23,8 +23,25 @@ export default function AdminReceipts() {
   const [dateTo, setDateTo] = useState("");
   const printRef = useRef<HTMLDivElement>(null);
 
+  const [logoDataUrl, setLogoDataUrl] = useState<string>("");
+
   useEffect(() => {
     loadReceipts().then(setReceipts);
+    // Load logo as base64 for PDF/email embedding
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.drawImage(img, 0, 0);
+        setLogoDataUrl(canvas.toDataURL("image/png"));
+      }
+    };
+    img.onerror = () => setLogoDataUrl("/logo.png");
+    img.src = "/logo.png";
   }, []);
 
   const filteredReceipts = receipts.filter(r => {
@@ -138,7 +155,7 @@ export default function AdminReceipts() {
         <body>
           <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #1a1a1a; padding-bottom: 20px; margin-bottom: 30px;">
             <div style="display: flex; align-items: center; gap: 12px;">
-              <img src="/logo.png" alt="${branding.brandName}" style="height: 48px; width: auto; object-contain;" />
+              ${logoDataUrl ? `<img src="${logoDataUrl}" alt="${branding.brandName}" style="height: 48px; width: auto; object-contain;" />` : ""}
               <span style="font-size: 24px; font-weight: bold;">${branding.brandName}</span>
             </div>
             <div style="font-size: 24px; text-transform: uppercase; letter-spacing: 4px;">${docType}</div>
@@ -251,7 +268,7 @@ export default function AdminReceipts() {
         <body>
           <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #1a1a1a; padding-bottom: 20px; margin-bottom: 30px;">
             <div style="display: flex; align-items: center; gap: 12px;">
-              <img src="/logo.png" alt="${branding.brandName}" style="height: 48px; width: auto; object-contain;" />
+              ${logoDataUrl ? `<img src="${logoDataUrl}" alt="${branding.brandName}" style="height: 48px; width: auto; object-contain;" />` : ""}
               <span style="font-size: 24px; font-weight: bold;">${branding.brandName}</span>
             </div>
             <div style="font-size: 24px; text-transform: uppercase; letter-spacing: 4px;">${docType}</div>
@@ -529,7 +546,10 @@ export default function AdminReceipts() {
           <div className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground mb-4">Preview</div>
           <div ref={printRef} className="font-serif">
             <div className="flex justify-between items-baseline border-b-2 border-ink pb-4 mb-6">
-              <div className="font-display text-2xl">{branding.brandName}</div>
+              <div className="flex items-center gap-3">
+                {branding.logo && <img src={branding.logo} alt={branding.brandName} className="h-12 w-auto object-contain" />}
+                <span className="font-display text-2xl">{branding.brandName}</span>
+              </div>
               <div className="text-xl uppercase tracking-widest">{docType}</div>
             </div>
             

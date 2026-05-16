@@ -11,7 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 type EmployeeForm = Employee & { password: string };
 
-const ALL_TABS: AdminTab[] = ['branding', 'content', 'hotels', 'rooms', 'halls', 'packages', 'rentals', 'inventory', 'bookings', 'employees', 'receipts', 'revenue', 'arrangements', 'faqs', 'legal'];
+const ALL_TABS: AdminTab[] = ['branding', 'content', 'hotels', 'rooms', 'halls', 'packages', 'rentals', 'inventory', 'bookings', 'employees', 'receipts', 'revenue', 'arrangements', 'faqs', 'legal', 'contacts'];
 
 const blankEmp = (roleId: string): EmployeeForm => ({ id: crypto.randomUUID(), name: '', email: '', password: '', roleId });
 const blankRole = (): Role => ({ id: crypto.randomUUID(), name: '', tabs: [] });

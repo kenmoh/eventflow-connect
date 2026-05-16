@@ -38,6 +38,7 @@ import { Route as AdminHallsRouteImport } from './routes/admin/halls'
 import { Route as AdminFaqsRouteImport } from './routes/admin/faqs'
 import { Route as AdminEmployeesRouteImport } from './routes/admin/employees'
 import { Route as AdminContentRouteImport } from './routes/admin/content'
+import { Route as AdminContactsRouteImport } from './routes/admin/contacts'
 import { Route as AdminBrandingRouteImport } from './routes/admin/branding'
 import { Route as AdminBookingsRouteImport } from './routes/admin/bookings'
 import { Route as AdminArrangementsRouteImport } from './routes/admin/arrangements'
@@ -187,6 +188,11 @@ const AdminContentRoute = AdminContentRouteImport.update({
   path: '/content',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminContactsRoute = AdminContactsRouteImport.update({
+  id: '/contacts',
+  path: '/contacts',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminBrandingRoute = AdminBrandingRouteImport.update({
   id: '/branding',
   path: '/branding',
@@ -220,6 +226,7 @@ export interface FileRoutesByFullPath {
   '/admin/arrangements': typeof AdminArrangementsRoute
   '/admin/bookings': typeof AdminBookingsRoute
   '/admin/branding': typeof AdminBrandingRoute
+  '/admin/contacts': typeof AdminContactsRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/employees': typeof AdminEmployeesRoute
   '/admin/faqs': typeof AdminFaqsRoute
@@ -253,6 +260,7 @@ export interface FileRoutesByTo {
   '/admin/arrangements': typeof AdminArrangementsRoute
   '/admin/bookings': typeof AdminBookingsRoute
   '/admin/branding': typeof AdminBrandingRoute
+  '/admin/contacts': typeof AdminContactsRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/employees': typeof AdminEmployeesRoute
   '/admin/faqs': typeof AdminFaqsRoute
@@ -288,6 +296,7 @@ export interface FileRoutesById {
   '/admin/arrangements': typeof AdminArrangementsRoute
   '/admin/bookings': typeof AdminBookingsRoute
   '/admin/branding': typeof AdminBrandingRoute
+  '/admin/contacts': typeof AdminContactsRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/employees': typeof AdminEmployeesRoute
   '/admin/faqs': typeof AdminFaqsRoute
@@ -324,6 +333,7 @@ export interface FileRouteTypes {
     | '/admin/arrangements'
     | '/admin/bookings'
     | '/admin/branding'
+    | '/admin/contacts'
     | '/admin/content'
     | '/admin/employees'
     | '/admin/faqs'
@@ -357,6 +367,7 @@ export interface FileRouteTypes {
     | '/admin/arrangements'
     | '/admin/bookings'
     | '/admin/branding'
+    | '/admin/contacts'
     | '/admin/content'
     | '/admin/employees'
     | '/admin/faqs'
@@ -391,6 +402,7 @@ export interface FileRouteTypes {
     | '/admin/arrangements'
     | '/admin/bookings'
     | '/admin/branding'
+    | '/admin/contacts'
     | '/admin/content'
     | '/admin/employees'
     | '/admin/faqs'
@@ -633,6 +645,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminContentRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/contacts': {
+      id: '/admin/contacts'
+      path: '/contacts'
+      fullPath: '/admin/contacts'
+      preLoaderRoute: typeof AdminContactsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/branding': {
       id: '/admin/branding'
       path: '/branding'
@@ -661,6 +680,7 @@ interface AdminRouteChildren {
   AdminArrangementsRoute: typeof AdminArrangementsRoute
   AdminBookingsRoute: typeof AdminBookingsRoute
   AdminBrandingRoute: typeof AdminBrandingRoute
+  AdminContactsRoute: typeof AdminContactsRoute
   AdminContentRoute: typeof AdminContentRoute
   AdminEmployeesRoute: typeof AdminEmployeesRoute
   AdminFaqsRoute: typeof AdminFaqsRoute
@@ -680,6 +700,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminArrangementsRoute: AdminArrangementsRoute,
   AdminBookingsRoute: AdminBookingsRoute,
   AdminBrandingRoute: AdminBrandingRoute,
+  AdminContactsRoute: AdminContactsRoute,
   AdminContentRoute: AdminContentRoute,
   AdminEmployeesRoute: AdminEmployeesRoute,
   AdminFaqsRoute: AdminFaqsRoute,
