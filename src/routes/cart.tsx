@@ -6,6 +6,12 @@ import { useStore, fmt } from '@/lib/store'
 export const Route = createFileRoute('/cart')({
   head: () => ({
     meta: [
+      { title: "Cart — AB Consult" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
+  head: () => ({
+    meta: [
       { title: "Your Cart — AB Consult" },
       { name: "description", content: "Review your equipment rental cart before checkout." },
       { property: "og:title", content: "Your Cart — AB Consult" },

@@ -2,6 +2,9 @@ import { useState, useMemo } from 'react';
 import { useStoreBase, fmt } from '@/lib/store';
 import { AdminPage, inputCls } from './_shared';
 import type { BookingStatus, PaymentStatus, BookingLine } from '@/lib/types';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+
+const PAGE_SIZE = 10;
 
 export default function AdminBookings() {
   const bookings = useStoreBase(s => s.bookings);
@@ -9,6 +12,7 @@ export default function AdminBookings() {
 
   const [search, setSearch] = useState('');
   const [dateFilter, setDateFilter] = useState('');
+  const [page, setPage] = useState(0);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
@@ -18,6 +22,11 @@ export default function AdminBookings() {
       return matchSearch && matchDate;
     });
   }, [bookings, search, dateFilter]);
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const paginated = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+  const filteredTotal = filtered.reduce((a, b) => a + b.total, 0);
+
   return (
     <AdminPage title="Bookings" subtitle="Items shown as pills. Update fulfilment and payment status inline.">
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
@@ -26,18 +35,18 @@ export default function AdminBookings() {
           placeholder="Search by reference or email…"
           className={inputCls}
           value={search}
-          onChange={e => setSearch(e.target.value)}
+          onChange={e => { setSearch(e.target.value); setPage(0); }}
         />
         <input
           type="date"
           className={inputCls}
           value={dateFilter}
-          onChange={e => setDateFilter(e.target.value)}
+          onChange={e => { setDateFilter(e.target.value); setPage(0); }}
         />
       </div>
       {filtered.length === 0 && <p className="text-muted-foreground">No bookings found.</p>}
       <div className="space-y-4">
-        {filtered.map(b => (
+        {paginated.map(b => (
           <article key={b.reference} className="border border-border bg-card p-3 sm:p-4 lg:p-6">
             <div className="flex flex-col sm:flex-row sm:items-baseline flex-wrap gap-2 sm:gap-3">
               <span className="chip text-xs">{b.type}</span>
@@ -92,7 +101,37 @@ export default function AdminBookings() {
           </article>
         ))}
       </div>
-      {filtered.length > 0 && <p className="mt-6 sm:mt-10 text-xs text-muted-foreground">Showing {filtered.length} of {bookings.length} — Total volume: {fmt(filtered.reduce((a, b) => a + b.total, 0))}</p>}
+
+      {filtered.length > 0 && (
+        <>
+          <p className="mt-6 sm:mt-4 text-xs text-muted-foreground">
+            Showing {paginated.length} of {filtered.length} — Total volume: {fmt(filteredTotal)}
+          </p>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-4">
+              <span className="text-xs text-muted-foreground">
+                Page {page + 1} of {totalPages}
+              </span>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setPage(p => Math.max(0, p - 1))}
+                  disabled={page === 0}
+                  className="inline-flex items-center gap-1 border border-border px-3 py-2 text-xs uppercase tracking-[0.2em] hover:bg-secondary transition disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft className="w-4 h-4" /> Prev
+                </button>
+                <button
+                  onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                  disabled={page >= totalPages - 1}
+                  className="inline-flex items-center gap-1 border border-border px-3 py-2 text-xs uppercase tracking-[0.2em] hover:bg-secondary transition disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Next <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
     </AdminPage>
   );
 }

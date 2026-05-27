@@ -7,15 +7,41 @@ import { insertContact } from '@/lib/db'
 import { toast } from 'sonner'
 
 export const Route = createFileRoute('/faqs')({
-  head: () => ({
-    meta: [
-      { title: "FAQ — AB Consult" },
-      { name: "description", content: "Answers to frequently asked questions about AB Consult's venue booking and equipment rental services." },
-      { property: "og:title", content: "FAQ — AB Consult" },
-      { property: "og:description", content: "Frequently asked questions about our event venues and equipment rentals." },
-      { property: "og:url", content: "https://abconsult.com/faqs" },
-    ],
-  }),
+  head: ({ loaderData }) => {
+    const faqs = (loaderData as any)?.faqs ?? [];
+    const faqJsonLd = faqs.length > 0 ? {
+      type: "application/ld+json",
+      innerHTML: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": faqs.map((f: any) => ({
+          "@type": "Question",
+          "name": f.question,
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": f.answer,
+          },
+        })),
+      }),
+    } : null;
+
+    return {
+      meta: [
+        { title: "FAQ — AB Consult" },
+        { name: "description", content: "Answers to frequently asked questions about AB Consult's venue booking and equipment rental services." },
+        { property: "og:title", content: "FAQ — AB Consult" },
+        { property: "og:description", content: "Frequently asked questions about our event venues and equipment rentals." },
+        { property: "og:url", content: "https://abconsult.com/faqs" },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: "FAQ — AB Consult" },
+        { name: "twitter:description", content: "Frequently asked questions about AB Consult." },
+      ],
+      links: [
+        { rel: "canonical", href: "https://abconsult.com/faqs" },
+      ],
+      scripts: faqJsonLd ? [faqJsonLd] : [],
+    };
+  },
   component: Faqs,
 })
 

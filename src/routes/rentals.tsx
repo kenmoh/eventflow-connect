@@ -15,6 +15,12 @@ export const Route = createFileRoute('/rentals')({
       { property: "og:title", content: "Equipment Rentals — AB Consult" },
       { property: "og:description", content: "Premium event equipment rentals. Sound, lighting, seating, tents, and more." },
       { property: "og:url", content: "https://abconsult.com/rentals" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Equipment Rentals — AB Consult" },
+      { name: "twitter:description", content: "Premium event equipment rentals. Sound, lighting, seating, tents, and more." },
+    ],
+    links: [
+      { rel: "canonical", href: "https://abconsult.com/rentals" },
     ],
   }),
   component: Rentals,

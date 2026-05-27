@@ -9,6 +9,11 @@ import { trackSchema } from '@/lib/validation'
 type Filter = { status: 'all' | BookingStatus; type: 'all' | 'rental' | 'reservation' };
 
 export const Route = createFileRoute('/track')({
+  head: () => ({
+    meta: [
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
   validateSearch: z.object({
     ref: z.string().optional(),
   }),

@@ -17,6 +17,12 @@ export const Route = createFileRoute('/checkout')({
   head: () => ({
     meta: [
       { title: "Checkout — AB Consult" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
+  head: () => ({
+    meta: [
+      { title: "Checkout — AB Consult" },
       { name: "description", content: "Complete your equipment rental order with secure payment via Paystack." },
       { property: "og:title", content: "Checkout — AB Consult" },
       { property: "og:url", content: "https://abconsult.com/checkout" },

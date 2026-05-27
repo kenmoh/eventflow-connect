@@ -12,3 +12,10 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+Disallow: /admin/
+Disallow: /checkout
+Disallow: /cart
+Disallow: /track
+
+Sitemap: https://abconsult.com/sitemap.xml

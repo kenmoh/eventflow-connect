@@ -27,7 +27,7 @@ function Home() {
     <SiteLayout>
       {/* HERO */}
       <section className="relative min-h-screen bg-ink text-bone grain overflow-hidden">
-        <img src={heroBallroom} alt="Editorial ballroom at golden hour"
+        <img src={heroBallroom} alt="AB Consult premium event venue and ballroom"
           className="absolute inset-0 w-full h-full object-cover opacity-40" width={1920} height={1080}/>
         <div className="absolute inset-0 bg-gradient-to-b from-ink/80 via-ink/50 to-ink" />
         <div className="relative mx-auto max-w-[1400px] px-6 lg:px-10 pt-40 pb-24 min-h-screen flex flex-col justify-between">

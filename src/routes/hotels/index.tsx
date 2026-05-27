@@ -11,6 +11,12 @@ export const Route = createFileRoute('/hotels/')({
       { property: "og:title", content: "Hotel Venues — AB Consult" },
       { property: "og:description", content: "Curated hotel venues for events, conferences, and celebrations. Easy online booking." },
       { property: "og:url", content: "https://abconsult.com/hotels" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Hotel Venues — AB Consult" },
+      { name: "twitter:description", content: "Curated hotel venues for events, conferences, and celebrations." },
+    ],
+    links: [
+      { rel: "canonical", href: "https://abconsult.com/hotels" },
     ],
   }),
   component: Hotels,
