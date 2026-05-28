@@ -5,6 +5,8 @@ import type {
   SeatArrangement, FAQ, AdminTab, RentalCategory, SavedReceipt, Contact,
 } from './types';
 
+const supabaseAny = supabase as any;
+
 // ---------- authorization helper ----------
 async function requireAdmin(): Promise<string | null> {
   const { data: { session } } = await supabase.auth.getSession();
@@ -85,8 +87,8 @@ export async function loadCatalog() {
     supabase.from('bookings').select('*').order('created_at', { ascending: false }),
     supabase.from('inventory_movements').select('*').order('at', { ascending: false }),
     supabase.from('roles').select('*').order('name'),
-    supabase.from('receipts').select('*').order('created_at', { ascending: false }),
-    supabase.from('contacts').select('*').order('created_at', { ascending: false }),
+    supabaseAny.from('receipts').select('*').order('created_at', { ascending: false }),
+    supabaseAny.from('contacts').select('*').order('created_at', { ascending: false }),
   ]);
   return {
     branding: branding.data ? mapBranding(branding.data) : null,
@@ -275,7 +277,7 @@ export async function uploadImage(file: File): Promise<string> {
 
 // ---------- receipts ----------
 export async function loadReceipts(): Promise<SavedReceipt[]> {
-  const { data } = await supabase.from('receipts').select('*').order('created_at', { ascending: false });
+  const { data } = await supabaseAny.from('receipts').select('*').order('created_at', { ascending: false });
   return (data ?? []).map((r: any): SavedReceipt => ({
     id: r.id,
     docType: r.doc_type,
@@ -292,7 +294,7 @@ export async function loadReceipts(): Promise<SavedReceipt[]> {
 
 export async function insertReceipt(r: SavedReceipt) {
   if (!await requireAdmin()) throw new Error('Unauthorized');
-  await supabase.from('receipts').insert({
+  await supabaseAny.from('receipts').insert({
     id: r.id,
     doc_type: r.docType,
     client_name: r.clientName,
@@ -307,12 +309,12 @@ export async function insertReceipt(r: SavedReceipt) {
 
 export async function deleteReceipt(id: string) {
   if (!await requireAdmin()) throw new Error('Unauthorized');
-  await supabase.from('receipts').delete().eq('id', id);
+  await supabaseAny.from('receipts').delete().eq('id', id);
 }
 
 // ---------- contacts ----------
 export async function insertContact(c: Omit<Contact, 'id' | 'createdAt'>) {
-  await supabase.from('contacts').insert({
+  await supabaseAny.from('contacts').insert({
     name: c.name, email: c.email, phone: c.phone || null,
     subject: c.subject, message: c.message,
   } as any);
@@ -320,5 +322,5 @@ export async function insertContact(c: Omit<Contact, 'id' | 'createdAt'>) {
 
 export async function deleteContact(id: string) {
   if (!await requireOwner()) throw new Error('Only the owner can delete contacts');
-  await supabase.from('contacts').delete().eq('id', id);
+  await supabaseAny.from('contacts').delete().eq('id', id);
 }
