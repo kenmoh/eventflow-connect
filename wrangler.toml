@@ -1,4 +1,5 @@
-name = "allbrothers"
+# wrangler.toml
+name = 'eventflow-connect'
 compatibility_date = "2026-05-30"
 compatibility_flags = ["nodejs_compat"]
 main = "@tanstack/react-start/server-entry"
