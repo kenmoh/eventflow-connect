@@ -2,11 +2,11 @@
 import { defineConfig } from "vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
+import { cloudflare } from "@cloudflare/vite-plugin";
 
 export default defineConfig({
   server: {
-    port: 3000,
-    allowedHosts: process.env.NGROK_HOST ? [process.env.NGROK_HOST] : true,
+   
     headers: {
       "X-Frame-Options": "DENY",
       "X-Content-Type-Options": "nosniff",
@@ -19,6 +19,7 @@ export default defineConfig({
     tsconfigPaths: true,
   },
   plugins: [
+    cloudflare({ viteEnvironment: { name: "ssr" } }),
     tanstackStart(),
     viteReact(),
   ],
