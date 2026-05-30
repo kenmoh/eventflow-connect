@@ -1,7 +1,4 @@
-{
-  "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "allbrothers",
-  "compatibility_date": "2026-05-30",
-  "compatibility_flags": ["nodejs_compat"],
-  "main": "@tanstack/react-start/server-entry"
-}
+name = "allbrothers"
+compatibility_date = "2026-05-30"
+compatibility_flags = ["nodejs_compat"]
+main = "@tanstack/react-start/server-entry"
