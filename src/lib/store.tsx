@@ -208,18 +208,13 @@ export const useStoreBase = create<State & Actions>()(
         deleteReceipt: (id) => set((s) => ({ receipts: s.receipts.filter((r) => r.id !== id) })),
 
       hydrate: async () => {
-        console.log('[hydrate] called, fetching /api/catalog...');
+       
         try {
           const res = await fetch('/api/catalog');
-          console.log('[hydrate] /api/catalog status:', res.status);
+        
           if (!res.ok) throw new Error(`Catalog API returned ${res.status}`);
           const data = await res.json();
-          console.log('[hydrate] /api/catalog data received:', {
-            hasBranding: !!data.branding,
-            hasContent: !!data.content,
-            hotelsCount: data.hotels?.length,
-            roomsCount: data.rooms?.length,
-          });
+        
           set({
             ...(data.branding ? { branding: data.branding } : {}),
             ...(data.content ? { content: data.content } : {}),
@@ -238,7 +233,7 @@ export const useStoreBase = create<State & Actions>()(
         } catch (e) {
           console.error('[hydrate] Failed to load catalog:', e);
         } finally {
-          console.log('[hydrate] setting hydrated=true');
+         
           set({ hydrated: true });
         }
         const session = get().session;

@@ -24,7 +24,7 @@ async function run() {
         [r.name, r.tabs]
       );
     }
-    console.log('Seeded default roles.');
+   
   } catch (e) {
     console.error('Seeding failed:', e.message || e);
   } finally {

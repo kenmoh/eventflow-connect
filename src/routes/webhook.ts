@@ -70,7 +70,7 @@ export const Route = createFileRoute('/webhook')({
           .where(eq(bookings.reference, reference))
           .where(eq(bookings.paymentStatus, 'deposit'));
 
-        console.log(`Payment verified for booking ${reference}. Amount: ${amount / 100} NGN`);
+       
       }
       
       return Response.json({ received: true });

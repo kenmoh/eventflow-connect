@@ -13,7 +13,7 @@ async function run(){
   const client = await pool.connect();
   try{
     const res = await client.query('SELECT count(*) as cnt FROM roles');
-    console.log('roles count:', res.rows[0].cnt);
+
   }catch(e){
     console.error('Error querying roles:', e.message || e);
   }finally{

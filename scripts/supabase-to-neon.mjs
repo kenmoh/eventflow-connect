@@ -71,10 +71,7 @@ async function fetchSupabaseRows(table) {
 }
 
 async function run() {
-  console.log('Starting Supabase -> Neon migration');
-  console.log(`  Supabase: ${SUPABASE_URL}`);
-  console.log(`  Neon: ${DATABASE_URL}`);
-  console.log(`  Skipping auth-related tables: ${skippedTables.join(', ')}`);
+ 
 
   const client = await pool.connect();
   try {
@@ -94,7 +91,7 @@ async function run() {
         continue;
       }
       if (rows.length === 0) {
-        console.log(`  ${table}: no rows found`);
+       
         continue;
       }
 
@@ -211,7 +208,7 @@ async function run() {
 
       try {
         await client.query(sql, values);
-        console.log(`  ${table}: migrated ${rows.length} row(s)`);
+        
       } catch (err) {
         console.error(`Error inserting into table '${table}'. SQL:`);
         console.error(sql);
@@ -221,7 +218,7 @@ async function run() {
     }
 
     await client.query('COMMIT');
-    console.log('Migration complete.');
+ 
   } catch (error) {
     await client.query('ROLLBACK');
     console.error('Migration failed:', error);

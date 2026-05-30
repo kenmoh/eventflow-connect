@@ -3,7 +3,7 @@ import { db } from './client';
 import { roles, branding, siteContent, faqs } from './schema';
 
 export async function seed() {
-  console.log('🌱 Seeding database...');
+  
 
   // Create default roles
   const defaultRoles = [
@@ -62,7 +62,6 @@ export async function seed() {
     await db.insert(faqs).values(faq).onConflictDoNothing();
   }
 
-  console.log('✅ Database seeded successfully!');
 }
 
 // Run if called directly
