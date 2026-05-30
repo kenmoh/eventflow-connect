@@ -20,7 +20,7 @@ export const Route = createFileRoute('/api/upload')({
     handlers: {
       POST: async ({ request }: { request: Request }) => {
         try {
-          const cloudinaryUrl = import.meta.env.CLOUDINARY_URL;
+          const cloudinaryUrl = process.env.CLOUDINARY_URL;
           if (!cloudinaryUrl) {
             return Response.json({ error: 'Cloudinary not configured' }, { status: 500 });
           }

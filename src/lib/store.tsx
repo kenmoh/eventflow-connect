@@ -1,8 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { useEffect, useMemo } from "react";
-import { useAuth } from "@clerk/tanstack-react-start";
-import { useUser } from "@clerk/react";
+import { useAuth, useUser } from "@clerk/tanstack-react-start";
 import type {
   Hotel,
   Room,
@@ -282,7 +281,14 @@ function ClerkSessionEffect() {
   const loaded = authLoaded && userLoaded;
 
   useEffect(() => {
-    if (!loaded) return;
+    if (!loaded) {
+      const timer = setTimeout(() => {
+        useStoreBase.setState({
+          session: { userId: null, profile: null, loaded: true },
+        });
+      }, 8000);
+      return () => clearTimeout(timer);
+    }
 
     if (!user) {
       useStoreBase.setState({

@@ -55,7 +55,7 @@ export const Route = createFileRoute('/api/send-email')({
 
           const { to, subject, html, attachments } = validation.data;
 
-          const apiKey = import.meta.env.VITE_RESEND_API_KEY;
+          const apiKey = process.env.RESEND_API_KEY;
           if (!apiKey) {
             return Response.json({ error: 'Email service not configured' }, { status: 500 });
           }
