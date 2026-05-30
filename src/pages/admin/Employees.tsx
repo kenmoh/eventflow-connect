@@ -6,9 +6,6 @@ import { toast } from 'sonner';
 import { employeeSchema } from '@/lib/validation';
 import { useConfirm } from '@/components/ConfirmProvider';
 import { useCurrentEmployee } from '@/lib/store';
-import { upsertRole, deleteRole, setEmployeeRole, loadEmployees } from '@/lib/db';
-import { supabase } from '@/integrations/supabase/client';
-
 type EmployeeForm = Employee & { password: string };
 
 const ALL_TABS: AdminTab[] = ['branding', 'content', 'hotels', 'rooms', 'halls', 'packages', 'rentals', 'inventory', 'bookings', 'employees', 'receipts', 'revenue', 'arrangements', 'faqs', 'legal', 'contacts'];
@@ -36,11 +33,14 @@ export default function AdminEmployees() {
       setErrors({});
       set('employees', employees.map(e => e.id === emp.id ? emp : e));
       setEmp(null);
-      try { await setEmployeeRole(emp.id, emp.roleId); toast.success('Role updated.'); }
-      catch (e: any) { toast.error(e?.message ?? 'Update failed'); }
+      try {
+        const { setEmployeeRole } = await import('@/lib/db');
+        await setEmployeeRole(emp.id, emp.roleId);
+        toast.success('Role updated.');
+      } catch (e: any) { toast.error(e?.message ?? 'Update failed'); }
       return;
     }
-    // New user → validate + edge function
+    // New user → validate + API
     const res = employeeSchema.safeParse(emp);
     if (!res.success) {
       const m: Record<string, string> = {};
@@ -49,11 +49,14 @@ export default function AdminEmployees() {
     }
     setErrors({});
     try {
-      const { data, error } = await supabase.functions.invoke('create-employee', {
-        body: { name: emp.name, email: emp.email, password: emp.password, roleId: emp.roleId },
+      const res = await fetch('/api/create-employee', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: emp.name, email: emp.email, password: emp.password, roleId: emp.roleId }),
       });
-      if (error) throw new Error(error.message);
-      if (data?.error) throw new Error(data.error);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Create failed');
+      const { loadEmployees } = await import('@/lib/db');
       const fresh = await loadEmployees();
       set('employees', fresh);
       setEmp(null);
@@ -68,12 +71,16 @@ export default function AdminEmployees() {
     const exists = roles.some(r => r.id === role.id);
     set('roles', exists ? roles.map(r => r.id === role.id ? role : r) : [...roles, role]);
     setRole(null);
-    try { await upsertRole(role); toast.success('Role saved.'); }
-    catch (e: any) { toast.error(e?.message ?? 'Save failed'); }
+    try {
+      const res = await fetch('/api/roles', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(role) });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error || 'Save failed'); }
+      toast.success('Role saved.');
+    } catch (e: any) { toast.error(e?.message ?? 'Save failed'); }
   };
 
   const removeEmp = async (e: Employee) => {
     if (e.id === me?.id) return toast.error("You can't delete yourself.");
+    const { setEmployeeRole } = await import('@/lib/db');
     if (await confirm({ title: `Delete ${e.name}?`, destructive: true, confirmText: 'Delete' })) {
       // We don't delete the auth user from the client; just unset their role.
       set('employees', employees.filter(x => x.id !== e.id));
@@ -83,6 +90,7 @@ export default function AdminEmployees() {
   };
   const removeRole = async (r: Role) => {
     if (employees.some(e => e.roleId === r.id)) return toast.error('Role is in use.');
+    const { deleteRole } = await import('@/lib/db');
     if (await confirm({ title: `Delete role ${r.name}?`, destructive: true, confirmText: 'Delete' })) {
       set('roles', roles.filter(x => x.id !== r.id));
       try { await deleteRole(r.id); } catch (e: any) { toast.error(e?.message ?? 'Delete failed'); }
@@ -155,7 +163,15 @@ export default function AdminEmployees() {
         <Modal onClose={() => setRole(null)} title="Role">
           <Field label="Name"><input className={inputCls} value={role.name} onChange={e => setRole({ ...role, name: e.target.value })}/></Field>
           <div className="mt-4">
-            <span className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground block mb-2">CMS tabs this role can view</span>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">CMS tabs this role can view</span>
+              <button
+                onClick={() => setRole({ ...role, tabs: role.tabs.length === ALL_TABS.length ? [] : [...ALL_TABS] })}
+                className="text-[10px] uppercase tracking-[0.3em] text-gold underline"
+              >
+                {role.tabs.length === ALL_TABS.length ? 'Deselect all' : 'Select all'}
+              </button>
+            </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {ALL_TABS.map(t => {
                 const checked = role.tabs.includes(t);

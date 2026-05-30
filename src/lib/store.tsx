@@ -1,7 +1,8 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { useEffect, useMemo } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@clerk/tanstack-react-start";
+import { useUser } from "@clerk/react";
 import type {
   Hotel,
   Room,
@@ -22,7 +23,6 @@ import type {
   SavedReceipt,
   Contact,
 } from "./types";
-import { loadCatalog, loadEmployees } from "./db";
 
 const defaultBranding: Branding = {
   brandName: "AB Consult",
@@ -118,123 +118,141 @@ type Actions = {
 
 export const useStoreBase = create<State & Actions>()(
   persist(
-    (set, get) => ({
-      // loaded (will be hydrated from DB)
-      branding: defaultBranding,
-      content: defaultContent,
-      hotels: [],
-      rooms: [],
-      halls: [],
-      packages: [],
-      arrangements: [],
-      rentals: [],
-      faqs: [],
-      bookings: [],
-      movements: [],
-      roles: [],
-      employees: [],
-      receipts: [],
-      contacts: [],
-      // persisted
-      theme: "dark",
-      cart: [],
-      // runtime
-      session: { userId: null, profile: null, loaded: false },
-      hydrated: false,
+    (set, get) => {
+      return {
+        // loaded (will be hydrated from DB)
+        branding: defaultBranding,
+        content: defaultContent,
+        hotels: [],
+        rooms: [],
+        halls: [],
+        packages: [],
+        arrangements: [],
+        rentals: [],
+        faqs: [],
+        bookings: [],
+        movements: [],
+        roles: [],
+        employees: [],
+        receipts: [],
+        contacts: [],
+        // persisted
+        theme: "dark",
+        cart: [],
+        // runtime
+        session: { userId: null, profile: null, loaded: false },
+        hydrated: false,
 
-      set: (k, v) => set({ [k]: v } as any),
-      toggleTheme: () =>
-        set((s) => ({ theme: s.theme === "dark" ? "light" : "dark" })),
-      addCart: (line) =>
-        set((s) => {
-          const existing = s.cart.find((c) => c.itemId === line.itemId);
-          const cart = existing
-            ? s.cart.map((c) =>
-                c.itemId === line.itemId
-                  ? {
-                      ...c,
-                      quantity: c.quantity + line.quantity,
-                      days: line.days,
-                    }
-                  : c,
-              )
-            : [...s.cart, line];
-          return { cart };
-        }),
-      updateCart: (itemId, patch) =>
-        set((s) => ({
-          cart: s.cart.map((c) =>
-            c.itemId === itemId ? { ...c, ...patch } : c,
-          ),
-        })),
-      removeCart: (itemId) =>
-        set((s) => ({ cart: s.cart.filter((c) => c.itemId !== itemId) })),
-      clearCart: () => set({ cart: [] }),
-      setBookings: (b) => set({ bookings: b }),
+        set: (k, v) => set({ [k]: v } as any),
+        toggleTheme: () =>
+          set((s) => ({ theme: s.theme === "dark" ? "light" : "dark" })),
+        addCart: (line) =>
+          set((s) => {
+            const existing = s.cart.find((c) => c.itemId === line.itemId);
+            const cart = existing
+              ? s.cart.map((c) =>
+                  c.itemId === line.itemId
+                    ? {
+                        ...c,
+                        quantity: c.quantity + line.quantity,
+                        days: line.days,
+                      }
+                    : c,
+                )
+              : [...s.cart, line];
+            return { cart };
+          }),
+        updateCart: (itemId, patch) =>
+          set((s) => ({
+            cart: s.cart.map((c) =>
+              c.itemId === itemId ? { ...c, ...patch } : c,
+            ),
+          })),
+        removeCart: (itemId) =>
+          set((s) => ({ cart: s.cart.filter((c) => c.itemId !== itemId) })),
+        clearCart: () => set({ cart: [] }),
+        setBookings: (b) => set({ bookings: b }),
 
-      addBooking: async (b) => {
-        set((s) => ({ bookings: [b, ...s.bookings] }));
-        const { insertBooking } = await import("./db");
-        try {
-          await insertBooking(b);
-        } catch (e) {
-          console.error("insertBooking", e);
-        }
-      },
-      updateBooking: async (ref, patch) => {
-        set((s) => ({
-          bookings: s.bookings.map((b) =>
-            b.reference === ref ? { ...b, ...patch } : b,
-          ),
-        }));
-        const { updateBookingDb } = await import("./db");
-        try {
-          await updateBookingDb(ref, patch);
-        } catch (e) {
-          console.error("updateBooking", e);
-        }
-      },
-      addMovement: async (m) => {
-        set((s) => ({ movements: [m, ...s.movements] }));
-        const { insertMovement } = await import("./db");
-        try {
-          await insertMovement(m);
-        } catch (e) {
-          console.error("insertMovement", e);
-        }
-      },
-      addReceipt: (r) => set((s) => ({ receipts: [r, ...s.receipts] })),
-      deleteReceipt: (id) => set((s) => ({ receipts: s.receipts.filter((r) => r.id !== id) })),
+        addBooking: async (b) => {
+          set((s) => ({ bookings: [b, ...s.bookings] }));
+          const { insertBooking } = await import("./db");
+          try {
+            await insertBooking(b);
+          } catch (e) {
+            console.error("insertBooking", e);
+          }
+        },
+        updateBooking: async (ref, patch) => {
+          set((s) => ({
+            bookings: s.bookings.map((b) =>
+              b.reference === ref ? { ...b, ...patch } : b,
+            ),
+          }));
+          const { updateBookingDb } = await import("./db");
+          try {
+            await updateBookingDb(ref, patch);
+          } catch (e) {
+            console.error("updateBooking", e);
+          }
+        },
+        addMovement: async (m) => {
+          set((s) => ({ movements: [m, ...s.movements] }));
+          const { insertMovement } = await import("./db");
+          try {
+            await insertMovement(m);
+          } catch (e) {
+            console.error("insertMovement", e);
+          }
+        },
+        addReceipt: (r) => set((s) => ({ receipts: [r, ...s.receipts] })),
+        deleteReceipt: (id) => set((s) => ({ receipts: s.receipts.filter((r) => r.id !== id) })),
 
       hydrate: async () => {
-        const data = await loadCatalog();
-        set({
-          ...(data.branding ? { branding: data.branding } : {}),
-          ...(data.content ? { content: data.content } : {}),
-          hotels: data.hotels,
-          rooms: data.rooms,
-          halls: data.halls,
-          packages: data.packages,
-          arrangements: data.arrangements,
-          rentals: data.rentals,
-          faqs: data.faqs,
-          bookings: data.bookings,
-          movements: data.movements,
-          roles: data.roles,
-          hydrated: true,
-          contacts: data.contacts,
-        } as any);
-        // Load employees only if signed in (RLS)
+        console.log('[hydrate] called, fetching /api/catalog...');
+        try {
+          const res = await fetch('/api/catalog');
+          console.log('[hydrate] /api/catalog status:', res.status);
+          if (!res.ok) throw new Error(`Catalog API returned ${res.status}`);
+          const data = await res.json();
+          console.log('[hydrate] /api/catalog data received:', {
+            hasBranding: !!data.branding,
+            hasContent: !!data.content,
+            hotelsCount: data.hotels?.length,
+            roomsCount: data.rooms?.length,
+          });
+          set({
+            ...(data.branding ? { branding: data.branding } : {}),
+            ...(data.content ? { content: data.content } : {}),
+            hotels: data.hotels,
+            rooms: data.rooms,
+            halls: data.halls,
+            packages: data.packages,
+            arrangements: data.arrangements,
+            rentals: data.rentals,
+            faqs: data.faqs,
+            bookings: data.bookings,
+            movements: data.movements,
+            roles: data.roles,
+            contacts: data.contacts,
+          } as any);
+        } catch (e) {
+          console.error('[hydrate] Failed to load catalog:', e);
+        } finally {
+          console.log('[hydrate] setting hydrated=true');
+          set({ hydrated: true });
+        }
         const session = get().session;
         if (session.userId) {
           try {
-            set({ employees: await loadEmployees() } as any);
+            const res = await fetch('/api/employees');
+            if (res.ok) set({ employees: await res.json() } as any);
           } catch {
             /* ignore */
           }
         }
       },
-    }),
+    };
+    },
     {
       name: "abc-store-v4",
       storage:
@@ -260,38 +278,79 @@ function initAuth() {
       } as any);
       return;
     }
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("id, name, email, role_id")
-      .eq("id", uid)
-      .maybeSingle();
+  };
+}
+
+function ClerkSessionEffect() {
+  const { isLoaded: authLoaded } = useAuth();
+  const { isLoaded: userLoaded, user } = useUser();
+  const loaded = authLoaded && userLoaded;
+
+  useEffect(() => {
+    if (!loaded) return;
+
+    if (!user) {
+      useStoreBase.setState({
+        session: { userId: null, profile: null, loaded: true },
+        employees: [],
+      } as any);
+      return;
+    }
+
+    const email =
+      user.primaryEmailAddress?.emailAddress ||
+      user.emailAddresses?.[0]?.emailAddress ||
+      user.email ||
+      "";
+    const name =
+      [user.firstName, user.lastName].filter(Boolean).join(" ") ||
+      user.fullName ||
+      user.username ||
+      "";
+
     useStoreBase.setState({
       session: {
-        userId: uid,
-        profile: profile
-          ? {
-              id: profile.id,
-              name: profile.name,
-              email: profile.email,
-              roleId: profile.role_id,
-            }
-          : null,
+        userId: user.id,
+        profile: {
+          id: user.id,
+          name,
+          email,
+          roleId: (user.publicMetadata?.role as string | null) ?? null,
+        },
         loaded: true,
       },
     } as any);
-    try {
-      useStoreBase.setState({ employees: await loadEmployees() } as any);
-    } catch {
-      /* ignore */
-    }
-  };
 
-  supabase.auth.onAuthStateChange((_evt, session) => {
-    handle(session?.user?.id ?? null);
-  });
-  supabase.auth.getSession().then(({ data }) => {
-    handle(data.session?.user?.id ?? null);
-  });
+    if (user.id) {
+      let attempts = 0;
+
+      function fetchProfile() {
+        fetch('/api/employees')
+          .then((r) => r.ok ? r.json() : null)
+          .then((employees) => {
+            if (!employees) return;
+            useStoreBase.setState({ employees } as any);
+            const myProfile = employees.find((e: any) => e.id === user.id);
+            if (myProfile?.roleId) {
+              const current = useStoreBase.getState().session;
+              if (current.profile?.roleId !== myProfile.roleId) {
+                useStoreBase.setState({
+                  session: { ...current, profile: { ...current.profile!, roleId: myProfile.roleId } },
+                } as any);
+              }
+            } else if (myProfile && attempts < 10) {
+              attempts++;
+              setTimeout(fetchProfile, 1000);
+            }
+          })
+          .catch(() => { /* ignore */ });
+      }
+
+      fetchProfile();
+    }
+  }, [user, loaded]);
+
+  return null;
 }
 
 /** Apply branding accent + theme + title. Mount once at app root. */
@@ -300,7 +359,6 @@ export function BrandingEffects() {
   const theme = useStoreBase((s) => s.theme);
   const hydrate = useStoreBase((s) => s.hydrate);
   useEffect(() => {
-    initAuth();
     hydrate();
   }, [hydrate]);
   useEffect(() => {
@@ -326,7 +384,7 @@ export function BrandingEffects() {
     );
     document.title = `${branding.brandName} — ${branding.tagline}`;
   }, [branding]);
-  return null;
+  return <ClerkSessionEffect />;
 }
 
 export function makeReference() {
@@ -364,7 +422,7 @@ export function useAllowedTabs(): AdminTab[] {
 }
 
 export async function logout() {
-  await supabase.auth.signOut();
+  window.location.href = '/';
 }
 
 // Backwards-compat helpers used by some components

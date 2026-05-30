@@ -3,7 +3,6 @@ import { useState } from 'react'
 import { ChevronDown, Send } from 'lucide-react'
 import SiteLayout from '@/components/SiteLayout'
 import { useStoreBase } from '@/lib/store'
-import { insertContact } from '@/lib/db'
 import { toast } from 'sonner'
 
 export const Route = createFileRoute('/faqs')({
@@ -63,6 +62,7 @@ function Faqs() {
       return;
     }
     setSending(true);
+    const { insertContact } = await import('@/lib/db');
     try {
       await insertContact({ name, email, phone, subject, message });
       toast.success('Message sent! We\'ll get back to you soon.');

@@ -5,7 +5,7 @@ import {
   useAllowedTabs,
   logout,
 } from "@/lib/store";
-import { supabase } from "@/integrations/supabase/client";
+import { SignIn, SignUp } from "@clerk/tanstack-react-start";
 import {
   ArrowLeft,
   LogOut,
@@ -30,9 +30,7 @@ import {
   Mail,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
 import type { AdminTab } from "@/lib/types";
-import { checkRateLimit } from "@/lib/security";
 
 const NAV: [AdminTab, string, React.ElementType][] = [
   ["revenue", "Revenue", TrendingUp],
@@ -91,182 +89,99 @@ function AdminLayout() {
 
 function AuthScreen() {
   const branding = useStoreBase((s) => s.branding);
-  const hydrate = useStoreBase((s) => s.hydrate);
   const [mode, setMode] = useState<"sign-in" | "sign-up">("sign-in");
   const [ownerExists, setOwnerExists] = useState<boolean | null>(null);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState("");
 
   useEffect(() => {
-    supabase.rpc("owner_exists").then(({ data }) => {
-      const exists = !!data;
-      setOwnerExists(exists);
-      if (!exists) setMode("sign-up");
-    });
+    fetch('/api/employees')
+      .then(r => r.ok ? r.json() : [])
+      .then(emps => setOwnerExists(emps.length > 0))
+      .catch(() => setOwnerExists(false));
   }, []);
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErr("");
-    
-    // Rate limiting
-    if (!checkRateLimit(`auth:${email}`, 'auth')) {
-      setErr("Too many attempts. Please wait and try again.");
-      return;
-    }
-    
-    setBusy(true);
-    try {
-      if (mode === "sign-up") {
-        if (ownerExists) {
-          setErr("Sign-ups are by invitation. Ask the owner to add you.");
-          return;
-        }
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { name },
-            emailRedirectTo: `${window.location.origin}/admin`,
-          },
-        });
-        if (error) {
-          setErr(error.message);
-          return;
-        }
-        if (data.session) {
-          if (!data.user?.email_confirmed_at) {
-            setErr('Please verify your email before continuing.');
-            return;
-          }
-          const { error: bErr } = await supabase.rpc("bootstrap_owner");
-          if (bErr) {
-            setErr(bErr.message);
-            return;
-          }
-          await hydrate();
-          toast.success("Owner account created.");
-        } else {
-          toast.success("Check your email to confirm.");
-        }
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (error) {
-          setErr(error.message);
-          return;
-        }
-        await hydrate();
-      }
-    } finally {
-      setBusy(false);
-    }
-  };
+  if (ownerExists === null) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground text-xs uppercase tracking-[0.3em]">
+        Loading…
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
-      <form
-        onSubmit={submit}
-        className="w-full max-w-md bg-card border border-border p-10"
-      >
-        <Link
-          to="/"
-          className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground inline-flex items-center gap-1 mb-6"
-        >
-          <ArrowLeft className="w-3 h-3" /> Back to site
-        </Link>
-        <div className="font-display text-3xl">{branding.brandName}</div>
-        <div className="text-[10px] uppercase tracking-[0.3em] text-gold mt-1 mb-8">
-          Studio ·{" "}
-          {ownerExists === false
-            ? "Create owner"
-            : mode === "sign-up"
-              ? "Sign up"
-              : "Sign in"}
-        </div>
-
-        {mode === "sign-up" && (
-          <label className="block mb-4">
-            <span className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground block mb-1">
-              Name
-            </span>
-            <input
-              className="field"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
+      <div className="w-full max-w-md">
+        {ownerExists ? (
+          <>
+            <SignIn
+              routing="hash"
+              afterSignInUrl="/admin"
+              appearance={{
+                variables: {
+                  colorBackground: 'hsl(var(--card))',
+                  colorInputBackground: 'transparent',
+                  colorPrimary: 'hsl(var(--gold))',
+                  colorText: 'hsl(var(--foreground))',
+                  colorTextSecondary: 'hsl(var(--muted-foreground))',
+                  colorInputText: 'hsl(var(--foreground))',
+                  colorDanger: 'hsl(var(--destructive))',
+                  borderRadius: '0',
+                },
+                elements: {
+                  card: { boxShadow: 'none', border: '1px solid hsl(var(--border))', padding: '40px' },
+                  headerTitle: { fontSize: '30px', fontFamily: 'Fraunces, serif', fontWeight: 400 },
+                  headerSubtitle: { fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.3em', color: 'hsl(var(--gold))' },
+                  socialButtonsBlockButton: { fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.25em', border: '1px solid hsl(var(--border))', color: 'hsl(var(--foreground))' },
+                  dividerLine: { background: 'hsl(var(--border))' },
+                  dividerText: { color: 'hsl(var(--muted-foreground))', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.3em' },
+                  formFieldLabel: { fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.3em', color: 'hsl(var(--muted-foreground))' },
+                  formFieldInput: { border: '1px solid hsl(var(--border))', borderRadius: 0, fontSize: '14px', padding: '12px', background: 'transparent', color: 'hsl(var(--foreground))' },
+                  formButtonPrimary: { background: 'hsl(var(--gold))', color: 'hsl(var(--gold-foreground))', borderRadius: 0, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.25em', padding: '14px' },
+                  footerActionText: { color: 'hsl(var(--muted-foreground))' },
+                  footerActionLink: { color: 'hsl(var(--gold))' },
+                  root: { background: 'transparent' },
+                  main: { background: 'transparent' },
+                },
+              }}
             />
-          </label>
+          </>
+        ) : (
+          <>
+            <SignUp
+              forceRedirectUrl="/admin"
+              appearance={{
+                variables: {
+                  colorBackground: 'hsl(var(--card))',
+                  colorInputBackground: 'transparent',
+                  colorPrimary: 'hsl(var(--gold))',
+                  colorText: 'hsl(var(--foreground))',
+                  colorTextSecondary: 'hsl(var(--muted-foreground))',
+                  colorInputText: 'hsl(var(--foreground))',
+                  colorDanger: 'hsl(var(--destructive))',
+                  borderRadius: '0',
+                },
+                elements: {
+                  card: { boxShadow: 'none', border: '1px solid hsl(var(--border))', padding: '40px' },
+                  headerTitle: { fontSize: '30px', fontFamily: 'Fraunces, serif', fontWeight: 400 },
+                  headerSubtitle: { fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.3em', color: 'hsl(var(--gold))' },
+                  socialButtonsBlockButton: { fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.25em', border: '1px solid hsl(var(--border))', color: 'hsl(var(--foreground))' },
+                  dividerLine: { background: 'hsl(var(--border))' },
+                  dividerText: { color: 'hsl(var(--muted-foreground))', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.3em' },
+                  formFieldLabel: { fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.3em', color: 'hsl(var(--muted-foreground))' },
+                  formFieldInput: { border: '1px solid hsl(var(--border))', borderRadius: 0, fontSize: '14px', padding: '12px', background: 'transparent', color: 'hsl(var(--foreground))' },
+                  formButtonPrimary: { background: 'hsl(var(--gold))', color: 'hsl(var(--gold-foreground))', borderRadius: 0, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.25em', padding: '14px' },
+                  footerActionText: { color: 'hsl(var(--muted-foreground))' },
+                  footerActionLink: { color: 'hsl(var(--gold))' },
+                  root: { background: 'transparent' },
+                  main: { background: 'transparent' },
+                },
+              }}
+            />
+            <p className="mt-4 text-[10px] uppercase tracking-[0.3em] text-muted-foreground text-center">
+              First setup — this account becomes the Owner.
+            </p>
+          </>
         )}
-        <label className="block mb-4">
-          <span className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground block mb-1">
-            Email
-          </span>
-          <input
-            type="email"
-            className="field"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </label>
-        <label className="block mb-2">
-          <span className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground block mb-1">
-            Password
-          </span>
-          <input
-            type="password"
-            className="field"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={8}
-          />
-        </label>
-        {err && <p className="text-destructive text-xs mt-2">{err}</p>}
-        <button
-          disabled={busy}
-          className="mt-6 w-full bg-gold text-gold-foreground py-3 text-xs uppercase tracking-[0.3em] hover:opacity-90 disabled:opacity-60"
-        >
-          {busy
-            ? "Working…"
-            : mode === "sign-up"
-              ? ownerExists === false
-                ? "Create owner account"
-                : "Request access"
-              : "Sign in"}
-        </button>
-
-        {busy && (
-          <p className="mt-4 text-center text-sm text-muted-foreground">
-            Signing in and loading your workspace…
-          </p>
-        )}
-
-        {ownerExists !== false && (
-          <button
-            type="button"
-            onClick={() =>
-              setMode((m) => (m === "sign-in" ? "sign-up" : "sign-in"))
-            }
-            className="mt-6 block w-full text-[10px] uppercase tracking-[0.3em] text-muted-foreground text-center hover:text-foreground"
-          >
-            {mode === "sign-in"
-              ? "No account? Sign up"
-              : "Have an account? Sign in"}
-          </button>
-        )}
-        {ownerExists === false && (
-          <p className="mt-6 text-[10px] uppercase tracking-[0.3em] text-muted-foreground text-center">
-            First setup — this account becomes the Owner.
-          </p>
-        )}
-      </form>
+      </div>
     </div>
   );
 }

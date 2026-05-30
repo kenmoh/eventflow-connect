@@ -6,7 +6,6 @@ import type { SeatArrangement } from '@/lib/types';
 import { toast } from 'sonner';
 import heroBallroom from '@/assets/hero-ballroom.jpg';
 import { useConfirm } from '@/components/ConfirmProvider';
-import { upsertArrangement, deleteArrangement } from '@/lib/db';
 
 const blank = (): SeatArrangement => ({ id: crypto.randomUUID(), name: '', description: '', image: heroBallroom });
 
@@ -21,12 +20,14 @@ export default function AdminArrangements() {
     const exists = arrangements.some(a => a.id === editing.id);
     set('arrangements', exists ? arrangements.map(a => a.id === editing.id ? editing : a) : [...arrangements, editing]);
     setEditing(null);
+    const { upsertArrangement } = await import('@/lib/db');
     try { await upsertArrangement(editing); toast.success('Saved.'); }
     catch (e: any) { toast.error(e?.message ?? 'Save failed'); }
   };
   const remove = async (id: string) => {
     if (await confirm({ title: 'Delete arrangement?', destructive: true, confirmText: 'Delete' })) {
       set('arrangements', arrangements.filter(a => a.id !== id));
+      const { deleteArrangement } = await import('@/lib/db');
       try { await deleteArrangement(id); } catch (e: any) { toast.error(e?.message ?? 'Delete failed'); }
     }
   };

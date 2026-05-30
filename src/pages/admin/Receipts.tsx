@@ -4,7 +4,7 @@ import { useStoreBase } from "@/lib/store";
 import { toast } from "sonner";
 import type { SavedReceipt } from "@/lib/types";
 import { Trash2, FileText, Mail, Download, Send } from "lucide-react";
-import { loadReceipts, insertReceipt, deleteReceipt as deleteReceiptDb } from "@/lib/db";
+
 
 type DocType = "receipt" | "quote" | "invoice";
 
@@ -26,7 +26,7 @@ export default function AdminReceipts() {
   const [logoDataUrl, setLogoDataUrl] = useState<string>("");
 
   useEffect(() => {
-    loadReceipts().then(setReceipts);
+    import("@/lib/db").then(m => m.loadReceipts().then(setReceipts));
     // Load logo as base64 for PDF/email embedding
     const img = new Image();
     img.crossOrigin = "anonymous";
@@ -95,6 +95,7 @@ export default function AdminReceipts() {
       total: subtotal,
       createdAt: new Date().toISOString(),
     };
+    const { insertReceipt } = await import("@/lib/db");
     await insertReceipt(receipt);
     setReceipts([receipt, ...receipts]);
     toast.success("Receipt saved");
@@ -412,6 +413,7 @@ export default function AdminReceipts() {
                   <button 
                     onClick={async (e) => { 
                       e.stopPropagation(); 
+                      const { deleteReceipt: deleteReceiptDb } = await import("@/lib/db");
                       await deleteReceiptDb(r.id);
                       setReceipts(receipts.filter(x => x.id !== r.id));
                       toast.success('Receipt deleted'); 

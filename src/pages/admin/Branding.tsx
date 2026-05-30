@@ -2,7 +2,6 @@ import { useStoreBase } from '@/lib/store';
 import { AdminPage, Field, inputCls, PrimaryBtn } from './_shared';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { saveBranding } from '@/lib/db';
 
 export default function AdminBranding() {
   const branding = useStoreBase(s => s.branding);
@@ -10,6 +9,7 @@ export default function AdminBranding() {
   const [b, setB] = useState(branding);
   const save = async () => {
     set('branding', b);
+    const { saveBranding } = await import('@/lib/db');
     try { await saveBranding(b); toast.success('Branding updated.'); }
     catch (e: any) { toast.error(e?.message ?? 'Save failed'); }
   };

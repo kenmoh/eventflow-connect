@@ -3,7 +3,6 @@ import { AdminPage, Field, inputCls, PrimaryBtn } from './_shared';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import type { SiteContent, LegalPage } from '@/lib/types';
-import { saveContent } from '@/lib/db';
 
 type Key = 'about' | 'privacy' | 'terms' | 'refund';
 
@@ -18,6 +17,7 @@ export default function AdminLegal() {
   };
   const save = async () => {
     set('content', draft);
+    const { saveContent } = await import('@/lib/db');
     try { await saveContent(draft); toast.success('Pages updated.'); }
     catch (e: any) { toast.error(e?.message ?? 'Save failed'); }
   };

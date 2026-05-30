@@ -4,7 +4,6 @@ import { useState } from 'react';
 import type { FAQ } from '@/lib/types';
 import { toast } from 'sonner';
 import { useConfirm } from '@/components/ConfirmProvider';
-import { upsertFaq, deleteFaq } from '@/lib/db';
 
 const blank = (order: number): FAQ => ({ id: crypto.randomUUID(), question: '', answer: '', order, published: true });
 
@@ -20,12 +19,14 @@ export default function AdminFaqs() {
     const exists = faqs.some(f => f.id === editing.id);
     set('faqs', exists ? faqs.map(f => f.id === editing.id ? editing : f) : [...faqs, editing]);
     setEditing(null);
+    const { upsertFaq } = await import('@/lib/db');
     try { await upsertFaq(editing); toast.success('Saved.'); }
     catch (e: any) { toast.error(e?.message ?? 'Save failed'); }
   };
   const remove = async (id: string) => {
     if (await confirm({ title: 'Delete FAQ?', destructive: true, confirmText: 'Delete' })) {
       set('faqs', faqs.filter(f => f.id !== id));
+      const { deleteFaq } = await import('@/lib/db');
       try { await deleteFaq(id); } catch (e: any) { toast.error(e?.message ?? 'Delete failed'); }
     }
   };

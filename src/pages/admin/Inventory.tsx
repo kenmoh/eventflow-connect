@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import type { InventoryMovement } from '@/lib/types';
 import { useConfirm } from '@/components/ConfirmProvider';
-import { upsertRental } from '@/lib/db';
 
 export default function AdminInventory() {
   const rentals = useStoreBase(s => s.rentals);
@@ -23,6 +22,7 @@ export default function AdminInventory() {
 
   const saveStock = async () => {
     if (!edit) return;
+    const { upsertRental } = await import('@/lib/db');
     const updated = rentals.map(r => r.id === edit.id ? { ...r, stockTotal: edit.total, stockAvailable: edit.available, location: edit.location } : r);
     set('rentals', updated);
     try { await upsertRental(updated.find(r => r.id === edit.id)!); } catch (e: any) { toast.error(e?.message ?? 'Failed to persist stock change'); }
@@ -32,6 +32,7 @@ export default function AdminInventory() {
 
   const submitMovement = async () => {
     if (!mov) return;
+    const { upsertRental } = await import('@/lib/db');
     const r = rentals.find(x => x.id === mov.itemId)!;
     let delta = 0;
     if (mov.type === 'out' || mov.type === 'damaged') delta = -mov.qty;

@@ -1,6 +1,5 @@
 import { useRef, useState } from 'react';
 import { Upload, Link2, Loader2 } from 'lucide-react';
-import { uploadImage } from '@/lib/db';
 import { toast } from 'sonner';
 
 export default function ImagePicker({
@@ -13,6 +12,7 @@ export default function ImagePicker({
   const onFile = async (f: File | null) => {
     if (!f) return;
     if (f.size > 5 * 1024 * 1024) { toast.error('Max 5MB'); return; }
+    const { uploadImage } = await import('@/lib/db');
     setBusy(true);
     try {
       const url = await uploadImage(f);

@@ -3,7 +3,6 @@ import { AdminPage, Field, inputCls, PrimaryBtn } from './_shared';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import type { SiteContent } from '@/lib/types';
-import { saveContent } from '@/lib/db';
 
 export default function AdminContent() {
   const content = useStoreBase(s => s.content);
@@ -12,6 +11,7 @@ export default function AdminContent() {
 
   const save = async () => {
     set('content', c);
+    const { saveContent } = await import('@/lib/db');
     try { await saveContent(c); toast.success('Site content updated.'); }
     catch (e: any) { toast.error(e?.message ?? 'Save failed'); }
   };

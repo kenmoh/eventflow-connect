@@ -4,7 +4,6 @@ import { useStoreBase } from "@/lib/store";
 import { AdminPage } from "@/pages/admin/_shared";
 import { useConfirm } from "@/components/ConfirmProvider";
 import { toast } from "sonner";
-import { deleteContact } from "@/lib/db";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const PAGE_SIZE = 15;
@@ -26,6 +25,7 @@ function AdminContacts() {
     if (await confirm({ title: `Delete message from ${name}?`, destructive: true, confirmText: "Delete" })) {
       set("contacts", contacts.filter((c) => c.id !== id));
       try {
+        const { deleteContact } = await import("@/lib/db");
         await deleteContact(id);
         toast.success("Contact deleted.");
       } catch (e: any) {

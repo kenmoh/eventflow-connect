@@ -1,3 +1,5 @@
+import { auth as clerkAuth } from '@clerk/tanstack-react-start/server';
+
 // In-memory rate limiter (resets on server restart — use Redis/DB for production)
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 
@@ -51,22 +53,12 @@ export function getClientIp(request: Request): string {
 }
 
 /**
- * Validate that a request has a valid Supabase session
+ * Validate that a request has a valid Clerk session
  */
-export async function requireAuth(request: Request): Promise<{ userId: string } | null> {
-  const authHeader = request.headers.get('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) return null;
-
-  try {
-    const { supabase } = await import('@/integrations/supabase/client');
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error } = await supabase.auth.getUser(token);
-    
-    if (error || !user) return null;
-    return { userId: user.id };
-  } catch {
-    return null;
-  }
+export async function requireAuth(_request: Request): Promise<{ userId: string } | null> {
+  const session = await clerkAuth();
+  if (!session?.userId) return null;
+  return { userId: session.userId };
 }
 
 /**

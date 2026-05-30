@@ -6,7 +6,6 @@ import type { Hotel } from '@/lib/types';
 import { toast } from 'sonner';
 import heroBallroom from '@/assets/hero-ballroom.jpg';
 import { useConfirm } from '@/components/ConfirmProvider';
-import { upsertHotel, deleteHotel } from '@/lib/db';
 
 const blank = (): Hotel => ({ id: crypto.randomUUID(), name: '', location: '', tagline: '', image: heroBallroom, rating: 4.5, amenities: [] });
 
@@ -21,12 +20,14 @@ export default function AdminHotels() {
     const exists = hotels.some(h => h.id === editing.id);
     set('hotels', exists ? hotels.map(h => h.id === editing.id ? editing : h) : [...hotels, editing]);
     setEditing(null);
+    const { upsertHotel } = await import('@/lib/db');
     try { await upsertHotel(editing); toast.success('Saved.'); }
     catch (e: any) { toast.error(e?.message ?? 'Save failed'); }
   };
   const remove = async (id: string) => {
     if (await confirm({ title: 'Delete hotel?', destructive: true, confirmText: 'Delete' })) {
       set('hotels', hotels.filter(h => h.id !== id));
+      const { deleteHotel } = await import('@/lib/db');
       try { await deleteHotel(id); } catch (e: any) { toast.error(e?.message ?? 'Delete failed'); }
     }
   };
