@@ -276,12 +276,14 @@ function initAuth() {
 }
 
 function ClerkSessionEffect() {
-  const { isLoaded: authLoaded } = useAuth();
+  const { isLoaded: authLoaded, userId: authUserId } = useAuth();
   const { isLoaded: userLoaded, user } = useUser();
   const loaded = authLoaded && userLoaded;
 
   useEffect(() => {
     let failsafeTimer: any;
+
+    console.log("[Clerk] Status:", { authLoaded, userLoaded, authUserId, user: !!user });
 
     // If auth is not loaded within 6 seconds, force the loaded state so the 
     // AuthScreen can at least attempt to render the Clerk components.
@@ -289,7 +291,7 @@ function ClerkSessionEffect() {
       failsafeTimer = setTimeout(() => {
         const current = useStoreBase.getState().session;
         if (!current.loaded) {
-          console.warn("Clerk loading timed out, forcing session loaded state.");
+          console.warn("Clerk loading timed out, forcing session loaded state. AuthLoaded:", authLoaded, "UserLoaded:", userLoaded);
           useStoreBase.setState({
             session: { ...current, loaded: true },
           });

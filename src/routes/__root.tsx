@@ -78,9 +78,14 @@ export const Route = createRootRoute({
 });
 
 function RootComponent() {
+  const pk = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+  if (!pk) {
+    console.error("[Clerk] Missing VITE_CLERK_PUBLISHABLE_KEY in environment!");
+  }
+
   return (
     <RootDocument>
-      <ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}>
+      <ClerkProvider publishableKey={pk}>
         <QueryClientProvider client={queryClient}>
           <ConfirmProvider>
             <TooltipProvider>

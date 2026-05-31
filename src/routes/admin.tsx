@@ -141,9 +141,8 @@ function AuthScreen() {
           
           {ownerExists ? (
             <SignIn 
-              path="/admin" 
-              routing="path"
-              signUpUrl="/admin" 
+              routing="hash"
+              afterSignInUrl="/admin"
             />
           ) : (
             <div className="flex flex-col items-center">
@@ -151,9 +150,8 @@ function AuthScreen() {
                 First time setup — create the owner account.
               </p>
               <SignUp 
-                path="/admin" 
-                routing="path"
-                signInUrl="/admin" 
+                routing="hash"
+                afterSignUpUrl="/admin"
               />
             </div>
           )}
@@ -218,7 +216,7 @@ function Shell() {
           z-30 h-screen 
           bg-ink text-bone flex flex-col border-r border-border 
           transition-all duration-300
-          ${mobileOpen ? 'fixed inset-y-0 left-0 w-64 z-40' : 'fixed -translate-x-full lg:relative lg:translate-x-0 lg:sticky lg:top-0 lg:w-64'}
+          ${mobileOpen ? 'fixed inset-y-0 left-0 w-64 z-40' : 'fixed -translate-x-full lg:sticky lg:translate-x-0 lg:sticky lg:top-0 lg:w-64'}
           ${collapsed ? 'lg:w-16' : ''}
         `}
       >
