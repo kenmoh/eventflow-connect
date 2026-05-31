@@ -17,7 +17,6 @@ import {
   seatArrangements,
   siteContent,
 } from '@/db/schema';
-import { uploadToCloudinary } from '@/lib/cloudinary';
 import type {
   Hotel,
   Room,
@@ -306,19 +305,6 @@ export async function loadEmployees(): Promise<Omit<Employee, 'password'>[]> {
 
 export async function setEmployeeRole(userId: string, roleId: string | null) {
   await getDb().update(profiles).set({ roleId: roleId || null }).where(eq(profiles.id, userId));
-}
-
-const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
-
-export async function uploadImage(file: File): Promise<string> {
-  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-    throw new Error(`Invalid file type. Allowed: ${ALLOWED_IMAGE_TYPES.join(', ')}`);
-  }
-  if (file.size > MAX_IMAGE_SIZE) {
-    throw new Error(`File too large. Maximum size: ${MAX_IMAGE_SIZE / 1024 / 1024}MB`);
-  }
-  return uploadToCloudinary(file);
 }
 
 export async function loadReceipts(): Promise<SavedReceipt[]> {

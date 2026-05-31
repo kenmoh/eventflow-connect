@@ -12,7 +12,7 @@ export default function ImagePicker({
   const onFile = async (f: File | null) => {
     if (!f) return;
     if (f.size > 5 * 1024 * 1024) { toast.error('Max 5MB'); return; }
-    const { uploadImage } = await import('@/lib/db');
+    const { uploadImage } = await import('@/lib/upload');
     setBusy(true);
     try {
       const url = await uploadImage(f);
