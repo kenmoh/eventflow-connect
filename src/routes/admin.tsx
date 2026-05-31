@@ -134,25 +134,36 @@ function AuthScreen() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
       <div className="w-full max-w-md">
-        {ownerExists ? (
-          <div className="flex flex-col items-center">
-            <h1 className="font-display text-3xl mb-8 text-center">Admin Portal</h1>
-            <SignIn
-              routing="hash"
-              afterSignInUrl="/admin"
+        <div className="flex flex-col items-center">
+          <h1 className="font-display text-3xl mb-8 text-center">
+            {ownerExists ? "Admin Portal" : "Setup Owner"}
+          </h1>
+          
+          {ownerExists ? (
+            <SignIn 
+              path="/admin" 
+              routing="path"
+              signUpUrl="/admin" 
             />
+          ) : (
+            <div className="flex flex-col items-center">
+              <p className="mb-8 text-muted-foreground text-center text-sm">
+                First time setup — create the owner account.
+              </p>
+              <SignUp 
+                path="/admin" 
+                routing="path"
+                signInUrl="/admin" 
+              />
+            </div>
+          )}
+          
+          <div className="mt-8 text-center">
+            <Link to="/" className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground hover:text-gold transition">
+              ← Back to main site
+            </Link>
           </div>
-        ) : (
-          <div className="flex flex-col items-center">
-            <h1 className="font-display text-3xl mb-2 text-center">Setup Owner</h1>
-            <p className="mb-8 text-muted-foreground text-center text-sm">
-              First time setup — create the owner account.
-            </p>
-            <SignUp
-              forceRedirectUrl="/admin"
-            />
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );

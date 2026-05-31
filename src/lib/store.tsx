@@ -329,6 +329,8 @@ function ClerkSessionEffect() {
       },
     } as any);
 
+    console.log("[Clerk] Session synced to store:", user.id, user.publicMetadata?.role);
+
     if (user.id) {
       let attempts = 0;
       let profileTimeoutId: any;
