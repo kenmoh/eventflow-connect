@@ -281,14 +281,9 @@ function ClerkSessionEffect() {
   const loaded = authLoaded && userLoaded;
 
   useEffect(() => {
-    if (!loaded) {
-      const timer = setTimeout(() => {
-        useStoreBase.setState({
-          session: { userId: null, profile: null, loaded: true },
-        });
-      }, 8000);
-      return () => clearTimeout(timer);
-    }
+    // If auth is not loaded yet, we wait. No timer needed here as it might 
+    // cause "userId: null" flashes when the user is actually logged in.
+    if (!loaded) return;
 
     if (!user) {
       useStoreBase.setState({
@@ -301,13 +296,12 @@ function ClerkSessionEffect() {
     const email =
       user.primaryEmailAddress?.emailAddress ||
       user.emailAddresses?.[0]?.emailAddress ||
-      user.email ||
       "";
     const name =
       [user.firstName, user.lastName].filter(Boolean).join(" ") ||
       user.fullName ||
       user.username ||
-      "";
+      "Unknown";
 
     useStoreBase.setState({
       session: {
@@ -324,6 +318,7 @@ function ClerkSessionEffect() {
 
     if (user.id) {
       let attempts = 0;
+      let timeoutId: any;
 
       function fetchProfile() {
         fetch('/api/employees')
@@ -339,15 +334,16 @@ function ClerkSessionEffect() {
                   session: { ...current, profile: { ...current.profile!, roleId: myProfile.roleId } },
                 } as any);
               }
-            } else if (myProfile && attempts < 10) {
+            } else if (attempts < 10) {
               attempts++;
-              setTimeout(fetchProfile, 1000);
+              timeoutId = setTimeout(fetchProfile, 1500);
             }
           })
           .catch(() => { /* ignore */ });
       }
 
       fetchProfile();
+      return () => clearTimeout(timeoutId);
     }
   }, [user, loaded]);
 

@@ -62,23 +62,44 @@ function AdminLayout() {
 
   if (!sessionLoaded) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground text-xs uppercase tracking-[0.3em]">
-        Loading…
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-8 h-8 border-2 border-gold border-t-transparent animate-spin rounded-full" />
+          <div className="text-muted-foreground text-[10px] uppercase tracking-[0.3em]">
+            Initializing session…
+          </div>
+        </div>
       </div>
     );
   }
+
   if (!userId) return <AuthScreen />;
+
+  // If we have a userId but no roleId, it means they are logged in but not authorized.
+  // We check profile?.roleId. If profile is missing (unexpected), we also treat as unauthorized.
   if (!profile?.roleId) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-6">
         <div className="max-w-md text-center">
-          <h1 className="font-display text-4xl">No role assigned</h1>
+          <h1 className="font-display text-4xl">Access Restricted</h1>
           <p className="mt-3 text-muted-foreground">
-            Your account exists, but the owner hasn't given it a role yet.
+            Your account ({profile?.email || 'authenticated user'}) is not yet assigned an admin role.
           </p>
-          <button onClick={() => logout()} className="mt-6 underline text-sm">
-            Sign out
-          </button>
+          <div className="mt-8 flex flex-col gap-4 items-center">
+            <p className="text-xs text-muted-foreground uppercase tracking-widest">
+              Please contact the system owner to request access.
+            </p>
+            <button 
+              onClick={() => {
+                // Clear local session and redirect
+                localStorage.removeItem('abc-store-v4');
+                window.location.href = '/';
+              }} 
+              className="underline text-xs opacity-60 hover:opacity-100"
+            >
+              Sign out & Return to site
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -88,8 +109,6 @@ function AdminLayout() {
 }
 
 function AuthScreen() {
-  const branding = useStoreBase((s) => s.branding);
-  const [mode, setMode] = useState<"sign-in" | "sign-up">("sign-in");
   const [ownerExists, setOwnerExists] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -111,75 +130,23 @@ function AuthScreen() {
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
       <div className="w-full max-w-md">
         {ownerExists ? (
-          <>
+          <div className="flex flex-col items-center">
+            <h1 className="font-display text-3xl mb-8 text-center">Admin Portal</h1>
             <SignIn
               routing="hash"
               afterSignInUrl="/admin"
-              appearance={{
-                variables: {
-                  colorBackground: 'hsl(var(--card))',
-                  colorInputBackground: 'transparent',
-                  colorPrimary: 'hsl(var(--gold))',
-                  colorText: 'hsl(var(--foreground))',
-                  colorTextSecondary: 'hsl(var(--muted-foreground))',
-                  colorInputText: 'hsl(var(--foreground))',
-                  colorDanger: 'hsl(var(--destructive))',
-                  borderRadius: '0',
-                },
-                elements: {
-                  card: { boxShadow: 'none', border: '1px solid hsl(var(--border))', padding: '40px' },
-                  headerTitle: { fontSize: '30px', fontFamily: 'Fraunces, serif', fontWeight: 400 },
-                  headerSubtitle: { fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.3em', color: 'hsl(var(--gold))' },
-                  socialButtonsBlockButton: { fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.25em', border: '1px solid hsl(var(--border))', color: 'hsl(var(--foreground))' },
-                  dividerLine: { background: 'hsl(var(--border))' },
-                  dividerText: { color: 'hsl(var(--muted-foreground))', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.3em' },
-                  formFieldLabel: { fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.3em', color: 'hsl(var(--muted-foreground))' },
-                  formFieldInput: { border: '1px solid hsl(var(--border))', borderRadius: 0, fontSize: '14px', padding: '12px', background: 'transparent', color: 'hsl(var(--foreground))' },
-                  formButtonPrimary: { background: 'hsl(var(--gold))', color: 'hsl(var(--gold-foreground))', borderRadius: 0, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.25em', padding: '14px' },
-                  footerActionText: { color: 'hsl(var(--muted-foreground))' },
-                  footerActionLink: { color: 'hsl(var(--gold))' },
-                  root: { background: 'transparent' },
-                  main: { background: 'transparent' },
-                },
-              }}
             />
-          </>
+          </div>
         ) : (
-          <>
+          <div className="flex flex-col items-center">
+            <h1 className="font-display text-3xl mb-2 text-center">Setup Owner</h1>
+            <p className="mb-8 text-muted-foreground text-center text-sm">
+              First time setup — create the owner account.
+            </p>
             <SignUp
               forceRedirectUrl="/admin"
-              appearance={{
-                variables: {
-                  colorBackground: 'hsl(var(--card))',
-                  colorInputBackground: 'transparent',
-                  colorPrimary: 'hsl(var(--gold))',
-                  colorText: 'hsl(var(--foreground))',
-                  colorTextSecondary: 'hsl(var(--muted-foreground))',
-                  colorInputText: 'hsl(var(--foreground))',
-                  colorDanger: 'hsl(var(--destructive))',
-                  borderRadius: '0',
-                },
-                elements: {
-                  card: { boxShadow: 'none', border: '1px solid hsl(var(--border))', padding: '40px' },
-                  headerTitle: { fontSize: '30px', fontFamily: 'Fraunces, serif', fontWeight: 400 },
-                  headerSubtitle: { fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.3em', color: 'hsl(var(--gold))' },
-                  socialButtonsBlockButton: { fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.25em', border: '1px solid hsl(var(--border))', color: 'hsl(var(--foreground))' },
-                  dividerLine: { background: 'hsl(var(--border))' },
-                  dividerText: { color: 'hsl(var(--muted-foreground))', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.3em' },
-                  formFieldLabel: { fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.3em', color: 'hsl(var(--muted-foreground))' },
-                  formFieldInput: { border: '1px solid hsl(var(--border))', borderRadius: 0, fontSize: '14px', padding: '12px', background: 'transparent', color: 'hsl(var(--foreground))' },
-                  formButtonPrimary: { background: 'hsl(var(--gold))', color: 'hsl(var(--gold-foreground))', borderRadius: 0, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.25em', padding: '14px' },
-                  footerActionText: { color: 'hsl(var(--muted-foreground))' },
-                  footerActionLink: { color: 'hsl(var(--gold))' },
-                  root: { background: 'transparent' },
-                  main: { background: 'transparent' },
-                },
-              }}
             />
-            <p className="mt-4 text-[10px] uppercase tracking-[0.3em] text-muted-foreground text-center">
-              First setup — this account becomes the Owner.
-            </p>
-          </>
+          </div>
         )}
       </div>
     </div>
