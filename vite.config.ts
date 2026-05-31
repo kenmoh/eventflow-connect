@@ -12,7 +12,7 @@ export default defineConfig({
       "X-Content-Type-Options": "nosniff",
       "Referrer-Policy": "strict-origin-when-cross-origin",
       "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
-      "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.paystack.co https://*.clerk.accounts.dev https://clerk.accounts.dev; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://api.resend.com https://api.paystack.co https://*.clerk.accounts.dev https://clerk.accounts.dev https://*.neon.tech; frame-src https://checkout.paystack.com https://*.clerk.accounts.dev; media-src 'self';",
+      "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.paystack.co https://*.clerk.accounts.dev https://clerk.accounts.dev https://*.accounts.dev https://eventflow-connect.kenneth-aremoh.workers.dev; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://api.resend.com https://api.paystack.co https://*.clerk.accounts.dev https://clerk.accounts.dev https://*.accounts.dev https://*.neon.tech https://eventflow-connect.kenneth-aremoh.workers.dev; frame-src https://checkout.paystack.com https://*.clerk.accounts.dev https://*.accounts.dev https://eventflow-connect.kenneth-aremoh.workers.dev; media-src 'self';",
     },
   },
   resolve: {

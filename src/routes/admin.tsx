@@ -120,8 +120,13 @@ function AuthScreen() {
 
   if (ownerExists === null) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground text-xs uppercase tracking-[0.3em]">
-        Loading…
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-8 h-8 border-2 border-gold border-t-transparent animate-spin rounded-full" />
+          <div className="text-muted-foreground text-[10px] uppercase tracking-[0.3em]">
+            Checking system status…
+          </div>
+        </div>
       </div>
     );
   }

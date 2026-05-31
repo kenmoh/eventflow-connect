@@ -281,9 +281,22 @@ function ClerkSessionEffect() {
   const loaded = authLoaded && userLoaded;
 
   useEffect(() => {
-    // If auth is not loaded yet, we wait. No timer needed here as it might 
-    // cause "userId: null" flashes when the user is actually logged in.
-    if (!loaded) return;
+    let failsafeTimer: any;
+
+    // If auth is not loaded within 6 seconds, force the loaded state so the 
+    // AuthScreen can at least attempt to render the Clerk components.
+    if (!loaded) {
+      failsafeTimer = setTimeout(() => {
+        const current = useStoreBase.getState().session;
+        if (!current.loaded) {
+          console.warn("Clerk loading timed out, forcing session loaded state.");
+          useStoreBase.setState({
+            session: { ...current, loaded: true },
+          });
+        }
+      }, 6000);
+      return () => clearTimeout(failsafeTimer);
+    }
 
     if (!user) {
       useStoreBase.setState({
@@ -318,7 +331,7 @@ function ClerkSessionEffect() {
 
     if (user.id) {
       let attempts = 0;
-      let timeoutId: any;
+      let profileTimeoutId: any;
 
       function fetchProfile() {
         fetch('/api/employees')
@@ -336,14 +349,14 @@ function ClerkSessionEffect() {
               }
             } else if (attempts < 10) {
               attempts++;
-              timeoutId = setTimeout(fetchProfile, 1500);
+              profileTimeoutId = setTimeout(fetchProfile, 1500);
             }
           })
           .catch(() => { /* ignore */ });
       }
 
       fetchProfile();
-      return () => clearTimeout(timeoutId);
+      return () => clearTimeout(profileTimeoutId);
     }
   }, [user, loaded]);
 

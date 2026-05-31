@@ -11,9 +11,10 @@ function AdminIndex() {
 
   if (!hydrated) {
     return (
-      <div className="p-10 text-center">
-        <h1 className="font-display text-2xl">Loading…</h1>
-        <p className="text-muted-foreground">Preparing your admin workspace.</p>
+      <div className="p-10 flex flex-col items-center justify-center min-h-[400px]">
+        <div className="w-8 h-8 border-2 border-gold border-t-transparent animate-spin rounded-full mb-4" />
+        <h1 className="font-display text-2xl">Preparing Workspace</h1>
+        <p className="text-muted-foreground text-sm">Syncing your data from the database.</p>
       </div>
     )
   }

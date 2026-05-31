@@ -25,6 +25,8 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as HotelsIndexRouteImport } from './routes/hotels/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as HotelsIdRouteImport } from './routes/hotels/$id'
+import { Route as ApiVerifyPaymentRouteImport } from './routes/api/verify-payment'
+import { Route as ApiUploadRouteImport } from './routes/api/upload'
 import { Route as ApiSendEmailRouteImport } from './routes/api/send-email'
 import { Route as ApiRolesRouteImport } from './routes/api/roles'
 import { Route as ApiEmployeesRouteImport } from './routes/api/employees'
@@ -128,6 +130,16 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
 const HotelsIdRoute = HotelsIdRouteImport.update({
   id: '/hotels/$id',
   path: '/hotels/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiVerifyPaymentRoute = ApiVerifyPaymentRouteImport.update({
+  id: '/api/verify-payment',
+  path: '/api/verify-payment',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiUploadRoute = ApiUploadRouteImport.update({
+  id: '/api/upload',
+  path: '/api/upload',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiSendEmailRoute = ApiSendEmailRouteImport.update({
@@ -289,6 +301,8 @@ export interface FileRoutesByFullPath {
   '/api/employees': typeof ApiEmployeesRoute
   '/api/roles': typeof ApiRolesRoute
   '/api/send-email': typeof ApiSendEmailRoute
+  '/api/upload': typeof ApiUploadRoute
+  '/api/verify-payment': typeof ApiVerifyPaymentRoute
   '/hotels/$id': typeof HotelsIdRoute
   '/admin/': typeof AdminIndexRoute
   '/hotels/': typeof HotelsIndexRoute
@@ -330,6 +344,8 @@ export interface FileRoutesByTo {
   '/api/employees': typeof ApiEmployeesRoute
   '/api/roles': typeof ApiRolesRoute
   '/api/send-email': typeof ApiSendEmailRoute
+  '/api/upload': typeof ApiUploadRoute
+  '/api/verify-payment': typeof ApiVerifyPaymentRoute
   '/hotels/$id': typeof HotelsIdRoute
   '/admin': typeof AdminIndexRoute
   '/hotels': typeof HotelsIndexRoute
@@ -373,6 +389,8 @@ export interface FileRoutesById {
   '/api/employees': typeof ApiEmployeesRoute
   '/api/roles': typeof ApiRolesRoute
   '/api/send-email': typeof ApiSendEmailRoute
+  '/api/upload': typeof ApiUploadRoute
+  '/api/verify-payment': typeof ApiVerifyPaymentRoute
   '/hotels/$id': typeof HotelsIdRoute
   '/admin/': typeof AdminIndexRoute
   '/hotels/': typeof HotelsIndexRoute
@@ -417,6 +435,8 @@ export interface FileRouteTypes {
     | '/api/employees'
     | '/api/roles'
     | '/api/send-email'
+    | '/api/upload'
+    | '/api/verify-payment'
     | '/hotels/$id'
     | '/admin/'
     | '/hotels/'
@@ -458,6 +478,8 @@ export interface FileRouteTypes {
     | '/api/employees'
     | '/api/roles'
     | '/api/send-email'
+    | '/api/upload'
+    | '/api/verify-payment'
     | '/hotels/$id'
     | '/admin'
     | '/hotels'
@@ -500,6 +522,8 @@ export interface FileRouteTypes {
     | '/api/employees'
     | '/api/roles'
     | '/api/send-email'
+    | '/api/upload'
+    | '/api/verify-payment'
     | '/hotels/$id'
     | '/admin/'
     | '/hotels/'
@@ -526,6 +550,8 @@ export interface RootRouteChildren {
   ApiEmployeesRoute: typeof ApiEmployeesRoute
   ApiRolesRoute: typeof ApiRolesRoute
   ApiSendEmailRoute: typeof ApiSendEmailRoute
+  ApiUploadRoute: typeof ApiUploadRoute
+  ApiVerifyPaymentRoute: typeof ApiVerifyPaymentRoute
   HotelsIdRoute: typeof HotelsIdRoute
   HotelsIndexRoute: typeof HotelsIndexRoute
 }
@@ -642,6 +668,20 @@ declare module '@tanstack/react-router' {
       path: '/hotels/$id'
       fullPath: '/hotels/$id'
       preLoaderRoute: typeof HotelsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/verify-payment': {
+      id: '/api/verify-payment'
+      path: '/api/verify-payment'
+      fullPath: '/api/verify-payment'
+      preLoaderRoute: typeof ApiVerifyPaymentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/upload': {
+      id: '/api/upload'
+      path: '/api/upload'
+      fullPath: '/api/upload'
+      preLoaderRoute: typeof ApiUploadRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/send-email': {
@@ -880,6 +920,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiEmployeesRoute: ApiEmployeesRoute,
   ApiRolesRoute: ApiRolesRoute,
   ApiSendEmailRoute: ApiSendEmailRoute,
+  ApiUploadRoute: ApiUploadRoute,
+  ApiVerifyPaymentRoute: ApiVerifyPaymentRoute,
   HotelsIdRoute: HotelsIdRoute,
   HotelsIndexRoute: HotelsIndexRoute,
 }

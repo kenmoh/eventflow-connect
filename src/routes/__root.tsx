@@ -32,14 +32,14 @@ export const Route = createRootRoute({
       { property: "og:title", content: "AB Consult — Book Events. Rent Equipment." },
       { property: "og:description", content: "Professional event venue booking and equipment rental services." },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://abconsult.com" },
+      { property: "og:url", content: "https://eventflow-connect.kenneth-aremoh.workers.dev" },
       { property: "og:site_name", content: "AB Consult" },
-      { property: "og:image", content: "https://abconsult.com/og-image.jpg" },
+      { property: "og:image", content: "https://eventflow-connect.kenneth-aremoh.workers.dev/og-image.jpg" },
       
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "AB Consult — Book Events. Rent Equipment." },
       { name: "twitter:description", content: "Professional event venue booking and equipment rental services." },
-      { name: "twitter:image", content: "https://abconsult.com/og-image.jpg" },
+      { name: "twitter:image", content: "https://eventflow-connect.kenneth-aremoh.workers.dev/og-image.jpg" },
       
       { name: "robots", content: "index, follow" },
       { name: "author", content: "AB Consult" },
@@ -47,7 +47,7 @@ export const Route = createRootRoute({
     links: [
       { rel: "icon", href: "/favicon.ico" },
       { rel: "apple-touch-icon", href: "/favicon.ico" },
-      { rel: "canonical", href: "https://abconsult.com" },
+      { rel: "canonical", href: "https://eventflow-connect.kenneth-aremoh.workers.dev" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       {
         rel: "preconnect",
@@ -66,7 +66,7 @@ export const Route = createRootRoute({
           "@context": "https://schema.org",
           "@type": "Organization",
           "name": "AB Consult",
-          "url": "https://abconsult.com",
+          "url": "https://eventflow-connect.kenneth-aremoh.workers.dev",
           "description": "Professional event venue booking and equipment rental services in Nigeria.",
           "areaServed": { "@type": "Country", "name": "Nigeria" },
           "serviceType": ["Hotel Venue Booking", "Event Equipment Rental", "Conference Hall Rental"],
