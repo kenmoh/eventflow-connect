@@ -2,7 +2,7 @@
 import { defineConfig } from "vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
-import { nitro } from 'nitro/vite';
+import netlify from '@netlify/vite-plugin-tanstack-start'
 
 export default defineConfig({
   server: {
@@ -12,11 +12,14 @@ export default defineConfig({
       "X-Content-Type-Options": "nosniff",
       "Referrer-Policy": "strict-origin-when-cross-origin",
       "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
-      "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.paystack.co https://*.clerk.accounts.dev https://clerk.accounts.dev https://*.accounts.dev https://eventflow-connect.kenneth-aremoh.workers.dev https://*.clerk.com https://clerk.com https://*.vercel.app; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https: https://img.clerk.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://api.resend.com https://api.paystack.co https://*.clerk.accounts.dev https://clerk.accounts.dev https://*.accounts.dev https://*.neon.tech https://eventflow-connect.kenneth-aremoh.workers.dev https://*.clerk.com https://clerk.com https://*.vercel.app; frame-src https://checkout.paystack.com https://*.clerk.accounts.dev https://*.accounts.dev https://eventflow-connect.kenneth-aremoh.workers.dev https://*.clerk.com https://clerk.com https://*.vercel.app; media-src 'self';",
+      "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.paystack.co https://*.clerk.accounts.dev https://clerk.accounts.dev https://*.accounts.dev https://eventflow-connect.kenneth-aremoh.workers.dev https://*.clerk.com https://clerk.com https://*.vercel.app https://*.netlify.app; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https: https://img.clerk.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://api.resend.com https://api.paystack.co https://*.clerk.accounts.dev https://clerk.accounts.dev https://*.accounts.dev https://*.neon.tech https://eventflow-connect.kenneth-aremoh.workers.dev https://*.clerk.com https://clerk.com https://*.vercel.app https://*.netlify.app; frame-src https://checkout.paystack.com https://*.clerk.accounts.dev https://*.accounts.dev https://eventflow-connect.kenneth-aremoh.workers.dev https://*.clerk.com https://clerk.com https://*.vercel.app https://*.netlify.app; media-src 'self';",
     },
   },
   resolve: {
     tsconfigPaths: true,
   },
- plugins: [tanstackStart(), nitro(), viteReact()],
+ plugins: [tanstackStart(), netlify(), viteReact()],
 });
+
+
+
