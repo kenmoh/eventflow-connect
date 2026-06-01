@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "framework": "vite",
+  "build": {
+    "env": {
+      "ENABLE_VC_BUILD_EXTRAS": "1"
+    }
+  },
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/"
+    }
+  ]
+}
