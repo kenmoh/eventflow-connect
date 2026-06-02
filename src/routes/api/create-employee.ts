@@ -1,56 +1,38 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router';
+import { v4 as uuidv4 } from 'uuid';
+import { getDb } from '@/db/client';
+import { profiles } from '@/db/schema';
+import { hashPassword } from '@/lib/auth';
 
 export const Route = createFileRoute('/api/create-employee')({
   server: {
     handlers: {
       POST: async ({ request }: { request: Request }) => {
-        const { name, email, password, roleId } = await request.json()
+        const { name, email, password, roleId } = await request.json();
 
         if (!name || !email) {
-          return Response.json({ error: 'Name and email are required' }, { status: 400 })
+          return Response.json({ error: 'Name and email are required' }, { status: 400 });
         }
 
         try {
-          const { createClerkClient } = await import('@clerk/backend')
-          const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY })
+          const db = getDb();
+          const id = uuidv4();
+          const passwordHash = password ? await hashPassword(password) : null;
 
-          const names = name.trim().split(/\s+/)
-          const firstName = names[0] || ''
-          const lastName = names.slice(1).join(' ') || ''
+          await db.insert(profiles).values({
+            id,
+            name,
+            email,
+            passwordHash,
+            roleId: roleId || null,
+          });
 
-          const user = await clerk.users.createUser({
-            emailAddress: [email],
-            password,
-            firstName,
-            lastName,
-            skipPasswordRequirement: !password,
-            skipPasswordChecks: true,
-          })
-
-          const emailId = user.emailAddresses?.[0]?.id
-          if (emailId) {
-            await fetch(`https://api.clerk.com/v1/email_addresses/${emailId}`, {
-              method: 'PATCH',
-              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.CLERK_SECRET_KEY}` },
-              body: JSON.stringify({ verified: true }),
-            })
-          }
-
-          const { getDb } = await import('@/db/client')
-          const { profiles } = await import('@/db/schema')
-          await getDb().insert(profiles).values({ id: user.id, name, email }).onConflictDoNothing()
-
-          if (roleId) {
-            const { setEmployeeRole } = await import('@/lib/db')
-            await setEmployeeRole(user.id, roleId)
-          }
-
-          return Response.json({ success: true, id: user.id })
+          return Response.json({ success: true, id });
         } catch (e: any) {
-          console.error('Create employee error:', e)
-          return Response.json({ error: e?.errors?.[0]?.message || e?.message || 'Create failed' }, { status: 500 })
+          console.error('Create employee error:', e);
+          return Response.json({ error: e?.message || 'Create failed' }, { status: 500 });
         }
       },
     },
   },
-})
+});

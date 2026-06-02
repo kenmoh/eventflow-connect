@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { useEffect, useMemo } from "react";
-import { useAuth, useUser } from "@clerk/tanstack-react-start";
+import { useMemo, useEffect } from "react";
 import type {
   Hotel,
   Room,
@@ -22,6 +21,18 @@ import type {
   SavedReceipt,
   Contact,
 } from "./types";
+import { getSessionUser, logout as serverLogout } from "./db";
+
+export type SessionState = {
+  userId: string | null;
+  profile: {
+    id: string;
+    name: string;
+    email: string;
+    roleId: string | null;
+  } | null;
+  loaded: boolean;
+};
 
 const defaultBranding: Branding = {
   brandName: "AB Consult",
@@ -275,94 +286,60 @@ function initAuth() {
   };
 }
 
-function ClerkSessionEffect() {
-  const { isLoaded: authLoaded, userId: authUserId } = useAuth();
-  const { isLoaded: userLoaded, user } = useUser();
-  const loaded = authLoaded && userLoaded;
-
+function CustomSessionEffect() {
   useEffect(() => {
-    let failsafeTimer: any;
+    let active = true;
 
-    console.log("[Clerk] Status:", { authLoaded, userLoaded, authUserId, user: !!user });
+    async function checkSession() {
+      try {
+        const user = await getSessionUser();
+        if (!active) return;
 
-    // If auth is not loaded within 6 seconds, force the loaded state so the 
-    // AuthScreen can at least attempt to render the Clerk components.
-    if (!loaded) {
-      failsafeTimer = setTimeout(() => {
-        const current = useStoreBase.getState().session;
-        if (!current.loaded) {
-          console.warn("Clerk loading timed out, forcing session loaded state. AuthLoaded:", authLoaded, "UserLoaded:", userLoaded);
+        if (user) {
           useStoreBase.setState({
-            session: { ...current, loaded: true },
-          });
-        }
-      }, 6000);
-      return () => clearTimeout(failsafeTimer);
-    }
+            session: {
+              userId: user.id,
+              profile: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                roleId: user.roleId,
+              },
+              loaded: true,
+            },
+          } as any);
 
-    if (!user) {
-      useStoreBase.setState({
-        session: { userId: null, profile: null, loaded: true },
-        employees: [],
-      } as any);
-      return;
-    }
-
-    const email =
-      user.primaryEmailAddress?.emailAddress ||
-      user.emailAddresses?.[0]?.emailAddress ||
-      "";
-    const name =
-      [user.firstName, user.lastName].filter(Boolean).join(" ") ||
-      user.fullName ||
-      user.username ||
-      "Unknown";
-
-    useStoreBase.setState({
-      session: {
-        userId: user.id,
-        profile: {
-          id: user.id,
-          name,
-          email,
-          roleId: (user.publicMetadata?.role as string | null) ?? null,
-        },
-        loaded: true,
-      },
-    } as any);
-
-    console.log("[Clerk] Session synced to store:", user.id, user.publicMetadata?.role);
-
-    if (user.id) {
-      let attempts = 0;
-      let profileTimeoutId: any;
-
-      function fetchProfile() {
-        fetch('/api/employees')
-          .then((r) => r.ok ? r.json() : null)
-          .then((employees) => {
-            if (!employees) return;
+          // Fetch employees to sync roleId if it changed in DB
+          const r = await fetch('/api/employees');
+          if (r.ok && active) {
+            const employees = await r.json();
             useStoreBase.setState({ employees } as any);
             const myProfile = employees.find((e: any) => e.id === user.id);
-            if (myProfile?.roleId) {
+            if (myProfile?.roleId && myProfile.roleId !== user.roleId) {
               const current = useStoreBase.getState().session;
-              if (current.profile?.roleId !== myProfile.roleId) {
-                useStoreBase.setState({
-                  session: { ...current, profile: { ...current.profile!, roleId: myProfile.roleId } },
-                } as any);
-              }
-            } else if (attempts < 10) {
-              attempts++;
-              profileTimeoutId = setTimeout(fetchProfile, 1500);
+              useStoreBase.setState({
+                session: { ...current, profile: { ...current.profile!, roleId: myProfile.roleId } },
+              } as any);
             }
-          })
-          .catch(() => { /* ignore */ });
+          }
+        } else {
+          useStoreBase.setState({
+            session: { userId: null, profile: null, loaded: true },
+            employees: [],
+          } as any);
+        }
+      } catch (e) {
+        if (active) {
+          useStoreBase.setState({
+            session: { userId: null, profile: null, loaded: true },
+          } as any);
+        }
       }
-
-      fetchProfile();
-      return () => clearTimeout(profileTimeoutId);
     }
-  }, [user, loaded]);
+
+    checkSession();
+    return () => { active = false; };
+  }, []);
 
   return null;
 }
@@ -398,7 +375,7 @@ export function BrandingEffects() {
     );
     document.title = `${branding.brandName} — ${branding.tagline}`;
   }, [branding]);
-  return <ClerkSessionEffect />;
+  return <CustomSessionEffect />;
 }
 
 export function makeReference() {
@@ -436,6 +413,7 @@ export function useAllowedTabs(): AdminTab[] {
 }
 
 export async function logout() {
+  await serverLogout();
   window.location.href = '/';
 }
 

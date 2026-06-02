@@ -5,7 +5,10 @@ import {
   useAllowedTabs,
   logout,
 } from "@/lib/store";
-import { SignIn, SignUp } from "@clerk/tanstack-react-start";
+import {
+  login as serverLogin,
+  signup as serverSignup,
+} from "@/lib/db";
 import {
   ArrowLeft,
   LogOut,
@@ -29,6 +32,7 @@ import {
   Moon,
   Mail,
   Loader2,
+  History,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { AdminTab } from "@/lib/types";
@@ -37,6 +41,7 @@ const NAV: [AdminTab, string, React.ElementType][] = [
   ["revenue", "Revenue", TrendingUp],
   ["bookings", "Bookings", Calendar],
   ["contacts", "Contacts", Mail],
+  ["activity", "Activity", History],
   ["inventory", "Inventory", Building],
   ["hotels", "Hotels", Building],
   ["rooms", "Rooms", Bed],
@@ -111,6 +116,12 @@ function AdminLayout() {
 
 function AuthScreen() {
   const [ownerExists, setOwnerExists] = useState<boolean | null>(null);
+  const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetch('/api/employees')
@@ -118,6 +129,25 @@ function AuthScreen() {
       .then(emps => setOwnerExists(emps.length > 0))
       .catch(() => setOwnerExists(false));
   }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    try {
+      if (!ownerExists || !isLogin) {
+        await serverSignup({ data: { email, password, name } });
+      } else {
+        await serverLogin({ data: { email, password } });
+      }
+      window.location.reload();
+    } catch (err: any) {
+      setError(err.message || "Authentication failed");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (ownerExists === null) {
     return (
@@ -134,32 +164,65 @@ function AuthScreen() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-md bg-card border border-border p-8 shadow-sm">
         <div className="flex flex-col items-center">
           <h1 className="font-display text-3xl mb-8 text-center">
-            {ownerExists ? "Admin Portal" : "Setup Owner"}
+            {!ownerExists ? "Setup Owner" : (isLogin ? "Admin Login" : "Create Account")}
           </h1>
           
-          {ownerExists ? (
-            <SignIn 
-              routing="hash"
-              forceRedirectUrl="/admin/revenue"
-              appearance={{
-                elements: {
-                  footerAction: { display: 'none' }
-                }
-              }}
-            />
-          ) : (
-            <div className="flex flex-col items-center">
-              <p className="mb-8 text-muted-foreground text-center text-sm">
-                First time setup — create the owner account.
-              </p>
-              <SignUp 
-                routing="hash"
-                forceRedirectUrl="/admin/revenue"
+          <form onSubmit={handleSubmit} className="w-full space-y-4">
+            {(!ownerExists || !isLogin) && (
+              <div className="space-y-1">
+                <label className="text-[10px] uppercase tracking-widest text-muted-foreground">Full Name</label>
+                <input
+                  type="text"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full bg-background border border-border p-3 outline-none focus:border-gold transition-colors"
+                />
+              </div>
+            )}
+            <div className="space-y-1">
+              <label className="text-[10px] uppercase tracking-widest text-muted-foreground">Email Address</label>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full bg-background border border-border p-3 outline-none focus:border-gold transition-colors"
               />
             </div>
+            <div className="space-y-1">
+              <label className="text-[10px] uppercase tracking-widest text-muted-foreground">Password</label>
+              <input
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full bg-background border border-border p-3 outline-none focus:border-gold transition-colors"
+              />
+            </div>
+
+            {error && <p className="text-destructive text-xs text-center">{error}</p>}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-gold text-white p-4 uppercase tracking-widest text-xs hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+              {!ownerExists ? "Complete Setup" : (isLogin ? "Sign In" : "Sign Up")}
+            </button>
+          </form>
+
+          {ownerExists && (
+            <button
+              onClick={() => setIsLogin(!isLogin)}
+              className="mt-6 text-[10px] uppercase tracking-[0.3em] text-muted-foreground hover:text-gold transition"
+            >
+              {isLogin ? "Need an account? Sign up" : "Already have an account? Sign in"}
+            </button>
           )}
           
           <div className="mt-8 text-center">

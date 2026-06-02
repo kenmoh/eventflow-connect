@@ -150,6 +150,12 @@ const _loadEmployees = createServerFn({ method: 'GET' })
     return dbLoadEmployees();
   });
 
+const _loadActivity = createServerFn({ method: 'GET' })
+  .handler(async () => {
+    const { dbLoadActivity } = await import('./db.server');
+    return dbLoadActivity();
+  });
+
 const _loadReceipts = createServerFn({ method: 'GET' })
   .handler(async () => {
     const { dbLoadReceipts } = await import('./db.server');
@@ -204,6 +210,7 @@ export const adjustStock = (itemId: string, newAvailable: number) => _adjustStoc
 export const upsertRole = (r: Role) => _upsertRole({ data: r });
 export const deleteRole = (id: string) => _deleteRole({ data: id });
 export const loadEmployees = () => _loadEmployees();
+export const loadActivity = () => _loadActivity();
 export const loadReceipts = () => _loadReceipts();
 export const setEmployeeRole = (userId: string, roleId: string | null) => _setEmployeeRole({ data: { userId, roleId } });
 export const insertReceipt = (r: SavedReceipt) => _insertReceipt({ data: r });
@@ -222,3 +229,92 @@ export const internal_loadEmployees = async () => {
   const { dbLoadEmployees } = await import('./db.server');
   return dbLoadEmployees();
 };
+
+export const internal_loadActivity = async () => {
+  const { dbLoadActivity } = await import('./db.server');
+  return dbLoadActivity();
+};
+
+// --- CUSTOM AUTH SERVER FUNCTIONS ---
+
+export const login = createServerFn({ method: 'POST' })
+  .validator((d: { email: string, password: string }) => d)
+  .handler(async ({ data }) => {
+    const { getDb } = await import('@/db/client');
+    const { profiles } = await import('@/db/schema');
+    const { eq } = await import('drizzle-orm');
+    const { verifyPassword, createSession } = await import('./auth');
+
+    const user = await getDb().query.profiles.findFirst({
+      where: eq(profiles.email, data.email),
+    });
+
+    if (!user || !user.passwordHash || !(await verifyPassword(data.password, user.passwordHash))) {
+      throw new Error('Invalid email or password');
+    }
+
+    await createSession(user.id);
+    return { success: true };
+  });
+
+export const signup = createServerFn({ method: 'POST' })
+  .validator((d: { email: string, password: string, name: string }) => d)
+  .handler(async ({ data }) => {
+    const { getDb } = await import('@/db/client');
+    const { profiles, roles } = await import('@/db/schema');
+    const { eq } = await import('drizzle-orm');
+    const { hashPassword, createSession } = await import('./auth');
+    const { v4: uuidv4 } = await import('uuid');
+
+    const db = getDb();
+    const existing = await db.query.profiles.findFirst({
+      where: eq(profiles.email, data.email),
+    });
+
+    if (existing) {
+      throw new Error('User already exists');
+    }
+
+    const passwordHash = await hashPassword(data.password);
+    const id = uuidv4();
+
+    // If first user, make them owner
+    const allUsers = await db.select().from(profiles).limit(1);
+    let roleId: string | null = null;
+    if (allUsers.length === 0) {
+      const ownerRole = await db.query.roles.findFirst({ where: eq(roles.name, 'owner') });
+      if (ownerRole) roleId = ownerRole.id;
+    }
+
+    await db.insert(profiles).values({
+      id,
+      email: data.email,
+      name: data.name,
+      passwordHash,
+      roleId,
+    });
+
+    await createSession(id);
+    return { success: true };
+  });
+
+export const logout = createServerFn({ method: 'POST' })
+  .handler(async () => {
+    const { destroySession } = await import('./auth');
+    await destroySession();
+    return { success: true };
+  });
+
+export const getSessionUser = createServerFn({ method: 'GET' })
+  .handler(async () => {
+    const { getCurrentUser } = await import('./auth');
+    const user = await getCurrentUser();
+    if (!user) return null;
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      roleId: user.roleId,
+    };
+  });
+

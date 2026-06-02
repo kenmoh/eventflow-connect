@@ -16,6 +16,7 @@ import {
   rooms,
   seatArrangements,
   siteContent,
+  activityLogs,
 } from '@/db/schema';
 import type {
   Hotel,
@@ -35,15 +36,40 @@ import type {
   AdminTab,
   SavedReceipt,
   Contact,
+  ActivityLog,
 } from './types';
+import { getCached, setCache, invalidateCache } from './cache';
+import { getCurrentUser } from './auth';
 
 // --- Auth Helpers ---
-async function requireAdmin(): Promise<string | null> {
-  return 'server';
+async function requireAdmin() {
+  const user = await getCurrentUser();
+  if (!user || !user.roleId) return null;
+  return user;
 }
 
-async function requireOwner(): Promise<string | null> {
-  return 'server';
+async function requireOwner() {
+  const user = await getCurrentUser();
+  if (!user || !user.roleId) return null;
+  // TODO: Add actual owner check via roles table
+  return user;
+}
+
+// --- Activity Logging ---
+async function internal_logActivity(action: string, details?: any) {
+  const user = await getCurrentUser();
+  if (!user) return;
+
+  try {
+    await getDb().insert(activityLogs).values({
+      userId: user.id,
+      userName: user.name,
+      action,
+      details,
+    });
+  } catch (e) {
+    console.error('[Logging] Failed to log activity:', e);
+  }
 }
 
 // --- Mappers & Helpers ---
@@ -89,10 +115,13 @@ const idOrNew = (id: string) => isUuid(id) ? id : undefined;
 // --- CORE LOGIC ---
 
 export async function dbLoadCatalog() {
+  const cacheKey = 'catalog';
+  const cached = getCached<any>(cacheKey);
+  if (cached) return cached;
+
   try {
     const db = getDb();
     
-    // Split into smaller batches or sequential to avoid overwhelming the serverless function/connection
     const brandingRow = await db.query.branding.findFirst().catch(() => null);
     const contentRow = await db.query.siteContent.findFirst().catch(() => null);
     const hotelsRows = await db.select().from(hotels).orderBy(asc(hotels.name)).execute().catch(() => []);
@@ -108,39 +137,46 @@ export async function dbLoadCatalog() {
     const receiptsRows = await db.select().from(receipts).orderBy(desc(receipts.createdAt)).execute().catch(() => []);
     const contactsRows = await db.select().from(contacts).orderBy(desc(contacts.createdAt)).execute().catch(() => []);
 
-    return {
-    branding: brandingRow
-      ? {
-          brandName: brandingRow.brandName,
-          tagline: brandingRow.tagline,
-          primaryAccent: brandingRow.primaryAccent,
-        }
-      : null,
-    content: contentRow?.data ?? null,
-    hotels: (hotelsRows || []) as Hotel[],
-    rooms: (roomsRows || []) as Room[],
-    halls: (hallsRows || []) as Hall[],
-    packages: (packagesRows || []) as Pkg[],
-    arrangements: (arrangementsRows || []) as SeatArrangement[],
-    rentals: (rentalsRows || []) as RentalItem[],
-    faqs: (faqsRows || []) as FAQ[],
-    bookings: (bookingsRows || []).map(mapBooking),
-    movements: (movementsRows || []).map(mapMovement),
-    roles: (rolesRows || []).map((r: any): Role => ({ id: r.id, name: r.name, tabs: (r.tabs ?? []) as AdminTab[] })),
-    receipts: (receiptsRows || []).map((r: any): SavedReceipt => ({
-      id: r.id,
-      docType: r.docType ?? 'receipt',
-      clientName: r.customerName ?? '',
-      clientEmail: r.customerEmail ?? '',
-      clientPhone: r.customerPhone ?? '',
-      clientAddress: r.customerAddress ?? '',
-      items: r.items ?? [],
-      notes: r.notes ?? '',
-      total: Number(r.total),
-      createdAt: r.createdAt,
-    })),
-    contacts: (contactsRows || []).map(mapContact),
-  };
+    const data = {
+      branding: brandingRow
+        ? {
+            brandName: brandingRow.brandName,
+            tagline: brandingRow.tagline,
+            primaryAccent: brandingRow.primaryAccent,
+          }
+        : null,
+      content: contentRow?.data ?? null,
+      hotels: (hotelsRows || []) as Hotel[],
+      rooms: (roomsRows || []) as Room[],
+      halls: (hallsRows || []) as Hall[],
+      packages: (packagesRows || []) as Pkg[],
+      arrangements: (arrangementsRows || []) as SeatArrangement[],
+      rentals: (rentalsRows || []) as RentalItem[],
+      faqs: (faqsRows || []) as FAQ[],
+      bookings: (bookingsRows || []).map(mapBooking),
+      movements: (movementsRows || []).map(mapMovement),
+      roles: (rolesRows || []).map((r: any): Role => ({ id: r.id, name: r.name, tabs: (r.tabs ?? []) as AdminTab[] })),
+      receipts: (receiptsRows || []).map((r: any): SavedReceipt => ({
+        id: r.id,
+        docType: r.docType ?? 'receipt',
+        clientName: r.customerName ?? '',
+        clientEmail: r.customerEmail ?? '',
+        clientPhone: r.customerPhone ?? '',
+        clientAddress: r.customerAddress ?? '',
+        items: r.items ?? [],
+        notes: r.notes ?? '',
+        total: Number(r.total),
+        createdAt: r.createdAt,
+      })),
+      contacts: (contactsRows || []).map(mapContact),
+    };
+
+    setCache(cacheKey, data, 300000); // 5 minute cache
+    return data;
+  } catch (error: any) {
+    console.error('[dbLoadCatalog] Fatal Error:', error);
+    throw new Error(`Database error: ${error.message}`);
+  }
 }
 
 export async function dbSaveBranding(b: Branding) {
@@ -153,6 +189,8 @@ export async function dbSaveBranding(b: Branding) {
   } else {
     await db.insert(branding).values(payload);
   }
+  await internal_logActivity('Updated Branding', b);
+  invalidateCache('catalog');
 }
 
 export async function dbSaveContent(c: SiteContent) {
@@ -164,64 +202,82 @@ export async function dbSaveContent(c: SiteContent) {
   } else {
     await db.insert(siteContent).values({ data: c as any });
   }
+  await internal_logActivity('Updated Site Content');
+  invalidateCache('catalog');
 }
 
 export async function dbDeleteItem(table: string, id: string) {
   if (!await requireAdmin()) throw new Error('Unauthorized');
   const db = getDb();
   switch (table) {
-    case 'hotels': return db.delete(hotels).where(eq(hotels.id, id));
-    case 'rooms': return db.delete(rooms).where(eq(rooms.id, id));
-    case 'halls': return db.delete(halls).where(eq(halls.id, id));
-    case 'packages': return db.delete(packages).where(eq(packages.id, id));
-    case 'seat_arrangements': return db.delete(seatArrangements).where(eq(seatArrangements.id, id));
-    case 'rentals': return db.delete(rentals).where(eq(rentals.id, id));
-    case 'faqs': return db.delete(faqs).where(eq(faqs.id, id));
-    case 'receipts': return db.delete(receipts).where(eq(receipts.id, id));
-    case 'contacts': return db.delete(contacts).where(eq(contacts.id, id));
+    case 'hotels': await db.delete(hotels).where(eq(hotels.id, id)); break;
+    case 'rooms': await db.delete(rooms).where(eq(rooms.id, id)); break;
+    case 'halls': await db.delete(halls).where(eq(halls.id, id)); break;
+    case 'packages': await db.delete(packages).where(eq(packages.id, id)); break;
+    case 'seat_arrangements': await db.delete(seatArrangements).where(eq(seatArrangements.id, id)); break;
+    case 'rentals': await db.delete(rentals).where(eq(rentals.id, id)); break;
+    case 'faqs': await db.delete(faqs).where(eq(faqs.id, id)); break;
+    case 'receipts': await db.delete(receipts).where(eq(receipts.id, id)); break;
+    case 'contacts': await db.delete(contacts).where(eq(contacts.id, id)); break;
   }
+  await internal_logActivity(`Deleted ${table}`, { id });
+  invalidateCache('catalog');
 }
 
 export async function dbUpsertHotel(h: Hotel) {
   if (!await requireAdmin()) throw new Error('Unauthorized');
   const payload = { id: idOrNew(h.id), name: h.name, location: h.location, tagline: h.tagline, image: h.image, rating: h.rating, amenities: h.amenities };
   await getDb().insert(hotels).values(payload as any).onConflictDoUpdate({ target: hotels.id, set: payload });
+  await internal_logActivity('Upserted Hotel', h.name);
+  invalidateCache('catalog');
 }
 
 export async function dbUpsertRoom(r: Room) {
   if (!await requireAdmin()) throw new Error('Unauthorized');
   const payload = { id: idOrNew(r.id), hotelId: r.hotelId, type: r.type, description: r.description, price: r.price, capacity: r.capacity, image: r.image };
   await getDb().insert(rooms).values(payload as any).onConflictDoUpdate({ target: rooms.id, set: payload });
+  await internal_logActivity('Upserted Room', r.type);
+  invalidateCache('catalog');
 }
 
 export async function dbUpsertHall(h: Hall) {
   if (!await requireAdmin()) throw new Error('Unauthorized');
   const payload = { id: idOrNew(h.id), hotelId: h.hotelId, name: h.name, capacity: h.capacity, pricePerHour: h.pricePerHour, image: h.image, amenities: h.amenities };
   await getDb().insert(halls).values(payload as any).onConflictDoUpdate({ target: halls.id, set: payload });
+  await internal_logActivity('Upserted Hall', h.name);
+  invalidateCache('catalog');
 }
 
 export async function dbUpsertPackage(p: Pkg) {
   if (!await requireAdmin()) throw new Error('Unauthorized');
   const payload = { id: idOrNew(p.id), hotelId: p.hotelId, kind: p.kind, name: p.name, description: p.description, items: p.items, pricePerPerson: p.pricePerPerson, timeSlots: p.timeSlots as any };
   await getDb().insert(packages).values(payload as any).onConflictDoUpdate({ target: packages.id, set: payload });
+  await internal_logActivity('Upserted Package', p.name);
+  invalidateCache('catalog');
 }
 
 export async function dbUpsertArrangement(a: SeatArrangement) {
   if (!await requireAdmin()) throw new Error('Unauthorized');
   const payload = { id: idOrNew(a.id), name: a.name, description: a.description, image: a.image };
   await getDb().insert(seatArrangements).values(payload as any).onConflictDoUpdate({ target: seatArrangements.id, set: payload });
+  await internal_logActivity('Upserted Arrangement', a.name);
+  invalidateCache('catalog');
 }
 
 export async function dbUpsertRental(r: RentalItem) {
   if (!await requireAdmin()) throw new Error('Unauthorized');
   const payload = { id: idOrNew(r.id), name: r.name, category: r.category, pricePerDay: r.pricePerDay, ownership: r.ownership, depositPct: r.depositPct, image: r.image, description: r.description, available: r.available, stockTotal: r.stockTotal, stockAvailable: r.stockAvailable, location: r.location };
   await getDb().insert(rentals).values(payload as any).onConflictDoUpdate({ target: rentals.id, set: payload });
+  await internal_logActivity('Upserted Rental Item', r.name);
+  invalidateCache('catalog');
 }
 
 export async function dbUpsertFaq(f: FAQ) {
   if (!await requireAdmin()) throw new Error('Unauthorized');
   const payload = { id: idOrNew(f.id), question: f.question, answer: f.answer, order: f.order, published: f.published };
   await getDb().insert(faqs).values(payload as any).onConflictDoUpdate({ target: faqs.id, set: payload });
+  await internal_logActivity('Upserted FAQ', f.question.slice(0, 30));
+  invalidateCache('catalog');
 }
 
 export async function dbInsertBooking(b: Booking) {
@@ -239,6 +295,7 @@ export async function dbInsertBooking(b: Booking) {
     paymentStatus: b.paymentStatus,
     fulfillment: b.fulfillment,
   } as any);
+  invalidateCache('catalog');
 }
 
 export async function dbUpdateBooking(ref: string, patch: Partial<Booking>) {
@@ -251,6 +308,8 @@ export async function dbUpdateBooking(ref: string, patch: Partial<Booking>) {
   if (Object.keys(upd).length > 0) {
     await getDb().update(bookings).set(upd).where(eq(bookings.reference, ref));
   }
+  await internal_logActivity('Updated Booking', { ref, ...patch });
+  invalidateCache('catalog');
 }
 
 export async function dbLookupBookings(query: string) {
@@ -263,21 +322,28 @@ export async function dbLookupBookings(query: string) {
 
 export async function dbInsertMovement(m: InventoryMovement) {
   await getDb().insert(inventoryMovements).values({ itemId: m.itemId, type: m.type, qty: m.qty, note: m.note, reference: m.reference ?? null, location: m.location ?? null, handledBy: m.handledBy ?? null } as any);
+  await internal_logActivity('Inventory Movement', { itemId: m.itemId, type: m.type, qty: m.qty });
+  invalidateCache('catalog');
 }
 
 export async function dbAdjustStock(itemId: string, newAvailable: number) {
   await getDb().update(rentals).set({ stockAvailable: newAvailable }).where(eq(rentals.id, itemId));
+  invalidateCache('catalog');
 }
 
 export async function dbUpsertRole(r: Role) {
   if (!await requireOwner()) throw new Error('Only the owner can manage roles');
-  const payload = { id: r.id, name: r.name, tabs: r.tabs as any };
+  const payload = { id: idOrNew(r.id), name: r.name, tabs: r.tabs as any };
   await getDb().insert(roles).values(payload as any).onConflictDoUpdate({ target: roles.id, set: payload });
+  await internal_logActivity('Upserted Role', r.name);
+  invalidateCache('catalog');
 }
 
 export async function dbDeleteRole(id: string) {
   if (!await requireOwner()) throw new Error('Only the owner can delete roles');
-  return getDb().delete(roles).where(eq(roles.id, id));
+  await getDb().delete(roles).where(eq(roles.id, id));
+  await internal_logActivity('Deleted Role', { id });
+  invalidateCache('catalog');
 }
 
 export async function dbLoadEmployees() {
@@ -313,6 +379,8 @@ export async function dbLoadReceipts() {
 
 export async function dbSetEmployeeRole(userId: string, roleId: string | null) {
   await getDb().update(profiles).set({ roleId: roleId || null }).where(eq(profiles.id, userId));
+  await internal_logActivity('Updated Employee Role', { userId, roleId });
+  invalidateCache('catalog');
 }
 
 export async function dbInsertReceipt(r: SavedReceipt) {
@@ -330,8 +398,24 @@ export async function dbInsertReceipt(r: SavedReceipt) {
     total: r.total,
     paid: r.total,
   } as any);
+  await internal_logActivity('Generated Receipt', { ref: r.id, total: r.total });
+  invalidateCache('catalog');
 }
 
 export async function dbInsertContact(c: Omit<Contact, 'id' | 'createdAt'>) {
   await getDb().insert(contacts).values({ name: c.name, email: c.email, phone: c.phone || null, subject: c.subject, message: c.message } as any);
+  invalidateCache('catalog');
+}
+
+export async function dbLoadActivity(): Promise<ActivityLog[]> {
+  const db = getDb();
+  const rows = await db.select().from(activityLogs).orderBy(desc(activityLogs.at)).limit(200).execute();
+  return rows.map(r => ({
+    id: r.id,
+    userId: r.userId,
+    userName: r.userName,
+    action: r.action,
+    details: r.details,
+    at: r.at.toISOString(),
+  }));
 }

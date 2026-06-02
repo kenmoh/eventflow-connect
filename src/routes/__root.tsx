@@ -13,7 +13,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { BrandingEffects } from "@/lib/store";
 import { ConfirmProvider } from "@/components/ConfirmProvider";
-import { ClerkProvider } from "@clerk/tanstack-react-start";
 
 const queryClient = new QueryClient();
 
@@ -78,30 +77,18 @@ export const Route = createRootRoute({
 });
 
 function RootComponent() {
-  const pk = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
-  if (!pk) {
-    console.error("[Clerk] Missing VITE_CLERK_PUBLISHABLE_KEY in environment!");
-  }
-
   return (
     <RootDocument>
-      <ClerkProvider 
-        publishableKey={pk}
-        signInUrl="/admin"
-        signUpUrl="/admin"
-
-      >
-        <QueryClientProvider client={queryClient}>
-          <ConfirmProvider>
-            <TooltipProvider>
-              <BrandingEffects />
-              <Toaster />
-              <Sonner />
-              <Outlet />
-            </TooltipProvider>
-          </ConfirmProvider>
-        </QueryClientProvider>
-      </ClerkProvider>
+      <QueryClientProvider client={queryClient}>
+        <ConfirmProvider>
+          <TooltipProvider>
+            <BrandingEffects />
+            <Toaster />
+            <Sonner />
+            <Outlet />
+          </TooltipProvider>
+        </ConfirmProvider>
+      </QueryClientProvider>
     </RootDocument>
   );
 }

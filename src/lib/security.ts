@@ -1,4 +1,4 @@
-import { auth as clerkAuth } from '@clerk/tanstack-react-start/server';
+// src/lib/security.ts
 
 // In-memory rate limiter (resets on server restart — use Redis/DB for production)
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();

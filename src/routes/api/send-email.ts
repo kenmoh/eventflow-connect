@@ -5,7 +5,7 @@ export const Route = createFileRoute('/api/send-email')({
     handlers: {
       POST: async ({ request }: { request: Request }) => {
         const { emailApiSchema } = await import('@/lib/validation');
-        const { auth: clerkAuth } = await import('@clerk/tanstack-react-start/server');
+        const { getSession } = await import('@/lib/auth');
 
         const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
         const RATE_LIMIT_WINDOW_MS = 60 * 1000;
@@ -36,7 +36,7 @@ export const Route = createFileRoute('/api/send-email')({
             return Response.json({ error: 'Too many requests. Try again later.' }, { status: 429 });
           }
 
-          const session = await clerkAuth();
+          const session = await getSession();
           if (!session?.userId) {
             return Response.json({ error: 'Unauthorized' }, { status: 401 });
           }

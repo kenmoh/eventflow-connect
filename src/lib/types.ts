@@ -114,7 +114,16 @@ export type Branding = {
 export type AdminTab =
   | 'branding' | 'content' | 'hotels' | 'rooms' | 'halls'
   | 'packages' | 'arrangements' | 'rentals' | 'inventory'
-  | 'bookings' | 'revenue' | 'faqs' | 'legal' | 'employees' | 'receipts' | 'contacts';
+  | 'bookings' | 'revenue' | 'faqs' | 'legal' | 'employees' | 'receipts' | 'contacts' | 'activity';
+
+export type ActivityLog = {
+  id: string;
+  userId: string;
+  userName: string;
+  action: string;
+  details: any;
+  at: string;
+};
 
 export type Role = {
   id: ID;

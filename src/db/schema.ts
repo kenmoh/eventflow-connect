@@ -46,9 +46,10 @@ export const roles = pgTable(
 export const profiles = pgTable(
   'profiles',
   {
-    id: text('id').primaryKey(), // Clerk user ID
+    id: text('id').primaryKey(), // Now internal ID
     name: text('name').notNull(),
     email: text('email').notNull(),
+    passwordHash: text('password_hash'), // For custom auth
     roleId: uuid('role_id'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
@@ -323,6 +324,25 @@ export const receipts = pgTable(
   },
   (t) => [
     index('receipts_reference_idx').on(t.reference),
+  ]
+);
+
+// =========================================================
+// ACTIVITY LOGS
+// =========================================================
+export const activityLogs = pgTable(
+  'activity_logs',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: text('user_id').notNull(),
+    userName: text('user_name').notNull(),
+    action: text('action').notNull(),
+    details: jsonb('details'),
+    at: timestamp('at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('activity_logs_user_id_idx').on(t.userId),
+    index('activity_logs_at_idx').on(t.at),
   ]
 );
 
