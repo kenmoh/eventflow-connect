@@ -150,6 +150,12 @@ const _loadEmployees = createServerFn({ method: 'GET' })
     return dbLoadEmployees();
   });
 
+const _loadReceipts = createServerFn({ method: 'GET' })
+  .handler(async () => {
+    const { dbLoadReceipts } = await import('./db.server');
+    return dbLoadReceipts();
+  });
+
 const _setEmployeeRole = createServerFn({ method: 'POST' })
   .validator((d: { userId: string, roleId: string | null }) => d)
   .handler(async ({ data: { userId, roleId } }) => {
@@ -198,6 +204,7 @@ export const adjustStock = (itemId: string, newAvailable: number) => _adjustStoc
 export const upsertRole = (r: Role) => _upsertRole({ data: r });
 export const deleteRole = (id: string) => _deleteRole({ data: id });
 export const loadEmployees = () => _loadEmployees();
+export const loadReceipts = () => _loadReceipts();
 export const setEmployeeRole = (userId: string, roleId: string | null) => _setEmployeeRole({ data: { userId, roleId } });
 export const insertReceipt = (r: SavedReceipt) => _insertReceipt({ data: r });
 export const deleteReceipt = (id: string) => _deleteItem({ data: { table: 'receipts', id } });

@@ -83,31 +83,32 @@ const mapBooking = (r: any): Booking => ({
   fulfillment: r.fulfillment,
 });
 
-const isUuid = (s: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
-const idOrNew = (id: string) => id; // Just return the ID, Drizzle handles UUID types
+const isUuid = (s: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
+const idOrNew = (id: string) => isUuid(id) ? id : undefined;
 
 // --- CORE LOGIC ---
 
 export async function dbLoadCatalog() {
-  const db = getDb();
-  const [brandingRow, contentRow, hotelsRows, roomsRows, hallsRows, packagesRows, arrangementsRows, rentalsRows, faqsRows, bookingsRows, movementsRows, rolesRows, receiptsRows, contactsRows] = await Promise.all([
-    db.query.branding.findFirst().catch(() => null),
-    db.query.siteContent.findFirst().catch(() => null),
-    db.select().from(hotels).orderBy(asc(hotels.name)).execute().catch(() => []),
-    db.select().from(rooms).orderBy(asc(rooms.type)).execute().catch(() => []),
-    db.select().from(halls).orderBy(asc(halls.name)).execute().catch(() => []),
-    db.select().from(packages).orderBy(asc(packages.name)).execute().catch(() => []),
-    db.select().from(seatArrangements).orderBy(asc(seatArrangements.name)).execute().catch(() => []),
-    db.select().from(rentals).orderBy(asc(rentals.name)).execute().catch(() => []),
-    db.select().from(faqs).orderBy(asc(faqs.order)).execute().catch(() => []),
-    db.select().from(bookings).orderBy(desc(bookings.createdAt)).execute().catch(() => []),
-    db.select().from(inventoryMovements).orderBy(desc(inventoryMovements.at)).execute().catch(() => []),
-    db.select().from(roles).orderBy(asc(roles.name)).execute().catch(() => []),
-    db.select().from(receipts).orderBy(desc(receipts.createdAt)).execute().catch(() => []),
-    db.select().from(contacts).orderBy(desc(contacts.createdAt)).execute().catch(() => []),
-  ]);
+  try {
+    const db = getDb();
+    
+    // Split into smaller batches or sequential to avoid overwhelming the serverless function/connection
+    const brandingRow = await db.query.branding.findFirst().catch(() => null);
+    const contentRow = await db.query.siteContent.findFirst().catch(() => null);
+    const hotelsRows = await db.select().from(hotels).orderBy(asc(hotels.name)).execute().catch(() => []);
+    const roomsRows = await db.select().from(rooms).orderBy(asc(rooms.type)).execute().catch(() => []);
+    const hallsRows = await db.select().from(halls).orderBy(asc(halls.name)).execute().catch(() => []);
+    const packagesRows = await db.select().from(packages).orderBy(asc(packages.name)).execute().catch(() => []);
+    const arrangementsRows = await db.select().from(seatArrangements).orderBy(asc(seatArrangements.name)).execute().catch(() => []);
+    const rentalsRows = await db.select().from(rentals).orderBy(asc(rentals.name)).execute().catch(() => []);
+    const faqsRows = await db.select().from(faqs).orderBy(asc(faqs.order)).execute().catch(() => []);
+    const bookingsRows = await db.select().from(bookings).orderBy(desc(bookings.createdAt)).execute().catch(() => []);
+    const movementsRows = await db.select().from(inventoryMovements).orderBy(desc(inventoryMovements.at)).execute().catch(() => []);
+    const rolesRows = await db.select().from(roles).orderBy(asc(roles.name)).execute().catch(() => []);
+    const receiptsRows = await db.select().from(receipts).orderBy(desc(receipts.createdAt)).execute().catch(() => []);
+    const contactsRows = await db.select().from(contacts).orderBy(desc(contacts.createdAt)).execute().catch(() => []);
 
-  return {
+    return {
     branding: brandingRow
       ? {
           brandName: brandingRow.brandName,
@@ -183,43 +184,43 @@ export async function dbDeleteItem(table: string, id: string) {
 
 export async function dbUpsertHotel(h: Hotel) {
   if (!await requireAdmin()) throw new Error('Unauthorized');
-  const payload = { id: h.id, name: h.name, location: h.location, tagline: h.tagline, image: h.image, rating: h.rating, amenities: h.amenities };
+  const payload = { id: idOrNew(h.id), name: h.name, location: h.location, tagline: h.tagline, image: h.image, rating: h.rating, amenities: h.amenities };
   await getDb().insert(hotels).values(payload as any).onConflictDoUpdate({ target: hotels.id, set: payload });
 }
 
 export async function dbUpsertRoom(r: Room) {
   if (!await requireAdmin()) throw new Error('Unauthorized');
-  const payload = { id: r.id, hotelId: r.hotelId, type: r.type, description: r.description, price: r.price, capacity: r.capacity, image: r.image };
+  const payload = { id: idOrNew(r.id), hotelId: r.hotelId, type: r.type, description: r.description, price: r.price, capacity: r.capacity, image: r.image };
   await getDb().insert(rooms).values(payload as any).onConflictDoUpdate({ target: rooms.id, set: payload });
 }
 
 export async function dbUpsertHall(h: Hall) {
   if (!await requireAdmin()) throw new Error('Unauthorized');
-  const payload = { id: h.id, hotelId: h.hotelId, name: h.name, capacity: h.capacity, pricePerHour: h.pricePerHour, image: h.image, amenities: h.amenities };
+  const payload = { id: idOrNew(h.id), hotelId: h.hotelId, name: h.name, capacity: h.capacity, pricePerHour: h.pricePerHour, image: h.image, amenities: h.amenities };
   await getDb().insert(halls).values(payload as any).onConflictDoUpdate({ target: halls.id, set: payload });
 }
 
 export async function dbUpsertPackage(p: Pkg) {
   if (!await requireAdmin()) throw new Error('Unauthorized');
-  const payload = { id: p.id, hotelId: p.hotelId, kind: p.kind, name: p.name, description: p.description, items: p.items, pricePerPerson: p.pricePerPerson, timeSlots: p.timeSlots as any };
+  const payload = { id: idOrNew(p.id), hotelId: p.hotelId, kind: p.kind, name: p.name, description: p.description, items: p.items, pricePerPerson: p.pricePerPerson, timeSlots: p.timeSlots as any };
   await getDb().insert(packages).values(payload as any).onConflictDoUpdate({ target: packages.id, set: payload });
 }
 
 export async function dbUpsertArrangement(a: SeatArrangement) {
   if (!await requireAdmin()) throw new Error('Unauthorized');
-  const payload = { id: a.id, name: a.name, description: a.description, image: a.image };
+  const payload = { id: idOrNew(a.id), name: a.name, description: a.description, image: a.image };
   await getDb().insert(seatArrangements).values(payload as any).onConflictDoUpdate({ target: seatArrangements.id, set: payload });
 }
 
 export async function dbUpsertRental(r: RentalItem) {
   if (!await requireAdmin()) throw new Error('Unauthorized');
-  const payload = { id: r.id, name: r.name, category: r.category, pricePerDay: r.pricePerDay, ownership: r.ownership, depositPct: r.depositPct, image: r.image, description: r.description, available: r.available, stockTotal: r.stockTotal, stockAvailable: r.stockAvailable, location: r.location };
+  const payload = { id: idOrNew(r.id), name: r.name, category: r.category, pricePerDay: r.pricePerDay, ownership: r.ownership, depositPct: r.depositPct, image: r.image, description: r.description, available: r.available, stockTotal: r.stockTotal, stockAvailable: r.stockAvailable, location: r.location };
   await getDb().insert(rentals).values(payload as any).onConflictDoUpdate({ target: rentals.id, set: payload });
 }
 
 export async function dbUpsertFaq(f: FAQ) {
   if (!await requireAdmin()) throw new Error('Unauthorized');
-  const payload = { id: f.id, question: f.question, answer: f.answer, order: f.order, published: f.published };
+  const payload = { id: idOrNew(f.id), question: f.question, answer: f.answer, order: f.order, published: f.published };
   await getDb().insert(faqs).values(payload as any).onConflictDoUpdate({ target: faqs.id, set: payload });
 }
 
@@ -280,13 +281,18 @@ export async function dbDeleteRole(id: string) {
 }
 
 export async function dbLoadEmployees() {
-  const data = await getDb().select().from(profiles).orderBy(asc(profiles.name)).execute();
-  return data.map((p: any): Omit<Employee, 'password'> => ({
-    id: p.id,
-    name: p.name,
-    email: p.email,
-    roleId: p.roleId ?? '',
-  }));
+  try {
+    const data = await getDb().select().from(profiles).orderBy(asc(profiles.name)).execute();
+    return data.map((p: any): Omit<Employee, 'password'> => ({
+      id: p.id,
+      name: p.name,
+      email: p.email,
+      roleId: p.roleId ?? '',
+    }));
+  } catch (error: any) {
+    console.error('[dbLoadEmployees] Error:', error);
+    throw error;
+  }
 }
 
 export async function dbLoadReceipts() {

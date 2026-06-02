@@ -13,7 +13,13 @@ export function getDb() {
 
   const url = process.env.DATABASE_URL;
   if (!url) {
+    console.error('[DB Client] DATABASE_URL is not set in process.env');
     throw new Error('DATABASE_URL is not set');
+  }
+
+  // Basic check for valid protocol
+  if (!url.startsWith('postgres') && !url.startsWith('postgresql')) {
+    console.error('[DB Client] DATABASE_URL does not start with postgres/postgresql');
   }
 
   const sql = neon(url);
