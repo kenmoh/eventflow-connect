@@ -89,25 +89,26 @@ const mapBooking = (r: any): Booking => ({
 const isUuid = (s: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
 const idOrNew = (id: string) => isUuid(id) ? id : undefined;
 
-// --- SERVER-ONLY CORE LOGIC ---
+// --- CORE LOGIC (Server-only) ---
 
-const _loadCatalog = createServerFn({ method: 'GET' })
-  .handler(async () => {
+export async function internal_loadCatalog() {
+  try {
+    const db = getDb();
     const [brandingRow, contentRow, hotelsRows, roomsRows, hallsRows, packagesRows, arrangementsRows, rentalsRows, faqsRows, bookingsRows, movementsRows, rolesRows, receiptsRows, contactsRows] = await Promise.all([
-      getDb().query.branding.findFirst(),
-      getDb().query.siteContent.findFirst(),
-      getDb().select().from(hotels).orderBy(asc(hotels.name)).execute(),
-      getDb().select().from(rooms).orderBy(asc(rooms.type)).execute(),
-      getDb().select().from(halls).orderBy(asc(halls.name)).execute(),
-      getDb().select().from(packages).orderBy(asc(packages.name)).execute(),
-      getDb().select().from(seatArrangements).orderBy(asc(seatArrangements.name)).execute(),
-      getDb().select().from(rentals).orderBy(asc(rentals.name)).execute(),
-      getDb().select().from(faqs).orderBy(asc(faqs.order)).execute(),
-      getDb().select().from(bookings).orderBy(desc(bookings.createdAt)).execute(),
-      getDb().select().from(inventoryMovements).orderBy(desc(inventoryMovements.at)).execute(),
-      getDb().select().from(roles).orderBy(asc(roles.name)).execute(),
-      getDb().select().from(receipts).orderBy(desc(receipts.createdAt)).execute(),
-      getDb().select().from(contacts).orderBy(desc(contacts.createdAt)).execute(),
+      db.query.branding.findFirst().catch(() => null),
+      db.query.siteContent.findFirst().catch(() => null),
+      db.select().from(hotels).orderBy(asc(hotels.name)).execute().catch(() => []),
+      db.select().from(rooms).orderBy(asc(rooms.type)).execute().catch(() => []),
+      db.select().from(halls).orderBy(asc(halls.name)).execute().catch(() => []),
+      db.select().from(packages).orderBy(asc(packages.name)).execute().catch(() => []),
+      db.select().from(seatArrangements).orderBy(asc(seatArrangements.name)).execute().catch(() => []),
+      db.select().from(rentals).orderBy(asc(rentals.name)).execute().catch(() => []),
+      db.select().from(faqs).orderBy(asc(faqs.order)).execute().catch(() => []),
+      db.select().from(bookings).orderBy(desc(bookings.createdAt)).execute().catch(() => []),
+      db.select().from(inventoryMovements).orderBy(desc(inventoryMovements.at)).execute().catch(() => []),
+      db.select().from(roles).orderBy(asc(roles.name)).execute().catch(() => []),
+      db.select().from(receipts).orderBy(desc(receipts.createdAt)).execute().catch(() => []),
+      db.select().from(contacts).orderBy(desc(contacts.createdAt)).execute().catch(() => []),
     ]);
 
     return {
@@ -119,17 +120,17 @@ const _loadCatalog = createServerFn({ method: 'GET' })
           }
         : null,
       content: contentRow?.data ?? null,
-      hotels: hotelsRows as Hotel[],
-      rooms: roomsRows as Room[],
-      halls: hallsRows as Hall[],
-      packages: packagesRows as Pkg[],
-      arrangements: arrangementsRows as SeatArrangement[],
-      rentals: rentalsRows as RentalItem[],
-      faqs: faqsRows as FAQ[],
-      bookings: bookingsRows.map(mapBooking),
-      movements: movementsRows.map(mapMovement),
-      roles: rolesRows.map((r: any): Role => ({ id: r.id, name: r.name, tabs: (r.tabs ?? []) as AdminTab[] })),
-      receipts: receiptsRows.map((r: any): SavedReceipt => ({
+      hotels: (hotelsRows || []) as Hotel[],
+      rooms: (roomsRows || []) as Room[],
+      halls: (hallsRows || []) as Hall[],
+      packages: (packagesRows || []) as Pkg[],
+      arrangements: (arrangementsRows || []) as SeatArrangement[],
+      rentals: (rentalsRows || []) as RentalItem[],
+      faqs: (faqsRows || []) as FAQ[],
+      bookings: (bookingsRows || []).map(mapBooking),
+      movements: (movementsRows || []).map(mapMovement),
+      roles: (rolesRows || []).map((r: any): Role => ({ id: r.id, name: r.name, tabs: (r.tabs ?? []) as AdminTab[] })),
+      receipts: (receiptsRows || []).map((r: any): SavedReceipt => ({
         id: r.id,
         docType: r.docType ?? 'receipt',
         clientName: r.customerName ?? '',
@@ -141,11 +142,38 @@ const _loadCatalog = createServerFn({ method: 'GET' })
         total: Number(r.total),
         createdAt: r.createdAt,
       })),
-      contacts: contactsRows.map(mapContact),
+      contacts: (contactsRows || []).map(mapContact),
     };
+  } catch (error: any) {
+    console.error('[internal_loadCatalog] Fatal Error:', error);
+    throw new Error(`Database error: ${error.message}`);
+  }
+}
+
+export async function internal_loadEmployees(): Promise<Omit<Employee, 'password'>[]> {
+  try {
+    const db = getDb();
+    const data = await db.select().from(profiles).orderBy(asc(profiles.name)).execute();
+    return (data || []).map((p: any): Omit<Employee, 'password'> => ({
+      id: p.id,
+      name: p.name,
+      email: p.email,
+      roleId: p.roleId ?? '',
+    }));
+  } catch (error: any) {
+    console.error('[internal_loadEmployees] Fatal Error:', error);
+    throw new Error(`Database error: ${error.message}`);
+  }
+}
+
+// --- SERVER FUNCTIONS (RPC Endpoints) ---
+
+export const loadCatalog = createServerFn({ method: 'GET' })
+  .handler(async () => {
+    return internal_loadCatalog();
   });
 
-const _saveBranding = createServerFn({ method: 'POST' })
+export const saveBranding = createServerFn({ method: 'POST' })
   .validator((b: Branding) => b)
   .handler(async ({ data: b }) => {
     if (!await requireAdmin()) throw new Error('Unauthorized');
@@ -158,7 +186,7 @@ const _saveBranding = createServerFn({ method: 'POST' })
     }
   });
 
-const _saveContent = createServerFn({ method: 'POST' })
+export const saveContent = createServerFn({ method: 'POST' })
   .validator((c: SiteContent) => c)
   .handler(async ({ data: c }) => {
     if (!await requireAdmin()) throw new Error('Unauthorized');
@@ -190,7 +218,15 @@ const _deleteItem = createServerFn({ method: 'POST' })
     return internal_del(data.table, data.id);
   });
 
-const _upsertHotel = createServerFn({ method: 'POST' })
+export const deleteHotel = (id: string) => _deleteItem({ data: { table: 'hotels', id } });
+export const deleteRoom = (id: string) => _deleteItem({ data: { table: 'rooms', id } });
+export const deleteHall = (id: string) => _deleteItem({ data: { table: 'halls', id } });
+export const deletePackage = (id: string) => _deleteItem({ data: { table: 'packages', id } });
+export const deleteArrangement = (id: string) => _deleteItem({ data: { table: 'seat_arrangements', id } });
+export const deleteRental = (id: string) => _deleteItem({ data: { table: 'rentals', id } });
+export const deleteFaq = (id: string) => _deleteItem({ data: { table: 'faqs', id } });
+
+export const upsertHotel = createServerFn({ method: 'POST' })
   .validator((h: Hotel) => h)
   .handler(async ({ data: h }) => {
     if (!await requireAdmin()) throw new Error('Unauthorized');
@@ -206,7 +242,7 @@ const _upsertHotel = createServerFn({ method: 'POST' })
     await getDb().insert(hotels).values(payload as any).onConflictDoUpdate({ target: hotels.id, set: payload });
   });
 
-const _upsertRoom = createServerFn({ method: 'POST' })
+export const upsertRoom = createServerFn({ method: 'POST' })
   .validator((r: Room) => r)
   .handler(async ({ data: r }) => {
     if (!await requireAdmin()) throw new Error('Unauthorized');
@@ -214,7 +250,7 @@ const _upsertRoom = createServerFn({ method: 'POST' })
     await getDb().insert(rooms).values(payload as any).onConflictDoUpdate({ target: rooms.id, set: payload });
   });
 
-const _upsertHall = createServerFn({ method: 'POST' })
+export const upsertHall = createServerFn({ method: 'POST' })
   .validator((h: Hall) => h)
   .handler(async ({ data: h }) => {
     if (!await requireAdmin()) throw new Error('Unauthorized');
@@ -222,7 +258,7 @@ const _upsertHall = createServerFn({ method: 'POST' })
     await getDb().insert(halls).values(payload as any).onConflictDoUpdate({ target: halls.id, set: payload });
   });
 
-const _upsertPackage = createServerFn({ method: 'POST' })
+export const upsertPackage = createServerFn({ method: 'POST' })
   .validator((p: Pkg) => p)
   .handler(async ({ data: p }) => {
     if (!await requireAdmin()) throw new Error('Unauthorized');
@@ -230,7 +266,7 @@ const _upsertPackage = createServerFn({ method: 'POST' })
     await getDb().insert(packages).values(payload as any).onConflictDoUpdate({ target: packages.id, set: payload });
   });
 
-const _upsertArrangement = createServerFn({ method: 'POST' })
+export const upsertArrangement = createServerFn({ method: 'POST' })
   .validator((a: SeatArrangement) => a)
   .handler(async ({ data: a }) => {
     if (!await requireAdmin()) throw new Error('Unauthorized');
@@ -238,7 +274,7 @@ const _upsertArrangement = createServerFn({ method: 'POST' })
     await getDb().insert(seatArrangements).values(payload as any).onConflictDoUpdate({ target: seatArrangements.id, set: payload });
   });
 
-const _upsertRental = createServerFn({ method: 'POST' })
+export const upsertRental = createServerFn({ method: 'POST' })
   .validator((r: RentalItem) => r)
   .handler(async ({ data: r }) => {
     if (!await requireAdmin()) throw new Error('Unauthorized');
@@ -246,7 +282,7 @@ const _upsertRental = createServerFn({ method: 'POST' })
     await getDb().insert(rentals).values(payload as any).onConflictDoUpdate({ target: rentals.id, set: payload });
   });
 
-const _upsertFaq = createServerFn({ method: 'POST' })
+export const upsertFaq = createServerFn({ method: 'POST' })
   .validator((f: FAQ) => f)
   .handler(async ({ data: f }) => {
     if (!await requireAdmin()) throw new Error('Unauthorized');
@@ -254,7 +290,7 @@ const _upsertFaq = createServerFn({ method: 'POST' })
     await getDb().insert(faqs).values(payload as any).onConflictDoUpdate({ target: faqs.id, set: payload });
   });
 
-const _insertBooking = createServerFn({ method: 'POST' })
+export const insertBooking = createServerFn({ method: 'POST' })
   .validator((b: Booking) => b)
   .handler(async ({ data: b }) => {
     await getDb().insert(bookings).values({
@@ -273,7 +309,7 @@ const _insertBooking = createServerFn({ method: 'POST' })
     } as any);
   });
 
-const _updateBookingDb = createServerFn({ method: 'POST' })
+export const updateBookingDb = createServerFn({ method: 'POST' })
   .validator((d: { ref: string, patch: Partial<Booking> }) => d)
   .handler(async ({ data: { ref, patch } }) => {
     if (!await requireAdmin()) throw new Error('Unauthorized');
@@ -287,7 +323,7 @@ const _updateBookingDb = createServerFn({ method: 'POST' })
     }
   });
 
-const _lookupBookings = createServerFn({ method: 'GET' })
+export const lookupBookings = createServerFn({ method: 'GET' })
   .validator((query: string) => query)
   .handler(async ({ data: query }) => {
     const rows = query.includes('@')
@@ -296,7 +332,7 @@ const _lookupBookings = createServerFn({ method: 'GET' })
     return rows.map(mapBooking);
   });
 
-const _lookupCustomer = createServerFn({ method: 'GET' })
+export const lookupCustomer = createServerFn({ method: 'GET' })
   .validator((email: string) => email)
   .handler(async ({ data: email }) => {
     const rows = await getDb().select().from(bookings).where(eq(bookings.customerEmail, email)).limit(1).execute();
@@ -305,19 +341,19 @@ const _lookupCustomer = createServerFn({ method: 'GET' })
     return { name: row.customerName, email: row.customerEmail, phone: row.customerPhone };
   });
 
-const _insertMovement = createServerFn({ method: 'POST' })
+export const insertMovement = createServerFn({ method: 'POST' })
   .validator((m: InventoryMovement) => m)
   .handler(async ({ data: m }) => {
     await getDb().insert(inventoryMovements).values({ itemId: m.itemId, type: m.type, qty: m.qty, note: m.note, reference: m.reference ?? null, location: m.location ?? null, handledBy: m.handledBy ?? null } as any);
   });
 
-const _adjustStock = createServerFn({ method: 'POST' })
+export const adjustStock = createServerFn({ method: 'POST' })
   .validator((d: { itemId: string, newAvailable: number }) => d)
   .handler(async ({ data: { itemId, newAvailable } }) => {
     await getDb().update(rentals).set({ stockAvailable: newAvailable }).where(eq(rentals.id, itemId));
   });
 
-const _upsertRole = createServerFn({ method: 'POST' })
+export const upsertRole = createServerFn({ method: 'POST' })
   .validator((r: Role) => r)
   .handler(async ({ data: r }) => {
     if (!await requireOwner()) throw new Error('Only the owner can manage roles');
@@ -325,31 +361,25 @@ const _upsertRole = createServerFn({ method: 'POST' })
     await getDb().insert(roles).values(payload as any).onConflictDoUpdate({ target: roles.id, set: payload });
   });
 
-const _deleteRole = createServerFn({ method: 'POST' })
+export const deleteRole = createServerFn({ method: 'POST' })
   .validator((id: string) => id)
   .handler(async ({ data: id }) => {
     if (!await requireOwner()) throw new Error('Only the owner can delete roles');
     return getDb().delete(roles).where(eq(roles.id, id));
   });
 
-const _loadEmployees = createServerFn({ method: 'GET' })
+export const loadEmployees = createServerFn({ method: 'GET' })
   .handler(async () => {
-    const data = await getDb().select().from(profiles).orderBy(asc(profiles.name)).execute();
-    return data.map((p: any): Omit<Employee, 'password'> => ({
-      id: p.id,
-      name: p.name,
-      email: p.email,
-      roleId: p.roleId ?? '',
-    }));
+    return internal_loadEmployees();
   });
 
-const _setEmployeeRole = createServerFn({ method: 'POST' })
+export const setEmployeeRole = createServerFn({ method: 'POST' })
   .validator((d: { userId: string, roleId: string | null }) => d)
   .handler(async ({ data: { userId, roleId } }) => {
     await getDb().update(profiles).set({ roleId: roleId || null }).where(eq(profiles.id, userId));
   });
 
-const _loadReceipts = createServerFn({ method: 'GET' })
+export const loadReceipts = createServerFn({ method: 'GET' })
   .handler(async () => {
     const data = await getDb().select().from(receipts).orderBy(desc(receipts.createdAt)).execute();
     return data.map((r: any): SavedReceipt => ({
@@ -366,7 +396,7 @@ const _loadReceipts = createServerFn({ method: 'GET' })
     }));
   });
 
-const _insertReceipt = createServerFn({ method: 'POST' })
+export const insertReceipt = createServerFn({ method: 'POST' })
   .validator((r: SavedReceipt) => r)
   .handler(async ({ data: r }) => {
     if (!await requireAdmin()) throw new Error('Unauthorized');
@@ -385,57 +415,22 @@ const _insertReceipt = createServerFn({ method: 'POST' })
     } as any);
   });
 
-const _deleteReceipt = createServerFn({ method: 'POST' })
+export const deleteReceipt = createServerFn({ method: 'POST' })
   .validator((id: string) => id)
   .handler(async ({ data: id }) => {
     if (!await requireAdmin()) throw new Error('Unauthorized');
     await getDb().delete(receipts).where(eq(receipts.id, id));
   });
 
-const _insertContact = createServerFn({ method: 'POST' })
+export const insertContact = createServerFn({ method: 'POST' })
   .validator((c: Omit<Contact, 'id' | 'createdAt'>) => c)
   .handler(async ({ data: c }) => {
     await getDb().insert(contacts).values({ name: c.name, email: c.email, phone: c.phone || null, subject: c.subject, message: c.message } as any);
   });
 
-const _deleteContact = createServerFn({ method: 'POST' })
+export const deleteContact = createServerFn({ method: 'POST' })
   .validator((id: string) => id)
   .handler(async ({ data: id }) => {
     if (!await requireOwner()) throw new Error('Only the owner can delete contacts');
     await getDb().delete(contacts).where(eq(contacts.id, id));
   });
-
-// --- PUBLIC API WRAPPERS (Maintains existing signatures) ---
-
-export const loadCatalog = () => _loadCatalog();
-export const saveBranding = (b: Branding) => _saveBranding({ data: b });
-export const saveContent = (c: SiteContent) => _saveContent({ data: c });
-export const deleteHotel = (id: string) => _deleteItem({ data: { table: 'hotels', id } });
-export const deleteRoom = (id: string) => _deleteItem({ data: { table: 'rooms', id } });
-export const deleteHall = (id: string) => _deleteItem({ data: { table: 'halls', id } });
-export const deletePackage = (id: string) => _deleteItem({ data: { table: 'packages', id } });
-export const deleteArrangement = (id: string) => _deleteItem({ data: { table: 'seat_arrangements', id } });
-export const deleteRental = (id: string) => _deleteItem({ data: { table: 'rentals', id } });
-export const deleteFaq = (id: string) => _deleteItem({ data: { table: 'faqs', id } });
-export const upsertHotel = (h: Hotel) => _upsertHotel({ data: h });
-export const upsertRoom = (r: Room) => _upsertRoom({ data: r });
-export const upsertHall = (h: Hall) => _upsertHall({ data: h });
-export const upsertPackage = (p: Pkg) => _upsertPackage({ data: p });
-export const upsertArrangement = (a: SeatArrangement) => _upsertArrangement({ data: a });
-export const upsertRental = (r: RentalItem) => _upsertRental({ data: r });
-export const upsertFaq = (f: FAQ) => _upsertFaq({ data: f });
-export const insertBooking = (b: Booking) => _insertBooking({ data: b });
-export const updateBookingDb = (ref: string, patch: Partial<Booking>) => _updateBookingDb({ data: { ref, patch } });
-export const lookupBookings = (query: string) => _lookupBookings({ data: query });
-export const lookupCustomer = (email: string) => _lookupCustomer({ data: email });
-export const insertMovement = (m: InventoryMovement) => _insertMovement({ data: m });
-export const adjustStock = (itemId: string, newAvailable: number) => _adjustStock({ data: { itemId, newAvailable } });
-export const upsertRole = (r: Role) => _upsertRole({ data: r });
-export const deleteRole = (id: string) => _deleteRole({ data: id });
-export const loadEmployees = () => _loadEmployees();
-export const setEmployeeRole = (userId: string, roleId: string | null) => _setEmployeeRole({ data: { userId, roleId } });
-export const loadReceipts = () => _loadReceipts();
-export const insertReceipt = (r: SavedReceipt) => _insertReceipt({ data: r });
-export const deleteReceipt = (id: string) => _deleteReceipt({ data: id });
-export const insertContact = (c: Omit<Contact, 'id' | 'createdAt'>) => _insertContact({ data: c });
-export const deleteContact = (id: string) => _deleteContact({ data: id });

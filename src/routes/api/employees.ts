@@ -8,8 +8,8 @@ export const Route = createFileRoute('/api/employees')({
     handlers: {
       GET: async () => {
         try {
-          const { loadEmployees } = await import('@/lib/db');
-          let employees = await loadEmployees();
+          const { internal_loadEmployees } = await import('@/lib/db');
+          let employees = await internal_loadEmployees();
 
           // Always try to sync if there are Clerk users, but be careful with performance.
           // In a real app, this should be handled by webhooks, but for robustness:
@@ -49,7 +49,7 @@ export const Route = createFileRoute('/api/employees')({
               }
 
               if (didSync) {
-                employees = await loadEmployees();
+                employees = await internal_loadEmployees();
               }
             }
           } catch (syncErr) {
@@ -57,9 +57,12 @@ export const Route = createFileRoute('/api/employees')({
           }
 
           return Response.json(employees);
-        } catch (error) {
+        } catch (error: any) {
           console.error('Failed to load employees:', error);
-          return Response.json({ error: 'Failed to load employees' }, { status: 500 });
+          return Response.json({ 
+            error: 'Failed to load employees',
+            details: error instanceof Error ? error.message : String(error)
+          }, { status: 500 });
         }
       }
     }
