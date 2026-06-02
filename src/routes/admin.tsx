@@ -1,4 +1,4 @@
-import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import {
   useStoreBase,
   useCurrentEmployee,
@@ -28,6 +28,7 @@ import {
   Sun,
   Moon,
   Mail,
+  Loader2,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { AdminTab } from "@/lib/types";
@@ -143,6 +144,11 @@ function AuthScreen() {
             <SignIn 
               routing="hash"
               forceRedirectUrl="/admin/revenue"
+              appearance={{
+                elements: {
+                  footerAction: { display: 'none' }
+                }
+              }}
             />
           ) : (
             <div className="flex flex-col items-center">
@@ -174,6 +180,7 @@ function Shell() {
   const role = useStoreBase((s) => s.roles.find((r) => r.id === emp?.roleId));
   const theme = useStoreBase((s) => s.theme);
   const toggleTheme = useStoreBase((s) => s.toggleTheme);
+  const isLoading = useRouterState({ select: (s) => s.isLoading });
   const [collapsed, setCollapsed] = useState(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("adminSidebarCollapsed");
@@ -217,7 +224,7 @@ function Shell() {
           z-30 h-screen 
           bg-ink text-bone flex flex-col border-r border-border 
           transition-all duration-300
-          ${mobileOpen ? 'fixed inset-y-0 left-0 w-64 z-40' : 'fixed -translate-x-full lg:sticky lg:translate-x-0 lg:sticky lg:top-0 lg:w-64'}
+          ${mobileOpen ? 'fixed inset-y-0 left-0 w-64 z-40' : 'fixed -translate-x-full  lg:translate-x-0 lg:sticky lg:top-0 lg:w-64'}
           ${collapsed ? 'lg:w-16' : ''}
         `}
       >
@@ -335,8 +342,13 @@ function Shell() {
       </button>
       
       <main
-        className="flex-1 w-full min-w-0 p-4 pt-12 lg:p-8 overflow-x-hidden transition-all duration-300"
+        className="flex-1 w-full min-w-0 p-4 pt-12 lg:p-8 overflow-x-hidden transition-all duration-300 relative"
       >
+        {isLoading && (
+          <div className="absolute top-0 left-0 w-full h-1 z-50 overflow-hidden bg-gold/10">
+            <div className="h-full bg-gold animate-progress origin-left" />
+          </div>
+        )}
         <Outlet />
       </main>
     </div>

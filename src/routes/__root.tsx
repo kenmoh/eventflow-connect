@@ -89,8 +89,7 @@ function RootComponent() {
         publishableKey={pk}
         signInUrl="/admin"
         signUpUrl="/admin"
-        afterSignInUrl="/admin/revenue"
-        afterSignUpUrl="/admin/revenue"
+
       >
         <QueryClientProvider client={queryClient}>
           <ConfirmProvider>
