@@ -32,3 +32,6 @@ dist-ssr
 plan.md
 # clerk configuration (can include secrets)
 /.clerk/
+
+# Local Netlify folder
+.netlify

@@ -142,7 +142,7 @@ function AuthScreen() {
           {ownerExists ? (
             <SignIn 
               routing="hash"
-              afterSignInUrl="/admin"
+              forceRedirectUrl="/admin/revenue"
             />
           ) : (
             <div className="flex flex-col items-center">
@@ -151,7 +151,7 @@ function AuthScreen() {
               </p>
               <SignUp 
                 routing="hash"
-                afterSignUpUrl="/admin"
+                forceRedirectUrl="/admin/revenue"
               />
             </div>
           )}

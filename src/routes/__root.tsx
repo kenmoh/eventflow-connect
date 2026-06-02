@@ -85,7 +85,13 @@ function RootComponent() {
 
   return (
     <RootDocument>
-      <ClerkProvider publishableKey={pk}>
+      <ClerkProvider 
+        publishableKey={pk}
+        signInUrl="/admin"
+        signUpUrl="/admin"
+        afterSignInUrl="/admin/revenue"
+        afterSignUpUrl="/admin/revenue"
+      >
         <QueryClientProvider client={queryClient}>
           <ConfirmProvider>
             <TooltipProvider>
