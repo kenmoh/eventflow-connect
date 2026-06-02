@@ -1,4 +1,5 @@
 // src/lib/security.ts
+import { getSession } from './auth';
 
 // In-memory rate limiter (resets on server restart — use Redis/DB for production)
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
@@ -53,10 +54,10 @@ export function getClientIp(request: Request): string {
 }
 
 /**
- * Validate that a request has a valid Clerk session
+ * Validate that a request has a valid session
  */
 export async function requireAuth(_request: Request): Promise<{ userId: string } | null> {
-  const session = await clerkAuth();
+  const session = await getSession();
   if (!session?.userId) return null;
   return { userId: session.userId };
 }

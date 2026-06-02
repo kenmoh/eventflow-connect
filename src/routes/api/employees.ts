@@ -9,10 +9,11 @@ export const Route = createFileRoute('/api/employees')({
           const employees = await internal_loadEmployees();
           return Response.json(employees);
         } catch (error: any) {
-          console.error('Failed to load employees:', error);
+          console.error('[API /api/employees] Fatal Error:', error);
           return Response.json({ 
             error: 'Failed to load employees',
-            details: error instanceof Error ? error.message : String(error)
+            message: error instanceof Error ? error.message : String(error),
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
           }, { status: 500 });
         }
       }

@@ -51,7 +51,13 @@ async function requireAdmin() {
 async function requireOwner() {
   const user = await getCurrentUser();
   if (!user || !user.roleId) return null;
-  // TODO: Add actual owner check via roles table
+  
+  const db = getDb();
+  const role = await db.query.roles.findFirst({
+    where: eq(roles.id, user.roleId),
+  });
+
+  if (role?.name.toLowerCase() !== 'owner') return null;
   return user;
 }
 
@@ -119,24 +125,96 @@ export async function dbLoadCatalog() {
   const cached = getCached<any>(cacheKey);
   if (cached) return cached;
 
+  console.log('[dbLoadCatalog] Starting catalog load...');
   try {
     const db = getDb();
+    console.log('[dbLoadCatalog] Database client initialized');
     
-    const brandingRow = await db.query.branding.findFirst().catch(() => null);
-    const contentRow = await db.query.siteContent.findFirst().catch(() => null);
-    const hotelsRows = await db.select().from(hotels).orderBy(asc(hotels.name)).execute().catch(() => []);
-    const roomsRows = await db.select().from(rooms).orderBy(asc(rooms.type)).execute().catch(() => []);
-    const hallsRows = await db.select().from(halls).orderBy(asc(halls.name)).execute().catch(() => []);
-    const packagesRows = await db.select().from(packages).orderBy(asc(packages.name)).execute().catch(() => []);
-    const arrangementsRows = await db.select().from(seatArrangements).orderBy(asc(seatArrangements.name)).execute().catch(() => []);
-    const rentalsRows = await db.select().from(rentals).orderBy(asc(rentals.name)).execute().catch(() => []);
-    const faqsRows = await db.select().from(faqs).orderBy(asc(faqs.order)).execute().catch(() => []);
-    const bookingsRows = await db.select().from(bookings).orderBy(desc(bookings.createdAt)).execute().catch(() => []);
-    const movementsRows = await db.select().from(inventoryMovements).orderBy(desc(inventoryMovements.at)).execute().catch(() => []);
-    const rolesRows = await db.select().from(roles).orderBy(asc(roles.name)).execute().catch(() => []);
-    const receiptsRows = await db.select().from(receipts).orderBy(desc(receipts.createdAt)).execute().catch(() => []);
-    const contactsRows = await db.select().from(contacts).orderBy(desc(contacts.createdAt)).execute().catch(() => []);
+    const brandingRow = await db.query.branding.findFirst().catch(err => {
+      console.error('[dbLoadCatalog] Error fetching branding:', err);
+      return null;
+    });
+    console.log('[dbLoadCatalog] Branding loaded');
 
+    const contentRow = await db.query.siteContent.findFirst().catch(err => {
+      console.error('[dbLoadCatalog] Error fetching siteContent:', err);
+      return null;
+    });
+    console.log('[dbLoadCatalog] Site content loaded');
+
+    const hotelsRows = await db.select().from(hotels).orderBy(asc(hotels.name)).execute().catch(err => {
+      console.error('[dbLoadCatalog] Error fetching hotels:', err);
+      return [];
+    });
+    console.log('[dbLoadCatalog] Hotels loaded:', hotelsRows?.length);
+
+    const roomsRows = await db.select().from(rooms).orderBy(asc(rooms.type)).execute().catch(err => {
+      console.error('[dbLoadCatalog] Error fetching rooms:', err);
+      return [];
+    });
+    console.log('[dbLoadCatalog] Rooms loaded:', roomsRows?.length);
+
+    const hallsRows = await db.select().from(halls).orderBy(asc(halls.name)).execute().catch(err => {
+      console.error('[dbLoadCatalog] Error fetching halls:', err);
+      return [];
+    });
+    console.log('[dbLoadCatalog] Halls loaded:', hallsRows?.length);
+
+    const packagesRows = await db.select().from(packages).orderBy(asc(packages.name)).execute().catch(err => {
+      console.error('[dbLoadCatalog] Error fetching packages:', err);
+      return [];
+    });
+    console.log('[dbLoadCatalog] Packages loaded:', packagesRows?.length);
+
+    const arrangementsRows = await db.select().from(seatArrangements).orderBy(asc(seatArrangements.name)).execute().catch(err => {
+      console.error('[dbLoadCatalog] Error fetching arrangements:', err);
+      return [];
+    });
+    console.log('[dbLoadCatalog] Arrangements loaded:', arrangementsRows?.length);
+
+    const rentalsRows = await db.select().from(rentals).orderBy(asc(rentals.name)).execute().catch(err => {
+      console.error('[dbLoadCatalog] Error fetching rentals:', err);
+      return [];
+    });
+    console.log('[dbLoadCatalog] Rentals loaded:', rentalsRows?.length);
+
+    const faqsRows = await db.select().from(faqs).orderBy(asc(faqs.order)).execute().catch(err => {
+      console.error('[dbLoadCatalog] Error fetching faqs:', err);
+      return [];
+    });
+    console.log('[dbLoadCatalog] FAQs loaded:', faqsRows?.length);
+
+    const bookingsRows = await db.select().from(bookings).orderBy(desc(bookings.createdAt)).execute().catch(err => {
+      console.error('[dbLoadCatalog] Error fetching bookings:', err);
+      return [];
+    });
+    console.log('[dbLoadCatalog] Bookings loaded:', bookingsRows?.length);
+
+    const movementsRows = await db.select().from(inventoryMovements).orderBy(desc(inventoryMovements.at)).execute().catch(err => {
+      console.error('[dbLoadCatalog] Error fetching movements:', err);
+      return [];
+    });
+    console.log('[dbLoadCatalog] Movements loaded:', movementsRows?.length);
+
+    const rolesRows = await db.select().from(roles).orderBy(asc(roles.name)).execute().catch(err => {
+      console.error('[dbLoadCatalog] Error fetching roles:', err);
+      return [];
+    });
+    console.log('[dbLoadCatalog] Roles loaded:', rolesRows?.length);
+
+    const receiptsRows = await db.select().from(receipts).orderBy(desc(receipts.createdAt)).execute().catch(err => {
+      console.error('[dbLoadCatalog] Error fetching receipts:', err);
+      return [];
+    });
+    console.log('[dbLoadCatalog] Receipts loaded:', receiptsRows?.length);
+
+    const contactsRows = await db.select().from(contacts).orderBy(desc(contacts.createdAt)).execute().catch(err => {
+      console.error('[dbLoadCatalog] Error fetching contacts:', err);
+      return [];
+    });
+    console.log('[dbLoadCatalog] Contacts loaded:', contactsRows?.length);
+
+    console.log('[dbLoadCatalog] Mapping data...');
     const data = {
       branding: brandingRow
         ? {
@@ -171,10 +249,11 @@ export async function dbLoadCatalog() {
       contacts: (contactsRows || []).map(mapContact),
     };
 
+    console.log('[dbLoadCatalog] Catalog load complete');
     setCache(cacheKey, data, 300000); // 5 minute cache
     return data;
   } catch (error: any) {
-    console.error('[dbLoadCatalog] Fatal Error:', error);
+    console.error('[dbLoadCatalog] Fatal Error during catalog load:', error);
     throw new Error(`Database error: ${error.message}`);
   }
 }

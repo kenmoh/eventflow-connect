@@ -10,10 +10,11 @@ export const Route = createFileRoute('/api/catalog')({
           const data = await internal_loadCatalog();
           return Response.json(data);
         } catch (error: any) {
-          console.error('[API /api/catalog] Error:', error);
+          console.error('[API /api/catalog] Fatal Error:', error);
           return Response.json({ 
             error: 'Failed to load catalog', 
-            details: error instanceof Error ? error.message : String(error)
+            message: error instanceof Error ? error.message : String(error),
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
           }, { status: 500 });
         }
       }

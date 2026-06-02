@@ -14,7 +14,7 @@ export function getDb() {
   const url = process.env.DATABASE_URL;
   if (!url) {
     console.error('[DB Client] DATABASE_URL is not set in process.env');
-    throw new Error('DATABASE_URL is not set');
+    throw new Error('DATABASE_URL is not set. Please check your environment variables.');
   }
 
   // Basic check for valid protocol
@@ -22,7 +22,14 @@ export function getDb() {
     console.error('[DB Client] DATABASE_URL does not start with postgres/postgresql');
   }
 
-  const sql = neon(url);
-  db = drizzle(sql, { schema });
-  return db;
+  try {
+    console.log('[DB Client] Initializing Neon client...');
+    const sql = neon(url);
+    db = drizzle(sql, { schema });
+    console.log('[DB Client] Drizzle initialized successfully');
+    return db;
+  } catch (error) {
+    console.error('[DB Client] Failed to initialize Drizzle:', error);
+    throw error;
+  }
 }

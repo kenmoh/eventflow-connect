@@ -1,14 +1,33 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { getDb } from '@/db/client';
+import { sql } from 'drizzle-orm';
 
 export const Route = createFileRoute('/api/health')({
   server: {
     handlers: {
       GET: async () => {
+        let dbStatus = 'unknown';
+        let dbError = null;
+
+        try {
+          const db = getDb();
+          await db.execute(sql`SELECT 1`);
+          dbStatus = 'connected';
+        } catch (err: any) {
+          dbStatus = 'error';
+          dbError = err.message;
+        }
+
         const status = {
+          status: dbStatus === 'connected' ? 'ok' : 'degraded',
+          database: {
+            status: dbStatus,
+            error: dbError,
+            urlSet: !!process.env.DATABASE_URL,
+          },
           env: {
-            DATABASE_URL: !!process.env.DATABASE_URL,
-            CLERK_SECRET_KEY: !!process.env.CLERK_SECRET_KEY,
-            VITE_CLERK_PUBLISHABLE_KEY: !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY,
+            NODE_ENV: process.env.NODE_ENV,
+            AUTH_SECRET: !!process.env.AUTH_SECRET,
           },
           timestamp: new Date().toISOString(),
         };
