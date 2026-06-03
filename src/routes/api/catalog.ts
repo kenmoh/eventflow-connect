@@ -6,7 +6,7 @@ export const Route = createFileRoute('/api/catalog')({
       GET: async () => {
        
         try {
-          const { internal_loadCatalog } = await import('@/lib/db');
+          const { internal_loadCatalog } = await import('@/lib/db-api');
           const data = await internal_loadCatalog();
           return Response.json(data);
         } catch (error: any) {

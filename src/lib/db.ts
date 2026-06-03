@@ -26,119 +26,119 @@ const _loadCatalog = createServerFn({ method: 'GET' })
   });
 
 const _saveBranding = createServerFn({ method: 'POST' })
-  .validator((b: Branding) => b)
+  .inputValidator((b: Branding) => b)
   .handler(async ({ data: b }) => {
     const { dbSaveBranding } = await import('./db.server');
     return dbSaveBranding(b);
   });
 
 const _saveContent = createServerFn({ method: 'POST' })
-  .validator((c: SiteContent) => c)
+  .inputValidator((c: SiteContent) => c)
   .handler(async ({ data: c }) => {
     const { dbSaveContent } = await import('./db.server');
     return dbSaveContent(c);
   });
 
 const _deleteItem = createServerFn({ method: 'POST' })
-  .validator((d: { table: string, id: string }) => d)
+  .inputValidator((d: { table: string, id: string }) => d)
   .handler(async ({ data }) => {
     const { dbDeleteItem } = await import('./db.server');
     return dbDeleteItem(data.table, data.id);
   });
 
 const _upsertHotel = createServerFn({ method: 'POST' })
-  .validator((h: Hotel) => h)
+  .inputValidator((h: Hotel) => h)
   .handler(async ({ data: h }) => {
     const { dbUpsertHotel } = await import('./db.server');
     return dbUpsertHotel(h);
   });
 
 const _upsertRoom = createServerFn({ method: 'POST' })
-  .validator((r: Room) => r)
+  .inputValidator((r: Room) => r)
   .handler(async ({ data: r }) => {
     const { dbUpsertRoom } = await import('./db.server');
     return dbUpsertRoom(r);
   });
 
 const _upsertHall = createServerFn({ method: 'POST' })
-  .validator((h: Hall) => h)
+  .inputValidator((h: Hall) => h)
   .handler(async ({ data: h }) => {
     const { dbUpsertHall } = await import('./db.server');
     return dbUpsertHall(h);
   });
 
 const _upsertPackage = createServerFn({ method: 'POST' })
-  .validator((p: Pkg) => p)
+  .inputValidator((p: Pkg) => p)
   .handler(async ({ data: p }) => {
     const { dbUpsertPackage } = await import('./db.server');
     return dbUpsertPackage(p);
   });
 
 const _upsertArrangement = createServerFn({ method: 'POST' })
-  .validator((a: SeatArrangement) => a)
+  .inputValidator((a: SeatArrangement) => a)
   .handler(async ({ data: a }) => {
     const { dbUpsertArrangement } = await import('./db.server');
     return dbUpsertArrangement(a);
   });
 
 const _upsertRental = createServerFn({ method: 'POST' })
-  .validator((r: RentalItem) => r)
+  .inputValidator((r: RentalItem) => r)
   .handler(async ({ data: r }) => {
     const { dbUpsertRental } = await import('./db.server');
     return dbUpsertRental(r);
   });
 
 const _upsertFaq = createServerFn({ method: 'POST' })
-  .validator((f: FAQ) => f)
+  .inputValidator((f: FAQ) => f)
   .handler(async ({ data: f }) => {
     const { dbUpsertFaq } = await import('./db.server');
     return dbUpsertFaq(f);
   });
 
 const _insertBooking = createServerFn({ method: 'POST' })
-  .validator((b: Booking) => b)
+  .inputValidator((b: Booking) => b)
   .handler(async ({ data: b }) => {
     const { dbInsertBooking } = await import('./db.server');
     return dbInsertBooking(b);
   });
 
 const _updateBookingDb = createServerFn({ method: 'POST' })
-  .validator((d: { ref: string, patch: Partial<Booking> }) => d)
+  .inputValidator((d: { ref: string, patch: Partial<Booking> }) => d)
   .handler(async ({ data: { ref, patch } }) => {
     const { dbUpdateBooking } = await import('./db.server');
     return dbUpdateBooking(ref, patch);
   });
 
 const _lookupBookings = createServerFn({ method: 'GET' })
-  .validator((query: string) => query)
+  .inputValidator((query: string) => query)
   .handler(async ({ data: query }) => {
     const { dbLookupBookings } = await import('./db.server');
     return dbLookupBookings(query);
   });
 
 const _insertMovement = createServerFn({ method: 'POST' })
-  .validator((m: InventoryMovement) => m)
+  .inputValidator((m: InventoryMovement) => m)
   .handler(async ({ data: m }) => {
     const { dbInsertMovement } = await import('./db.server');
     return dbInsertMovement(m);
   });
 
 const _adjustStock = createServerFn({ method: 'POST' })
-  .validator((d: { itemId: string, newAvailable: number }) => d)
+  .inputValidator((d: { itemId: string, newAvailable: number }) => d)
   .handler(async ({ data: { itemId, newAvailable } }) => {
     const { dbAdjustStock } = await import('./db.server');
     return dbAdjustStock(itemId, newAvailable);
   });
 
 const _upsertRole = createServerFn({ method: 'POST' })
-  .validator((r: Role) => r)
+  .inputValidator((r: Role) => r)
   .handler(async ({ data: r }) => {
     const { dbUpsertRole } = await import('./db.server');
     return dbUpsertRole(r);
   });
 
 const _deleteRole = createServerFn({ method: 'POST' })
-  .validator((id: string) => id)
+  .inputValidator((id: string) => id)
   .handler(async ({ data: id }) => {
     const { dbDeleteRole } = await import('./db.server');
     return dbDeleteRole(id);
@@ -163,21 +163,21 @@ const _loadReceipts = createServerFn({ method: 'GET' })
   });
 
 const _setEmployeeRole = createServerFn({ method: 'POST' })
-  .validator((d: { userId: string, roleId: string | null }) => d)
+  .inputValidator((d: { userId: string, roleId: string | null }) => d)
   .handler(async ({ data: { userId, roleId } }) => {
     const { dbSetEmployeeRole } = await import('./db.server');
     return dbSetEmployeeRole(userId, roleId);
   });
 
 const _insertReceipt = createServerFn({ method: 'POST' })
-  .validator((r: SavedReceipt) => r)
+  .inputValidator((r: SavedReceipt) => r)
   .handler(async ({ data: r }) => {
     const { dbInsertReceipt } = await import('./db.server');
     return dbInsertReceipt(r);
   });
 
 const _insertContact = createServerFn({ method: 'POST' })
-  .validator((c: Omit<Contact, 'id' | 'createdAt'>) => c)
+  .inputValidator((c: Omit<Contact, 'id' | 'createdAt'>) => c)
   .handler(async ({ data: c }) => {
     const { dbInsertContact } = await import('./db.server');
     return dbInsertContact(c);
@@ -218,27 +218,10 @@ export const deleteReceipt = (id: string) => _deleteItem({ data: { table: 'recei
 export const insertContact = (c: Omit<Contact, 'id' | 'createdAt'>) => _insertContact({ data: c });
 export const deleteContact = (id: string) => _deleteItem({ data: { table: 'contacts', id } });
 
-// --- INTERNAL LOADERS (For API routes) ---
-
-export const internal_loadCatalog = async () => {
-  const { dbLoadCatalog } = await import('./db.server');
-  return dbLoadCatalog();
-};
-
-export const internal_loadEmployees = async () => {
-  const { dbLoadEmployees } = await import('./db.server');
-  return dbLoadEmployees();
-};
-
-export const internal_loadActivity = async () => {
-  const { dbLoadActivity } = await import('./db.server');
-  return dbLoadActivity();
-};
-
 // --- CUSTOM AUTH SERVER FUNCTIONS ---
 
 export const login = createServerFn({ method: 'POST' })
-  .validator((d: { email: string, password: string }) => d)
+  .inputValidator((d: { email: string, password: string }) => d)
   .handler(async ({ data }) => {
     const { getDb } = await import('@/db/client');
     const { profiles } = await import('@/db/schema');
@@ -258,7 +241,7 @@ export const login = createServerFn({ method: 'POST' })
   });
 
 export const signup = createServerFn({ method: 'POST' })
-  .validator((d: { email: string, password: string, name: string }) => d)
+  .inputValidator((d: { email: string, password: string, name: string }) => d)
   .handler(async ({ data }) => {
     const { getDb } = await import('@/db/client');
     const { profiles, roles } = await import('@/db/schema');

@@ -5,7 +5,7 @@ export const Route = createFileRoute('/api/employees')({
     handlers: {
       GET: async () => {
         try {
-          const { internal_loadEmployees } = await import('@/lib/db');
+          const { internal_loadEmployees } = await import('@/lib/db-api');
           const employees = await internal_loadEmployees();
           return Response.json(employees);
         } catch (error: any) {

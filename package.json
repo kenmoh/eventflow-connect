@@ -50,7 +50,7 @@
     "@tanstack/react-start": "^1.167.65",
     "@tanstack/router-devtools": "^1.166.13",
     "@tanstack/router-plugin": "^1.167.35",
-    "@tanstack/start": "^1.114.5",
+    "@tanstack/start": "^1.120.20",
     "@types/bcryptjs": "^2.4.6",
     "@types/uuid": "^10.0.0",
     "bcryptjs": "^3.0.3",

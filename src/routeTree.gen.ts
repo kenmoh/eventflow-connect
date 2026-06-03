@@ -29,9 +29,9 @@ import { Route as ApiVerifyPaymentRouteImport } from './routes/api/verify-paymen
 import { Route as ApiUploadRouteImport } from './routes/api/upload'
 import { Route as ApiSendEmailRouteImport } from './routes/api/send-email'
 import { Route as ApiRolesRouteImport } from './routes/api/roles'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiEmployeesRouteImport } from './routes/api/employees'
 import { Route as ApiCreateEmployeeRouteImport } from './routes/api/create-employee'
-import { Route as ApiClerkWebhookRouteImport } from './routes/api/clerk-webhook'
 import { Route as ApiCatalogRouteImport } from './routes/api/catalog'
 import { Route as ApiCallbackRouteImport } from './routes/api/callback'
 import { Route as AdminRoomsRouteImport } from './routes/admin/rooms'
@@ -51,6 +51,7 @@ import { Route as AdminContactsRouteImport } from './routes/admin/contacts'
 import { Route as AdminBrandingRouteImport } from './routes/admin/branding'
 import { Route as AdminBookingsRouteImport } from './routes/admin/bookings'
 import { Route as AdminArrangementsRouteImport } from './routes/admin/arrangements'
+import { Route as AdminActivityRouteImport } from './routes/admin/activity'
 
 const WebhookRoute = WebhookRouteImport.update({
   id: '/webhook',
@@ -152,6 +153,11 @@ const ApiRolesRoute = ApiRolesRouteImport.update({
   path: '/api/roles',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiEmployeesRoute = ApiEmployeesRouteImport.update({
   id: '/api/employees',
   path: '/api/employees',
@@ -160,11 +166,6 @@ const ApiEmployeesRoute = ApiEmployeesRouteImport.update({
 const ApiCreateEmployeeRoute = ApiCreateEmployeeRouteImport.update({
   id: '/api/create-employee',
   path: '/api/create-employee',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiClerkWebhookRoute = ApiClerkWebhookRouteImport.update({
-  id: '/api/clerk-webhook',
-  path: '/api/clerk-webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiCatalogRoute = ApiCatalogRouteImport.update({
@@ -262,6 +263,11 @@ const AdminArrangementsRoute = AdminArrangementsRouteImport.update({
   path: '/arrangements',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminActivityRoute = AdminActivityRouteImport.update({
+  id: '/activity',
+  path: '/activity',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -277,6 +283,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/track': typeof TrackRoute
   '/webhook': typeof WebhookRoute
+  '/admin/activity': typeof AdminActivityRoute
   '/admin/arrangements': typeof AdminArrangementsRoute
   '/admin/bookings': typeof AdminBookingsRoute
   '/admin/branding': typeof AdminBrandingRoute
@@ -296,9 +303,9 @@ export interface FileRoutesByFullPath {
   '/admin/rooms': typeof AdminRoomsRoute
   '/api/callback': typeof ApiCallbackRoute
   '/api/catalog': typeof ApiCatalogRoute
-  '/api/clerk-webhook': typeof ApiClerkWebhookRoute
   '/api/create-employee': typeof ApiCreateEmployeeRoute
   '/api/employees': typeof ApiEmployeesRoute
+  '/api/health': typeof ApiHealthRoute
   '/api/roles': typeof ApiRolesRoute
   '/api/send-email': typeof ApiSendEmailRoute
   '/api/upload': typeof ApiUploadRoute
@@ -320,6 +327,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/track': typeof TrackRoute
   '/webhook': typeof WebhookRoute
+  '/admin/activity': typeof AdminActivityRoute
   '/admin/arrangements': typeof AdminArrangementsRoute
   '/admin/bookings': typeof AdminBookingsRoute
   '/admin/branding': typeof AdminBrandingRoute
@@ -339,9 +347,9 @@ export interface FileRoutesByTo {
   '/admin/rooms': typeof AdminRoomsRoute
   '/api/callback': typeof ApiCallbackRoute
   '/api/catalog': typeof ApiCatalogRoute
-  '/api/clerk-webhook': typeof ApiClerkWebhookRoute
   '/api/create-employee': typeof ApiCreateEmployeeRoute
   '/api/employees': typeof ApiEmployeesRoute
+  '/api/health': typeof ApiHealthRoute
   '/api/roles': typeof ApiRolesRoute
   '/api/send-email': typeof ApiSendEmailRoute
   '/api/upload': typeof ApiUploadRoute
@@ -365,6 +373,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/track': typeof TrackRoute
   '/webhook': typeof WebhookRoute
+  '/admin/activity': typeof AdminActivityRoute
   '/admin/arrangements': typeof AdminArrangementsRoute
   '/admin/bookings': typeof AdminBookingsRoute
   '/admin/branding': typeof AdminBrandingRoute
@@ -384,9 +393,9 @@ export interface FileRoutesById {
   '/admin/rooms': typeof AdminRoomsRoute
   '/api/callback': typeof ApiCallbackRoute
   '/api/catalog': typeof ApiCatalogRoute
-  '/api/clerk-webhook': typeof ApiClerkWebhookRoute
   '/api/create-employee': typeof ApiCreateEmployeeRoute
   '/api/employees': typeof ApiEmployeesRoute
+  '/api/health': typeof ApiHealthRoute
   '/api/roles': typeof ApiRolesRoute
   '/api/send-email': typeof ApiSendEmailRoute
   '/api/upload': typeof ApiUploadRoute
@@ -411,6 +420,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/track'
     | '/webhook'
+    | '/admin/activity'
     | '/admin/arrangements'
     | '/admin/bookings'
     | '/admin/branding'
@@ -430,9 +440,9 @@ export interface FileRouteTypes {
     | '/admin/rooms'
     | '/api/callback'
     | '/api/catalog'
-    | '/api/clerk-webhook'
     | '/api/create-employee'
     | '/api/employees'
+    | '/api/health'
     | '/api/roles'
     | '/api/send-email'
     | '/api/upload'
@@ -454,6 +464,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/track'
     | '/webhook'
+    | '/admin/activity'
     | '/admin/arrangements'
     | '/admin/bookings'
     | '/admin/branding'
@@ -473,9 +484,9 @@ export interface FileRouteTypes {
     | '/admin/rooms'
     | '/api/callback'
     | '/api/catalog'
-    | '/api/clerk-webhook'
     | '/api/create-employee'
     | '/api/employees'
+    | '/api/health'
     | '/api/roles'
     | '/api/send-email'
     | '/api/upload'
@@ -498,6 +509,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/track'
     | '/webhook'
+    | '/admin/activity'
     | '/admin/arrangements'
     | '/admin/bookings'
     | '/admin/branding'
@@ -517,9 +529,9 @@ export interface FileRouteTypes {
     | '/admin/rooms'
     | '/api/callback'
     | '/api/catalog'
-    | '/api/clerk-webhook'
     | '/api/create-employee'
     | '/api/employees'
+    | '/api/health'
     | '/api/roles'
     | '/api/send-email'
     | '/api/upload'
@@ -545,9 +557,9 @@ export interface RootRouteChildren {
   WebhookRoute: typeof WebhookRoute
   ApiCallbackRoute: typeof ApiCallbackRoute
   ApiCatalogRoute: typeof ApiCatalogRoute
-  ApiClerkWebhookRoute: typeof ApiClerkWebhookRoute
   ApiCreateEmployeeRoute: typeof ApiCreateEmployeeRoute
   ApiEmployeesRoute: typeof ApiEmployeesRoute
+  ApiHealthRoute: typeof ApiHealthRoute
   ApiRolesRoute: typeof ApiRolesRoute
   ApiSendEmailRoute: typeof ApiSendEmailRoute
   ApiUploadRoute: typeof ApiUploadRoute
@@ -698,6 +710,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiRolesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/employees': {
       id: '/api/employees'
       path: '/api/employees'
@@ -710,13 +729,6 @@ declare module '@tanstack/react-router' {
       path: '/api/create-employee'
       fullPath: '/api/create-employee'
       preLoaderRoute: typeof ApiCreateEmployeeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/clerk-webhook': {
-      id: '/api/clerk-webhook'
-      path: '/api/clerk-webhook'
-      fullPath: '/api/clerk-webhook'
-      preLoaderRoute: typeof ApiClerkWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/catalog': {
@@ -852,10 +864,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminArrangementsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/activity': {
+      id: '/admin/activity'
+      path: '/activity'
+      fullPath: '/admin/activity'
+      preLoaderRoute: typeof AdminActivityRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
 interface AdminRouteChildren {
+  AdminActivityRoute: typeof AdminActivityRoute
   AdminArrangementsRoute: typeof AdminArrangementsRoute
   AdminBookingsRoute: typeof AdminBookingsRoute
   AdminBrandingRoute: typeof AdminBrandingRoute
@@ -877,6 +897,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminActivityRoute: AdminActivityRoute,
   AdminArrangementsRoute: AdminArrangementsRoute,
   AdminBookingsRoute: AdminBookingsRoute,
   AdminBrandingRoute: AdminBrandingRoute,
@@ -915,9 +936,9 @@ const rootRouteChildren: RootRouteChildren = {
   WebhookRoute: WebhookRoute,
   ApiCallbackRoute: ApiCallbackRoute,
   ApiCatalogRoute: ApiCatalogRoute,
-  ApiClerkWebhookRoute: ApiClerkWebhookRoute,
   ApiCreateEmployeeRoute: ApiCreateEmployeeRoute,
   ApiEmployeesRoute: ApiEmployeesRoute,
+  ApiHealthRoute: ApiHealthRoute,
   ApiRolesRoute: ApiRolesRoute,
   ApiSendEmailRoute: ApiSendEmailRoute,
   ApiUploadRoute: ApiUploadRoute,
