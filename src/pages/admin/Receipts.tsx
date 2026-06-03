@@ -370,65 +370,6 @@ export default function AdminReceipts() {
         </div>
       }
     >
-      {receipts.length > 0 && (
-        <div className="mb-6 lg:mb-8">
-          <div className="flex flex-col sm:flex-row gap-3 mb-4">
-            <div className="flex-1">
-              <input 
-                className={inputCls} 
-                placeholder="Search by name or email..." 
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-              />
-            </div>
-            <div className="flex gap-2">
-              <input 
-                className={inputCls} 
-                type="date" 
-                value={dateFrom}
-                onChange={e => setDateFrom(e.target.value)}
-                title="From date"
-              />
-              <input 
-                className={inputCls} 
-                type="date" 
-                value={dateTo}
-                onChange={e => setDateTo(e.target.value)}
-                title="To date"
-              />
-            </div>
-          </div>
-          <h3 className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground mb-3">Saved Receipts ({filteredReceipts.length})</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {filteredReceipts.map(r => (
-              <div key={r.id} className="border border-border p-3 lg:p-4 bg-card hover:border-gold/50 transition cursor-pointer group" onClick={() => loadReceipt(r)}>
-                <div className="flex justify-between items-start mb-2">
-                  <span className="text-xs uppercase tracking-[0.2em] text-gold">{r.docType}</span>
-                  <span className="text-xs text-muted-foreground">₦{r.total.toLocaleString()}</span>
-                </div>
-                <div className="font-medium text-sm truncate">{r.clientName}</div>
-                <div className="text-xs text-muted-foreground truncate">{r.clientEmail || 'No email'}</div>
-                <div className="flex justify-between items-center mt-3">
-                  <span className="text-[10px] text-muted-foreground">{new Date(r.createdAt).toLocaleDateString()}</span>
-                  <button 
-                    onClick={async (e) => { 
-                      e.stopPropagation(); 
-                      const { deleteReceipt: deleteReceiptDb } = await import("@/lib/db");
-                      await deleteReceiptDb(r.id);
-                      setReceipts(receipts.filter(x => x.id !== r.id));
-                      toast.success('Receipt deleted'); 
-                    }}
-                    className="p-1 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       <div className="grid lg:grid-cols-2 gap-6 lg:gap-8">
         <div className="space-y-5 lg:space-y-6">
           <div className="flex flex-col lg:flex-row gap-3 lg:gap-2 items-start lg:items-center">
@@ -618,6 +559,65 @@ export default function AdminReceipts() {
           </div>
         </div>
       </div>
+
+      {receipts.length > 0 && (
+        <div className="mt-8 lg:mt-12 pt-8 border-t border-border">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+            <h3 className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Saved Receipts ({filteredReceipts.length})</h3>
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <input 
+                className={inputCls} 
+                placeholder="Search by name or email..." 
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+              />
+              <div className="flex gap-2">
+                <input 
+                  className={inputCls} 
+                  type="date" 
+                  value={dateFrom}
+                  onChange={e => setDateFrom(e.target.value)}
+                  title="From date"
+                />
+                <input 
+                  className={inputCls} 
+                  type="date" 
+                  value={dateTo}
+                  onChange={e => setDateTo(e.target.value)}
+                  title="To date"
+                />
+              </div>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {filteredReceipts.map(r => (
+              <div key={r.id} className="border border-border p-3 lg:p-4 bg-card hover:border-gold/50 transition cursor-pointer group" onClick={() => loadReceipt(r)}>
+                <div className="flex justify-between items-start mb-2">
+                  <span className="text-xs uppercase tracking-[0.2em] text-gold">{r.docType}</span>
+                  <span className="text-xs text-muted-foreground">₦{r.total.toLocaleString()}</span>
+                </div>
+                <div className="font-medium text-sm truncate">{r.clientName}</div>
+                <div className="text-xs text-muted-foreground truncate">{r.clientEmail || 'No email'}</div>
+                <div className="flex justify-between items-center mt-3">
+                  <span className="text-[10px] text-muted-foreground">{new Date(r.createdAt).toLocaleDateString()}</span>
+                  <button 
+                    onClick={async (e) => { 
+                      e.stopPropagation(); 
+                      const { deleteReceipt: deleteReceiptDb } = await import("@/lib/db");
+                      await deleteReceiptDb(r.id);
+                      setReceipts(receipts.filter(x => x.id !== r.id));
+                      toast.success('Receipt deleted'); 
+                    }}
+                    className="p-1 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </AdminPage>
   );
 }
