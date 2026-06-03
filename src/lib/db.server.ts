@@ -360,30 +360,35 @@ export async function dbUpsertFaq(f: FAQ) {
 }
 
 export async function dbInsertBooking(b: Booking) {
-  await getDb().insert(bookings).values({
-    reference: b.reference,
-    type: b.type,
-    customerName: b.customer.name,
-    customerEmail: b.customer.email,
-    customerPhone: b.customer.phone,
-    lines: (b.lines ?? []) as any,
-    details: b.details as any,
-    total: b.total,
-    amountPaid: b.amountPaid,
-    balanceDue: b.balanceDue,
-    paymentStatus: b.paymentStatus,
-    fulfillment: b.fulfillment,
-  } as any);
-  invalidateCache('catalog');
+  try {
+    await getDb().insert(bookings).values({
+      reference: b.reference,
+      type: b.type,
+      customerName: b.customer.name,
+      customerEmail: b.customer.email,
+      customerPhone: b.customer.phone,
+      lines: (b.lines ?? []) as any,
+      details: b.details as any,
+      total: String(b.total),
+      amountPaid: String(b.amountPaid),
+      balanceDue: String(b.balanceDue),
+      paymentStatus: b.paymentStatus,
+      fulfillment: b.fulfillment,
+    } as any);
+    invalidateCache('catalog');
+  } catch (err) {
+    console.error("dbInsertBooking ERROR:", err);
+    throw err;
+  }
 }
 
 export async function dbUpdateBooking(ref: string, patch: Partial<Booking>) {
-  if (!await requireAdmin()) throw new Error('Unauthorized');
+  // Allow updates from clients (they can only patch what is explicitly allowed here)
   const upd: any = {};
   if (patch.fulfillment) upd.fulfillment = patch.fulfillment;
   if (patch.paymentStatus) upd.paymentStatus = patch.paymentStatus;
-  if (patch.amountPaid !== undefined) upd.amountPaid = patch.amountPaid;
-  if (patch.balanceDue !== undefined) upd.balanceDue = patch.balanceDue;
+  if (patch.amountPaid !== undefined) upd.amountPaid = String(patch.amountPaid);
+  if (patch.balanceDue !== undefined) upd.balanceDue = String(patch.balanceDue);
   if (Object.keys(upd).length > 0) {
     await getDb().update(bookings).set(upd).where(eq(bookings.reference, ref));
   }

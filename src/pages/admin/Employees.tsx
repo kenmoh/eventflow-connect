@@ -8,7 +8,7 @@ import { useConfirm } from '@/components/ConfirmProvider';
 import { useCurrentEmployee } from '@/lib/store';
 type EmployeeForm = Employee & { password: string };
 
-const ALL_TABS: AdminTab[] = ['branding', 'content', 'hotels', 'rooms', 'halls', 'packages', 'rentals', 'inventory', 'bookings', 'employees', 'receipts', 'revenue', 'arrangements', 'faqs', 'legal', 'contacts'];
+const ALL_TABS: AdminTab[] = ['branding', 'content', 'hotels', 'rooms', 'halls', 'packages', 'rentals', 'inventory', 'bookings', 'employees', 'receipts', 'revenue', 'arrangements', 'faqs', 'legal', 'contacts', 'activity'];
 
 const blankEmp = (roleId: string): EmployeeForm => ({ id: crypto.randomUUID(), name: '', email: '', password: '', roleId });
 const blankRole = (): Role => ({ id: crypto.randomUUID(), name: '', tabs: [] });

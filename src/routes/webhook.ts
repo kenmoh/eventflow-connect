@@ -64,13 +64,11 @@ export const Route = createFileRoute('/webhook')({
           .update(bookings)
           .set({
             paymentStatus: 'paid',
-            amountPaid: amount / 100,
+            amountPaid: String(amount / 100),
             fulfillment: 'processing',
           })
           .where(eq(bookings.reference, reference))
           .where(eq(bookings.paymentStatus, 'deposit'));
-
-       
       }
       
       return Response.json({ received: true });

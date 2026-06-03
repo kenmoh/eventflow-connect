@@ -11,7 +11,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { checkoutSchema } from "@/lib/validation";
 import { useConfirm } from "@/components/ConfirmProvider";
-import { ShieldCheck, CreditCard, Smartphone, Building2 } from "lucide-react";
+import { ShieldCheck, CreditCard, Smartphone, Building2, Loader2 } from "lucide-react";
 
 const METHODS = [
   {
@@ -362,6 +362,13 @@ export default function Checkout() {
           </div>
         </aside>
       </form>
+
+      {paying && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm">
+          <Loader2 className="w-12 h-12 text-gold animate-spin mb-4" />
+          <p className="font-display text-2xl animate-pulse">Connecting to secure payment...</p>
+        </div>
+      )}
     </SiteLayout>
   );
 }

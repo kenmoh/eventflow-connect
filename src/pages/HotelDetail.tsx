@@ -192,7 +192,7 @@ const submit = async () => {
       total,
       amountPaid: 0,
       balanceDue: total,
-      paymentStatus: "pending",
+      paymentStatus: "unpaid",
       fulfillment: "pending",
     });
     
