@@ -246,7 +246,7 @@ export const signup = createServerFn({ method: 'POST' })
     const { getDb } = await import('@/db/client');
     const { profiles, roles } = await import('@/db/schema');
     const { eq } = await import('drizzle-orm');
-    const { hashPassword, createSession } = await import('./auth');
+    const { hashPassword } = await import('./auth');
     const { v4: uuidv4 } = await import('uuid');
 
     const db = getDb();
@@ -277,7 +277,6 @@ export const signup = createServerFn({ method: 'POST' })
       roleId,
     });
 
-    await createSession(id);
     return { success: true };
   });
 

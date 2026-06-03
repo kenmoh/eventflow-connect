@@ -8,6 +8,7 @@ import {
 import {
   login as serverLogin,
   signup as serverSignup,
+  getSessionUser,
 } from "@/lib/db";
 import {
   ArrowLeft,
@@ -33,6 +34,8 @@ import {
   Mail,
   Loader2,
   History,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { AdminTab } from "@/lib/types";
@@ -116,12 +119,14 @@ function AdminLayout() {
 
 function AuthScreen() {
   const [ownerExists, setOwnerExists] = useState<boolean | null>(null);
-  const [isLogin, setIsLogin] = useState(true);
+  const [justRegistered, setJustRegistered] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     fetch('/api/employees')
@@ -133,15 +138,31 @@ function AuthScreen() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccess(null);
     setLoading(true);
 
     try {
-      if (!ownerExists || !isLogin) {
+      if (!ownerExists && !justRegistered) {
         await serverSignup({ data: { email, password, name } });
+        setJustRegistered(true);
+        setEmail("");
+        setPassword("");
+        setName("");
+        setSuccess("Owner account created. Please sign in.");
       } else {
         await serverLogin({ data: { email, password } });
+        const user = await getSessionUser();
+        if (user) {
+          useStoreBase.setState({
+            session: {
+              userId: user.id,
+              profile: { id: user.id, name: user.name, email: user.email, roleId: user.roleId },
+              loaded: true,
+            },
+          } as any);
+        }
+        window.location.href = '/admin/revenue';
       }
-      window.location.reload();
     } catch (err: any) {
       setError(err.message || "Authentication failed");
     } finally {
@@ -162,16 +183,18 @@ function AuthScreen() {
     );
   }
 
+  const showSignup = !ownerExists && !justRegistered;
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
       <div className="w-full max-w-md bg-card border border-border p-8 shadow-sm">
         <div className="flex flex-col items-center">
           <h1 className="font-display text-3xl mb-8 text-center">
-            {!ownerExists ? "Setup Owner" : (isLogin ? "Admin Login" : "Create Account")}
+            {showSignup ? "Setup Owner" : "Admin Login"}
           </h1>
           
           <form onSubmit={handleSubmit} className="w-full space-y-4">
-            {(!ownerExists || !isLogin) && (
+            {showSignup && (
               <div className="space-y-1">
                 <label className="text-[10px] uppercase tracking-widest text-muted-foreground">Full Name</label>
                 <input
@@ -195,15 +218,26 @@ function AuthScreen() {
             </div>
             <div className="space-y-1">
               <label className="text-[10px] uppercase tracking-widest text-muted-foreground">Password</label>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-background border border-border p-3 outline-none focus:border-gold transition-colors"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full bg-background border border-border p-3 pr-10 outline-none focus:border-gold transition-colors"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
 
+            {success && <p className="text-emerald-500 text-xs text-center">{success}</p>}
             {error && <p className="text-destructive text-xs text-center">{error}</p>}
 
             <button
@@ -212,18 +246,9 @@ function AuthScreen() {
               className="w-full bg-gold text-white p-4 uppercase tracking-widest text-xs hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-              {!ownerExists ? "Complete Setup" : (isLogin ? "Sign In" : "Sign Up")}
+              {showSignup ? "Complete Setup" : "Sign In"}
             </button>
           </form>
-
-          {ownerExists && (
-            <button
-              onClick={() => setIsLogin(!isLogin)}
-              className="mt-6 text-[10px] uppercase tracking-[0.3em] text-muted-foreground hover:text-gold transition"
-            >
-              {isLogin ? "Need an account? Sign up" : "Already have an account? Sign in"}
-            </button>
-          )}
           
           <div className="mt-8 text-center">
             <Link to="/" className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground hover:text-gold transition">

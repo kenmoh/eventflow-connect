@@ -6,7 +6,6 @@ import netlify from '@netlify/vite-plugin-tanstack-start'
 
 export default defineConfig({
   server: {
-   
     headers: {
       "X-Frame-Options": "DENY",
       "X-Content-Type-Options": "nosniff",
@@ -18,7 +17,20 @@ export default defineConfig({
   resolve: {
     tsconfigPaths: true,
   },
- plugins: [tanstackStart(), netlify(), viteReact()],
+  plugins: [
+    tanstackStart({
+      tsr: {
+        quoteStyle: 'single',
+      },
+      react: {
+        babel: {
+          plugins: [],
+        },
+      },
+    }),
+    netlify(),
+    viteReact(),
+  ],
 });
 
 

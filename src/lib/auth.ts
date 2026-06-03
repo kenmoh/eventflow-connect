@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import { getDb } from '@/db/client';
 import { profiles } from '@/db/schema';
 import { eq } from 'drizzle-orm';
-import { getCookie, setCookie, deleteCookie } from 'vinxi/http';
+import { getCookie, setCookie, deleteCookie } from '@tanstack/start-server-core';
 
 const SECRET = new TextEncoder().encode(process.env.AUTH_SECRET || 'fallback-secret-at-least-32-chars-long');
 
