@@ -135,6 +135,16 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
           </div>
         </div>
       </footer>
+
+      <Link to="/cart"
+        className="md:hidden fixed bottom-6 right-6 z-50 flex items-center justify-center w-14 h-14 rounded-full bg-gold text-gold-foreground shadow-lg active:scale-95 transition-transform">
+        <ShoppingBag className="w-5 h-5" />
+        {cartCount > 0 && (
+          <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-foreground text-background text-[10px] flex items-center justify-center font-medium">
+            {cartCount}
+          </span>
+        )}
+      </Link>
     </div>
   );
 }
