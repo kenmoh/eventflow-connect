@@ -53,7 +53,7 @@ export default function Rentals() {
               </div>
               <div className="mt-4 flex-1">
                 <div className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">{r.category}</div>
-                <h3 className="font-display text-2xl mt-1">{r.name}</h3>
+                <h3 className="font-display text-xl sm:text-2xl mt-1 truncate">{r.name}</h3>
                 <p className="text-sm text-muted-foreground mt-1">{r.description}</p>
               </div>
               <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">

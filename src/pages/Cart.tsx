@@ -50,7 +50,7 @@ export default function Cart() {
                   <div key={l.itemId} className="grid grid-cols-[80px_1fr_auto] gap-4 p-4 items-center">
                     <img src={l.item.image} alt={l.item.name} className="w-20 h-20 object-cover" loading="lazy" width={80} height={80}/>
                     <div>
-                      <div className="font-display text-xl">{l.item.name}</div>
+                      <div className="font-display text-base sm:text-xl truncate">{l.item.name}</div>
                       <div className="text-xs text-muted-foreground">{fmt(l.item.pricePerDay)} / day</div>
                       <div className="mt-2 flex gap-3 text-xs">
                         <label>Qty <input type="number" min={1} value={l.quantity} onChange={e => updateCart(l.itemId, { quantity: Math.max(1, +e.target.value) })} className="ml-1 w-14 border border-border px-2 py-1 bg-transparent"/></label>

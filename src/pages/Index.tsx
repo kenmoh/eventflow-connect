@@ -90,7 +90,7 @@ export default function Home() {
                 <div className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">0{i+1}</div>
                 <div className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">{h.location}</div>
               </div>
-              <h3 className="font-display text-3xl mt-2">{h.name}</h3>
+              <h3 className="font-display text-xl sm:text-2xl md:text-3xl mt-2 truncate">{h.name}</h3>
               <p className="text-muted-foreground mt-2">{h.tagline}</p>
             </Link>
           ))}

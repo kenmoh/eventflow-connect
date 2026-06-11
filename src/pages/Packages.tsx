@@ -37,7 +37,7 @@ export default function Packages() {
                 <span className="chip">{p.kind === 'coffee' ? 'Coffee' : 'Food'}</span>
                 <span className="text-[10px] uppercase tracking-[0.25em] text-gold">{hotel?.name}</span>
               </div>
-              <h3 className="font-display text-2xl mt-3">{p.name}</h3>
+              <h3 className="font-display text-xl sm:text-2xl mt-3">{p.name}</h3>
               <p className="text-sm text-muted-foreground mt-1 flex-1">{p.description}</p>
               <ul className="mt-3 text-xs text-foreground/80 space-y-1">{p.items.map(i => <li key={i}>— {i}</li>)}</ul>
               <div className="mt-3 flex flex-wrap gap-1">

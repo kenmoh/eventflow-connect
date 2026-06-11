@@ -26,6 +26,8 @@ export default function AdminHalls() {
 
   const save = async () => {
     if (!editing) return;
+    if (!editing.name.trim()) { toast.error('Hall name is required.'); return; }
+    if (!editing.hotelId) { toast.error('Please select a hotel.'); return; }
     const exists = halls.some(h => h.id === editing.id);
     set('halls', exists ? halls.map(h => h.id === editing.id ? editing : h) : [...halls, editing]);
     setEditing(null);
@@ -88,7 +90,7 @@ export default function AdminHalls() {
                 {hotels.map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
               </select>
             </Field>
-            <Field label="Name"><input className={inputCls} value={editing.name} onChange={e => setEditing({ ...editing, name: e.target.value })}/></Field>
+            <Field label="Name"><input className={inputCls} required value={editing.name} onChange={e => setEditing({ ...editing, name: e.target.value })}/></Field>
             <Field label="Capacity"><input type="number" className={inputCls} value={editing.capacity} onChange={e => setEditing({ ...editing, capacity: +e.target.value })}/></Field>
             <Field label="Price per day (NGN)"><input type="number" className={inputCls} value={editing.pricePerDay} onChange={e => setEditing({ ...editing, pricePerDay: +e.target.value })}/></Field>
             <div className="md:col-span-2">

@@ -335,7 +335,7 @@ const submit = async () => {
             <div className="text-[10px] uppercase tracking-[0.4em] text-gold">
               {hotel.location}
             </div>
-            <h1 className="font-display text-6xl md:text-8xl mt-3">
+            <h1 className="font-display text-4xl sm:text-5xl md:text-7xl lg:text-8xl mt-3">
               {hotel.name}
             </h1>
             <p className="mt-3 opacity-80 max-w-xl">{hotel.tagline}</p>

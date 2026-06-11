@@ -38,7 +38,7 @@ export default function Hotels() {
                 </div>
               </div>
               <div className="mt-5 flex items-baseline justify-between">
-                <h3 className="font-display text-3xl">{h.name}</h3>
+                <h3 className="font-display text-xl sm:text-2xl md:text-3xl truncate">{h.name}</h3>
                 <span className="text-sm text-muted-foreground">{h.location}</span>
               </div>
               <p className="text-muted-foreground mt-2">{h.tagline}</p>
