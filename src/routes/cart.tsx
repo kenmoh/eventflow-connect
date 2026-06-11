@@ -15,7 +15,7 @@ export const Route = createFileRoute('/cart')({
       { title: "Your Cart — AB Consult" },
       { name: "description", content: "Review your equipment rental cart before checkout." },
       { property: "og:title", content: "Your Cart — AB Consult" },
-      { property: "og:url", content: "https://abconsult.com/cart" },
+      { property: "og:url", content: "https://allbrothersconsult.com/cart" },
     ],
   }),
   component: Cart,

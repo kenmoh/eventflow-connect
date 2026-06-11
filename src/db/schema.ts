@@ -144,7 +144,7 @@ export const halls = pgTable(
     hotelId: uuid('hotel_id').notNull(),
     name: text('name').notNull(),
     capacity: integer('capacity').notNull().default(1),
-    pricePerHour: numeric('price_per_hour').notNull().default('0'),
+    pricePerDay: numeric('price_per_day').notNull().default('0'),
     image: text('image').notNull().default(''),
     amenities: text('amenities').array().notNull().default([]),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),

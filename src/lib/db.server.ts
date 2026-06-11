@@ -321,7 +321,7 @@ export async function dbUpsertRoom(r: Room) {
 
 export async function dbUpsertHall(h: Hall) {
   if (!await requireAdmin()) throw new Error('Unauthorized');
-  const payload = { id: idOrNew(h.id), hotelId: h.hotelId, name: h.name, capacity: h.capacity, pricePerHour: h.pricePerHour, image: h.image, amenities: h.amenities };
+  const payload = { id: idOrNew(h.id), hotelId: h.hotelId, name: h.name, capacity: h.capacity, pricePerDay: h.pricePerDay, image: h.image, amenities: h.amenities };
   await getDb().insert(halls).values(payload as any).onConflictDoUpdate({ target: halls.id, set: payload });
   await internal_logActivity('Upserted Hall', h.name);
   invalidateCache('catalog');

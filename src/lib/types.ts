@@ -27,7 +27,7 @@ export type Hall = {
   hotelId: ID;
   name: string;
   capacity: number;
-  pricePerHour: number;
+  pricePerDay: number;
   image: string;
   amenities: string[];
 };

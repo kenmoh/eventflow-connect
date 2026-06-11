@@ -22,7 +22,7 @@ export const Route = createFileRoute('/track')({
       { title: "Track Booking — AB Consult" },
       { name: "description", content: "Track the status of your AB Consult booking using your email or booking reference." },
       { property: "og:title", content: "Track Booking — AB Consult" },
-      { property: "og:url", content: "https://abconsult.com/track" },
+      { property: "og:url", content: "https://allbrothersconsult.com/track" },
     ],
   }),
   component: Track,

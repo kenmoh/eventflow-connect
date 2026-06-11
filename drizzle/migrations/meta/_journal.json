@@ -8,6 +8,13 @@
       "when": 1780060982208,
       "tag": "0000_swift_monster_badoon",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1781000000000,
+      "tag": "0001_halls_price_per_day",
+      "breakpoints": true
     }
   ]
 }

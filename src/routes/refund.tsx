@@ -9,7 +9,7 @@ export const Route = createFileRoute("/refund")({
       { name: "description", content: "Review AB Consult's refund and cancellation policies for venue bookings and equipment rentals." },
       { property: "og:title", content: "Refund Policy — AB Consult" },
       { property: "og:description", content: "Review AB Consult's refund and cancellation policies for venue bookings and equipment rentals." },
-      { property: "og:url", content: "https://abconsult.com/refund" },
+      { property: "og:url", content: "https://allbrothersconsult.com/refund" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Refund Policy — AB Consult" },
       { name: "twitter:description", content: "AB Consult's refund and cancellation policies." },

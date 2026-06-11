@@ -84,10 +84,10 @@ export default function HotelDetail() {
           days: sel.days,
           startTime: sel.startTime,
           endTime: sel.endTime,
-          pricePerDay: hall.pricePerHour * 8,
+          pricePerDay: hall.pricePerDay,
           timeSlot: `${sel.startTime}–${sel.endTime}`,
           seatArrangement: seat?.name,
-          subtotal: hall.pricePerHour * 8 * sel.days,
+          subtotal: hall.pricePerDay * sel.days,
         });
       }
     });
@@ -500,7 +500,7 @@ const submit = async () => {
                     </button>
                     <div className="flex items-center justify-between sm:block sm:text-right mt-3 sm:mt-0">
                       <div className="font-display text-xl sm:text-2xl text-right">
-                        {fmt(h.pricePerHour * 8)}
+                        {fmt(h.pricePerDay)}
                       </div>
                       <div className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
                         /day (8h)
@@ -562,7 +562,7 @@ const submit = async () => {
                           />
                         </label>
                         <span className="text-xs text-muted-foreground flex items-center">
-                          Subtotal {fmt(h.pricePerHour * 8 * sel.days)}
+                           Subtotal {fmt(h.pricePerDay * sel.days)}
                         </span>
                       </div>
                       <div className="col-span-full mt-3 pt-3 border-t border-border">

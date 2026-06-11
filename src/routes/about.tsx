@@ -9,7 +9,7 @@ export const Route = createFileRoute("/about")({
       { name: "description", content: "Learn about AB Consult's mission to provide exceptional event venue booking and equipment rental services." },
       { property: "og:title", content: "About Us — AB Consult" },
       { property: "og:description", content: "Learn about AB Consult's mission to provide exceptional event venue booking and equipment rental services." },
-      { property: "og:url", content: "https://abconsult.com/about" },
+      { property: "og:url", content: "https://allbrothersconsult.com/about" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "About Us — AB Consult" },
       { name: "twitter:description", content: "Learn about AB Consult's mission." },

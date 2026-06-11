@@ -12,7 +12,7 @@ import { X } from 'lucide-react';
 const SUGGESTED = ['PA System', 'Mints', 'Notepad', 'Pen', 'Flip Chart', 'Projector', 'Wireless Mics', 'Stage', 'Whiteboard', 'Coffee station'];
 
 const blank = (hotelId: string): Hall => ({
-  id: crypto.randomUUID(), hotelId, name: '', capacity: 50, pricePerHour: 80000,
+  id: crypto.randomUUID(), hotelId, name: '', capacity: 50, pricePerDay: 640000,
   image: heroBallroom, amenities: [],
 });
 
@@ -70,7 +70,7 @@ export default function AdminHalls() {
                   </div>
                 )}
               </div>
-              <div className="font-display text-sm sm:text-base">{fmt(h.pricePerHour)}</div>
+              <div className="font-display text-sm sm:text-base">{fmt(h.pricePerDay)}</div>
               <div className="flex gap-2 w-full sm:w-auto">
                 <GhostBtn onClick={() => setEditing(h)} className="flex-1 sm:flex-none text-xs py-2">Edit</GhostBtn>
                 <GhostBtn onClick={() => remove(h.id)} className="flex-1 sm:flex-none text-xs py-2">Delete</GhostBtn>
@@ -90,7 +90,7 @@ export default function AdminHalls() {
             </Field>
             <Field label="Name"><input className={inputCls} value={editing.name} onChange={e => setEditing({ ...editing, name: e.target.value })}/></Field>
             <Field label="Capacity"><input type="number" className={inputCls} value={editing.capacity} onChange={e => setEditing({ ...editing, capacity: +e.target.value })}/></Field>
-            <Field label="Price (NGN)"><input type="number" className={inputCls} value={editing.pricePerHour} onChange={e => setEditing({ ...editing, pricePerHour: +e.target.value })}/></Field>
+            <Field label="Price per day (NGN)"><input type="number" className={inputCls} value={editing.pricePerDay} onChange={e => setEditing({ ...editing, pricePerDay: +e.target.value })}/></Field>
             <div className="md:col-span-2">
               <Field label="Amenities">
                 <div className="flex gap-2">

@@ -25,7 +25,7 @@ export const Route = createFileRoute('/checkout')({
       { title: "Checkout — AB Consult" },
       { name: "description", content: "Complete your equipment rental order with secure payment via Paystack." },
       { property: "og:title", content: "Checkout — AB Consult" },
-      { property: "og:url", content: "https://abconsult.com/checkout" },
+      { property: "og:url", content: "https://allbrothersconsult.com/checkout" },
     ],
   }),
   component: Checkout,

@@ -30,13 +30,13 @@ export const Route = createFileRoute('/faqs')({
         { name: "description", content: "Answers to frequently asked questions about AB Consult's venue booking and equipment rental services." },
         { property: "og:title", content: "FAQ — AB Consult" },
         { property: "og:description", content: "Frequently asked questions about our event venues and equipment rentals." },
-        { property: "og:url", content: "https://abconsult.com/faqs" },
+        { property: "og:url", content: "https://allbrothersconsult.com/faqs" },
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: "FAQ — AB Consult" },
         { name: "twitter:description", content: "Frequently asked questions about AB Consult." },
       ],
       links: [
-        { rel: "canonical", href: "https://abconsult.com/faqs" },
+        { rel: "canonical", href: "https://allbrothersconsult.com/faqs" },
       ],
       scripts: faqJsonLd ? [faqJsonLd] : [],
     };

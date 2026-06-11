@@ -9,7 +9,7 @@ export const Route = createFileRoute("/privacy")({
       { name: "description", content: "Understand how AB Consult collects, uses, and protects your personal information." },
       { property: "og:title", content: "Privacy Policy — AB Consult" },
       { property: "og:description", content: "Understand how AB Consult collects, uses, and protects your personal information." },
-      { property: "og:url", content: "https://abconsult.com/privacy" },
+      { property: "og:url", content: "https://allbrothersconsult.com/privacy" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Privacy Policy — AB Consult" },
       { name: "twitter:description", content: "How AB Consult protects your personal information." },

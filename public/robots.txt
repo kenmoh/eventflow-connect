@@ -18,4 +18,4 @@ Disallow: /checkout
 Disallow: /cart
 Disallow: /track
 
-Sitemap: https://abconsult.com/sitemap.xml
+Sitemap: https://allbrothersconsult.com/sitemap.xml

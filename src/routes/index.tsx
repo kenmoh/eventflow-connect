@@ -10,7 +10,7 @@ export const Route = createFileRoute('/')({
       { name: "description", content: "AB Consult - Premium event venue booking and equipment rental. Find hotels, event halls, and rent equipment for weddings, conferences, and parties." },
       { property: "og:title", content: "AB Consult — Book Events. Rent Equipment." },
       { property: "og:description", content: "Premium event venue booking and equipment rental services." },
-      { property: "og:url", content: "https://abconsult.com/" },
+      { property: "og:url", content: "https://allbrothersconsult.com/" },
     ],
   }),
   component: Home,
